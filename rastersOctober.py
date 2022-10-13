@@ -1,4 +1,6 @@
 import arcpy
+import numpy as np
+import pandas as pd
 arcpy.env.overwriteOutput = True
 
 # params
@@ -21,7 +23,18 @@ for raster in rasters:
     # # punten interpoleren met IDW en gewenste gridgrootte
     arcpy.ddd.Idw("tempraster_points", "grid_code", output_rasters+"/"+raster_output, grid_size, 2, "VARIABLE 12", None)
 
-# profielen trekken
+# # profielen trekken
+# generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier,trajectlijn,code,5,profielen)
+
+# copy_trajectory_lr(trajectlijn,code,10)
+
+# set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten,10)
+
+# extract_z_arcpy(invoerpunten,uitvoerpunten,raster)
+
+# add_xy(uitvoerpunten, code,trajectlijn)
+
+# excelWriterTraject(uitvoerpunten,excel,veldnamen)
 
 
 #... 
