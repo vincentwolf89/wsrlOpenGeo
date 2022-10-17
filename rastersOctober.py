@@ -123,11 +123,9 @@ def find_steepest_profile():
                 set_measurements_trajectory("profiles", trajectory, code, point_interval)
 
                 
-                # 
+                
                 break
-            # 1: find angle-bearing of current profile
-            # 2: create another profile +/-5 degrees till +/- 90 is reached
-            #
+       
 rewrite_rasters()
 profiles_part1()
 # find_steepest_profile()
