@@ -254,9 +254,9 @@ def set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten): 
             fieldmappings.removeFieldMap(fieldmappings.findFieldMapIndex(field.name))
 
     arcpy.FeatureToPoint_management("snijpunten_centerline", "punten_centerline")
-    arcpy.Merge_management(['punten_land', 'punten_rivier','punten_centerline'], 'punten_profielen', fieldmappings)
+    arcpy.management.Merge(['punten_land', 'punten_rivier','punten_centerline'], 'punten_profielen')
 
-    arcpy.CalculateField_management("punten_profielen", "afstand", 'round(!afstand!, 1)', "PYTHON")
+    arcpy.management.CalculateField("punten_profielen", "afstand", 'round(!afstand!, 1)', "PYTHON3")
 
     # set centerline values to 0
     with arcpy.da.UpdateCursor('punten_profielen', ['afstand']) as cursor:
