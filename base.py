@@ -233,25 +233,25 @@ def set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten): 
     # join fields from table
     arcpy.JoinField_management('punten_land', 'punt_id', 'uitvoer_tabel_land', 'punt_id', 'MEAS')
     arcpy.JoinField_management('punten_rivier', 'punt_id', 'uitvoer_tabel_rivier', 'punt_id', 'MEAS')
-    arcpy.AlterField_management('punten_land', 'MEAS', 'afstand')
-    arcpy.AlterField_management('punten_rivier', 'MEAS', 'afstand')
+    arcpy.AlterField_management('punten_land', 'MEAS', 'afstand',clear_field_alias="CLEAR_ALIAS")
+    arcpy.AlterField_management('punten_rivier', 'MEAS', 'afstand',clear_field_alias="CLEAR_ALIAS")
 
     with arcpy.da.UpdateCursor('punten_rivier', ['profielnummer', 'afstand']) as cursor:
         for row in cursor:
             row[1] = row[1]*-1
             cursor.updateRow(row)
 
-    fieldmappings = arcpy.FieldMappings()
-    fieldmappings.addTable('punten_land')
-    fieldmappings.addTable('punten_rivier')
-    fieldmappings.addTable('snijpunten_centerline')
+    # fieldmappings = arcpy.FieldMappings()
+    # fieldmappings.addTable('punten_land')
+    # fieldmappings.addTable('punten_rivier')
+    # fieldmappings.addTable('snijpunten_centerline')
 
-    velden = ['profielnummer', 'afstand', code]
-    keepers = velden
+    # velden = ['profielnummer', 'afstand', code]
+    # keepers = velden
 
-    for field in fieldmappings.fields:
-        if field.name not in keepers:
-            fieldmappings.removeFieldMap(fieldmappings.findFieldMapIndex(field.name))
+    # for field in fieldmappings.fields:
+    #     if field.name not in keepers:
+    #         fieldmappings.removeFieldMap(fieldmappings.findFieldMapIndex(field.name))
 
     arcpy.FeatureToPoint_management("snijpunten_centerline", "punten_centerline")
     arcpy.management.Merge(['punten_land', 'punten_rivier','punten_centerline'], 'punten_profielen')
