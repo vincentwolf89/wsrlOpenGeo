@@ -12,10 +12,11 @@ trajectory = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\i
 code = "code"
 fieldnames =['profielnummer', 'afstand', 'z_ahn', 'x', 'y']
 xls_outputloc = r"C:\Users\vince\Desktop\ssh_output"
+raster_prefix = "inputraster"
 
 profile_length_river = 30 #m
 profile_length_land = 30 #m
-profile_interval = 25 #m
+profile_interval = 20 #m
 point_interval = 5 #m
 
 def rewrite_rasters():
@@ -27,13 +28,14 @@ def rewrite_rasters():
     input_rasters = arcpy.ListRasters("*")
     for raster in input_rasters:
         raster = str(raster)
-        raster_output = raster+"_{}".format(str(grid_size)+"m")
-        # raster naar punten vertalen
-        arcpy.conversion.RasterToPoint(raster, "tempraster_points", "Value")
-        # # punten interpoleren met IDW en gewenste gridgrootte
-        arcpy.ddd.Idw("tempraster_points", "grid_code", output_gdb+"/"+raster_output, grid_size, 2, "VARIABLE 12", None)
+        if raster.startswith(raster_prefix) == True:
+            raster_output = raster+"_{}".format(str(grid_size)+"m")
+            # raster naar punten vertalen
+            arcpy.conversion.RasterToPoint(raster, "tempraster_points", "Value")
+            # # punten interpoleren met IDW en gewenste gridgrootte
+            arcpy.ddd.Idw("tempraster_points", "grid_code", output_gdb+"/"+raster_output, grid_size, 2, "VARIABLE 12", None)
 
-    print ("raster written to grid size: {}".format(grid_size))
+            print ("raster written to grid size: {}".format(grid_size))
 
 def profiles_part1():
     # switch environment to ouput
@@ -41,23 +43,64 @@ def profiles_part1():
     arcpy.env.overwriteOutput = True
     output_rasters = arcpy.ListRasters("*")
     for raster in output_rasters:
+        raster = str(raster)
+        if raster.startswith(raster_prefix) == True:
+            profiles = "profiles_{}".format(str(raster))
+            input_points = "punten_profielen"
+            output_points = "points_profiles_z"
+            excel = xls_outputloc+"/"+ "output_profiles_{}".format(str(raster)+".xlsx")
+            # profielen trekken
+            generate_profiles(profile_interval, profile_length_land, profile_length_river, trajectory, code, profiles)
 
-        profiles = "profiles_{}".format(str(raster))
-        input_points = "punten_profielen"
-        output_points = "points_profiles_z"
-        excel = xls_outputloc+"/"+ "output_profiles_{}".format(str(raster)+".xlsx")
-        # profielen trekken
-        generate_profiles(profile_interval, profile_length_land, profile_length_river, trajectory, code, profiles)
+            copy_trajectory_lr(trajectory,code,10)
 
-        copy_trajectory_lr(trajectory,code,10)
+            set_measurements_trajectory(profiles, trajectory, code, point_interval)
 
-        set_measurements_trajectory(profiles, trajectory, code, point_interval)
+            extract_z_arcpy(input_points,output_points,raster)
 
-        extract_z_arcpy(input_points,output_points,raster)
+            add_xy(output_points, code,trajectory)
 
-        add_xy(output_points, code,trajectory)
+            excelWriterTraject(output_points, excel, fieldnames)
 
-        excelWriterTraject(output_points, excel, fieldnames)
+            arcpy.AddField_management(profiles, "midpoint_x", "DOUBLE", 2, field_is_nullable="NULLABLE")
+            arcpy.AddField_management(profiles, "midpoint_y", "DOUBLE", 2, field_is_nullable="NULLABLE")
+            arcpy.AddField_management(profiles, "bearing_1", "DOUBLE", 2, field_is_nullable="NULLABLE")
+            arcpy.AddField_management(profiles, "bearing_2", "DOUBLE", 2, field_is_nullable="NULLABLE")
+            arcpy.AddField_management(profiles, "half_length", "DOUBLE", 2, field_is_nullable="NULLABLE")
 
 
-profiles_part1()
+
+def find_steepest_profile():
+    arcpy.env.workspace = output_gdb
+    arcpy.env.overwriteOutput = True
+    output_rasters = arcpy.ListRasters("*")
+    for raster in output_rasters:
+        raster = str(raster)
+        if raster.startswith(raster_prefix) == True:
+            profiles = "profiles_{}".format(str(raster))
+            
+            # calculate bearing 
+            arcpy.management.CalculateGeometryAttributes(profiles, [["bearing_1", "LINE_BEARING"],["midpoint_x", "CENTROID_X"],["midpoint_y", "CENTROID_Y"]])
+            arcpy.management.CalculateField(profiles, "bearing_2", "$feature.bearing_1-180", "ARCADE")
+            arcpy.management.CalculateField(profiles, "half_length", "!SHAPE.LENGTH!/2","PYTHON3")    
+            # iterate over profiles:
+            profile_cursor = arcpy.da.SearchCursor(profiles,['bearing_1','bearing_2','midpoint_x','midpoint_y','half_length','SHAPE@','profielnummer'])
+            for row in profile_cursor:
+                profile_number = row[6]
+                profile = "testprofile"
+                where = '"profielnummer" = {}'.format(profile_number)
+                arcpy.Select_analysis(profiles, profile, where)
+    
+                arcpy.BearingDistanceToLine_management(profile, "tester_1", "midpoint_x", "midpoint_y", distance_field="half_length",bearing_field="bearing_1")
+                arcpy.BearingDistanceToLine_management(profile, "tester_2", "midpoint_x", "midpoint_y", distance_field="half_length",bearing_field="bearing_2")
+
+                # merge the lines
+
+                # 
+                break
+            # 1: find angle-bearing of current profile
+            # 2: create another profile +/-5 degrees till +/- 90 is reached
+            #
+# rewrite_rasters()
+# profiles_part1()
+find_steepest_profile()
