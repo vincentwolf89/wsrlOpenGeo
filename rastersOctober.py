@@ -19,6 +19,9 @@ profile_length_land = 30 #m
 profile_interval = 20 #m
 point_interval = 5 #m
 
+
+
+
 def rewrite_rasters():
 
     arcpy.env.workspace = input_gdb
