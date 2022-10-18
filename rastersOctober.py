@@ -114,6 +114,7 @@ def find_steepest_profile():
             for row in profile_cursor:
 
                 attempts = list(range(0,9))
+                profile_main_bearing = row[0]
                 bearing = row[0]-90+18
                 profile_number = row[6]
                 profile = "testprofile"
@@ -136,20 +137,24 @@ def find_steepest_profile():
                     
                     profile_list.append("profile_{}".format(item))
 
-                arcpy.management.Merge(profile_list ,"profiles")
+                max_slope_profiles = "max_slope_profiles_"+str(raster)
+                print(max_slope_profiles)
+                arcpy.management.Merge(profile_list , max_slope_profiles)
                 # add code field
-                arcpy.AddField_management("profiles", code, "DOUBLE", 2, field_is_nullable="NULLABLE")
-                arcpy.AddField_management("profiles", "profielnummer", "DOUBLE", 2, field_is_nullable="NULLABLE")
-                arcpy.management.CalculateField("profiles", code, "'code'", "PYTHON3")
-                arcpy.management.CalculateField("profiles", "profielnummer", '!OBJECTID!', "PYTHON3")
+                arcpy.AddField_management(max_slope_profiles, code, "DOUBLE", 2, field_is_nullable="NULLABLE")
+                arcpy.AddField_management(max_slope_profiles, "profielnummer", "DOUBLE", 2, field_is_nullable="NULLABLE")
+                
+                arcpy.management.CalculateField(max_slope_profiles, code, "'code'", "PYTHON3")
+                arcpy.management.CalculateField(max_slope_profiles, "profielnummer", '!OBJECTID!', "PYTHON3")
                 copy_trajectory_lr(trajectory,code,1)
-                set_measurements_trajectory("profiles", trajectory, code, point_interval)
+                set_measurements_trajectory(max_slope_profiles, trajectory, code, point_interval)
 
                 input_points = "punten_profielen"
                 output_points = "points_profiles_z"
                 extract_z_arcpy(input_points,output_points,raster)
 
                 # find steepest profile
+                slopes_list = []
                 slope_cursor = arcpy.da.SearchCursor(output_points,['profielnummer','afstand','z_ahn'],sql_clause=(None, 'ORDER BY profielnummer, afstand'))
                 for profile_number, group in groupby(slope_cursor, lambda x: x[0]):
                     x_list = []
@@ -165,18 +170,44 @@ def find_steepest_profile():
                     x_mean = np.mean(x_array)
                     z_mean = np.mean(z_array)
                     x_mean,z_mean
-
-                    print(x_array,"xlist")
-                    print(z_array,"ylist")
-                    print(x_mean,"x_mean")
-                    print(z_mean,"z_mean")
                 
                     Sxy = np.sum(x_array*z_array)- n*x_mean*z_mean
                     Sxx = np.sum(x_array*x_array)-n*x_mean*x_mean
                 
-                    b1 = Sxy/Sxx
-                    print(b1)
+                    slope = Sxy/Sxx
+                    slopes_list.append([profile_number,abs(slope)])
+                
+                slope_df = pd.DataFrame(slopes_list, columns=['profile_number', 'slope'])
+                # print (slope_df)
+                max_slope = slope_df[slope_df.slope == slope_df.slope.max()].iloc[0]['slope']
+                profile_max_slope = slope_df[slope_df.slope == slope_df.slope.max()].iloc[0]['profile_number']
 
+                # get remaining profile, delete others
+                arcpy.AddField_management(max_slope_profiles, "slope", "DOUBLE", 2, field_is_nullable="NULLABLE")
+
+                max_profile_cursor = arcpy.da.UpdateCursor(max_slope_profiles,['profielnummer','slope'])
+                for profile_row in max_profile_cursor:
+                    if int(profile_row[0]) == int(profile_max_slope):
+                        profile_row[1] = max_slope
+                        max_profile_cursor.updateRow(profile_row)
+                    else:
+                        max_profile_cursor.deleteRow()
+                del max_profile_cursor
+
+
+                # find the angle
+                arcpy.AddField_management(max_slope_profiles, "bearing", "DOUBLE", 2, field_is_nullable="NULLABLE")
+                arcpy.AddField_management(max_slope_profiles, "bearing_dike", "DOUBLE", 2, field_is_nullable="NULLABLE")
+                arcpy.management.CalculateGeometryAttributes(max_slope_profiles, [["bearing", "LINE_BEARING"]])
+                bearing_profile_cursor = arcpy.da.UpdateCursor(max_slope_profiles,['profielnummer','bearing','bearing_dike'])
+                for profile_row in bearing_profile_cursor:
+                    profile_bearing = row[0]
+                    bearing_difference = abs(profile_main_bearing - profile_main_bearing)
+                    profile_row[2] = 90- bearing_difference
+                    bearing_profile_cursor.updateRow(profile_row)
+
+
+                # create insertcursor for whole profile set to insert max_angle_profiles --> work needed
 
                 
                 
