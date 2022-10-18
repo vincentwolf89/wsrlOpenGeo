@@ -1,24 +1,40 @@
 import arcpy
 import numpy as np
 import pandas as pd
+import os
+from itertools import groupby
 from base import *
 arcpy.env.overwriteOutput = True
 
 # params
 grid_size = 5 #m
+temp_gdb = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\temp.gdb"#database
 input_gdb = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\input_rasters.gdb"#database
 output_gdb =  r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_rasters.gdb"#database
-trajectory = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\input_rasters.gdb\trajectlijn_demo"
+trajectory = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\input_rasters.gdb\trajectlijn"
 code = "code"
 fieldnames =['profielnummer', 'afstand', 'z_ahn', 'x', 'y']
-xls_outputloc = r"C:\Users\vince\Desktop\ssh_output"
-raster_prefix = "inputraster"
+xls_outputloc = r"C:\Users\vince\Desktop\ssh_output\output_xlsx"
+raster_prefix = "KD"
 
-profile_length_river = 30 #m
-profile_length_land = 30 #m
+profile_length_river = 100 #m
+profile_length_land = 100 #m
 profile_interval = 20 #m
 point_interval = 5 #m
+extension_river = 30 #m
 
+def project_rasters():
+    arcpy.env.workspace = temp_gdb
+    arcpy.env.overwriteOutput = True
+
+    # set environment to input
+    input_rasters = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\rasters_los"
+
+    for raster_name in os.listdir(input_rasters):
+        raster = input_rasters+"\{}".format(raster_name)
+        output_raster = raster_name.split("-")[2][0:11]
+    
+        arcpy.management.ProjectRaster(raster, output_raster, 'PROJCS["RD_New",GEOGCS["GCS_Amersfoort",DATUM["D_Amersfoort",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Double_Stereographic"],PARAMETER["False_Easting",155000.0],PARAMETER["False_Northing",463000.0],PARAMETER["Central_Meridian",5.38763888888889],PARAMETER["Scale_Factor",0.9999079],PARAMETER["Latitude_Of_Origin",52.15616055555555],UNIT["Meter",1.0]]', "NEAREST", "5 5", None, None, 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]', "NO_VERTICAL")
 
 
 
@@ -69,7 +85,10 @@ def profiles_part1():
             arcpy.AddField_management(profiles, "midpoint_y", "DOUBLE", 2, field_is_nullable="NULLABLE")
             arcpy.AddField_management(profiles, "bearing_1", "DOUBLE", 2, field_is_nullable="NULLABLE")
             arcpy.AddField_management(profiles, "bearing_2", "DOUBLE", 2, field_is_nullable="NULLABLE")
-            arcpy.AddField_management(profiles, "half_length", "DOUBLE", 2, field_is_nullable="NULLABLE")
+            
+
+            print (raster)
+           
 
 
 
@@ -81,18 +100,21 @@ def find_steepest_profile():
         raster = str(raster)
         if raster.startswith(raster_prefix) == True:
             arcpy.management.CopyFeatures("profiles_{}".format(str(raster)), "profiles_test")
+            
             profiles = "profiles_test"
+            arcpy.AddField_management(profiles, "extension_river", "DOUBLE", 2, field_is_nullable="NULLABLE")
+            arcpy.management.CalculateField(profiles, "extension_river", "'{}'".format(extension_river),"PYTHON3")  
             
             # calculate bearing 
             arcpy.management.CalculateGeometryAttributes(profiles, [["bearing_1", "LINE_BEARING"],["midpoint_x", "CENTROID_X"],["midpoint_y", "CENTROID_Y"]])
-            arcpy.management.CalculateField(profiles, "bearing_2", "$feature.bearing_1-180", "ARCADE")
-            arcpy.management.CalculateField(profiles, "half_length", "round(!SHAPE.LENGTH!/2)","PYTHON3")    
+            # arcpy.management.CalculateField(profiles, "bearing_2", "$feature.bearing_1-180", "ARCADE")
+             
             # iterate over profiles:
-            profile_cursor = arcpy.da.SearchCursor(profiles,['bearing_1','bearing_2','midpoint_x','midpoint_y','half_length','SHAPE@','profielnummer'])
+            profile_cursor = arcpy.da.SearchCursor(profiles,['bearing_1','bearing_2','midpoint_x','midpoint_y','extension_river','SHAPE@','profielnummer'])
             for row in profile_cursor:
 
-                attempts = list(range(0,11))
-                bearing = row[0]-90
+                attempts = list(range(0,9))
+                bearing = row[0]-90+18
                 profile_number = row[6]
                 profile = "testprofile"
                 where = '"profielnummer" = {}'.format(profile_number)
@@ -101,18 +123,16 @@ def find_steepest_profile():
                 profile_list = []
                 for item in attempts:
                     arcpy.management.CalculateField(profile, "bearing_1", "'"+ str(round(bearing)) +"'", "PYTHON3")
-                    arcpy.management.CalculateField(profile, "bearing_2", "'"+ str(round(bearing-180)) +"'", "PYTHON3")
+                    # arcpy.management.CalculateField(profile, "bearing_2", "'"+ str(round(bearing-180)) +"'", "PYTHON3")
                     
-                    arcpy.BearingDistanceToLine_management(profile, "tester_1_{}".format(str(item)), "midpoint_x", "midpoint_y", distance_field="half_length",bearing_field="bearing_1")
-                    arcpy.BearingDistanceToLine_management(profile, "tester_2_{}".format(str(item)), "midpoint_x", "midpoint_y", distance_field="half_length",bearing_field="bearing_2")
+                    arcpy.BearingDistanceToLine_management(profile, "profile_{}".format(item), "midpoint_x", "midpoint_y", distance_field="extension_river",bearing_field="bearing_1")
+                    # arcpy.BearingDistanceToLine_management(profile, "tester_2_{}".format(str(item)), "midpoint_x", "midpoint_y", distance_field="half_length",bearing_field="bearing_2")
                     bearing += 18
                     print(bearing)
 
 
-                    
-
-                    arcpy.management.Merge(["tester_1_{}".format(str(item)),"tester_2_{}".format(str(item))],"templayer")
-                    arcpy.management.Dissolve("templayer", "profile_{}".format(item))
+                    # arcpy.management.Merge(["tester_1_{}".format(str(item)),"tester_2_{}".format(str(item))],"templayer")
+                    # arcpy.management.Dissolve("templayer", "profile_{}".format(item))
                     
                     profile_list.append("profile_{}".format(item))
 
@@ -125,10 +145,46 @@ def find_steepest_profile():
                 copy_trajectory_lr(trajectory,code,1)
                 set_measurements_trajectory("profiles", trajectory, code, point_interval)
 
+                input_points = "punten_profielen"
+                output_points = "points_profiles_z"
+                extract_z_arcpy(input_points,output_points,raster)
+
+                # find steepest profile
+                slope_cursor = arcpy.da.SearchCursor(output_points,['profielnummer','afstand','z_ahn'],sql_clause=(None, 'ORDER BY profielnummer, afstand'))
+                for profile_number, group in groupby(slope_cursor, lambda x: x[0]):
+                    x_list = []
+                    z_list = []
+                    for slope_row in group:
+                        x_list.append(round(slope_row[1],2))
+                        z_list.append(round(slope_row[2],2))
+
+
+                    x_array= np.array(x_list)
+                    z_array= np.array(z_list)
+                    n = np.size(x_array)
+                    x_mean = np.mean(x_array)
+                    z_mean = np.mean(z_array)
+                    x_mean,z_mean
+
+                    print(x_array,"xlist")
+                    print(z_array,"ylist")
+                    print(x_mean,"x_mean")
+                    print(z_mean,"z_mean")
+                
+                    Sxy = np.sum(x_array*z_array)- n*x_mean*z_mean
+                    Sxx = np.sum(x_array*x_array)-n*x_mean*x_mean
+                
+                    b1 = Sxy/Sxx
+                    print(b1)
+
+
                 
                 
                 break
-       
-rewrite_rasters()
-profiles_part1()
-# find_steepest_profile()
+
+            break
+
+# project_rasters()       
+# rewrite_rasters()
+# profiles_part1()
+find_steepest_profile()

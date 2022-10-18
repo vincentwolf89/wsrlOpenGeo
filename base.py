@@ -202,12 +202,8 @@ def set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten): 
         if field.name not in keepers:
             fieldmappings.removeFieldMap(fieldmappings.findFieldMapIndex(field.name))
 
-    arcpy.SpatialJoin_analysis('routes_rivier_', trajectlijn, 'routes_rivier', "JOIN_ONE_TO_ONE", "KEEP_COMMON",
-                               fieldmappings,
-                               match_option="INTERSECT")
-    arcpy.SpatialJoin_analysis('routes_land_', trajectlijn, 'routes_land', "JOIN_ONE_TO_ONE", "KEEP_COMMON",
-                               fieldmappings,
-                               match_option="INTERSECT")
+    arcpy.SpatialJoin_analysis('routes_rivier_', trajectlijn, 'routes_rivier', "JOIN_ONE_TO_ONE", "KEEP_COMMON", match_option="INTERSECT",search_radius=1)
+    arcpy.SpatialJoin_analysis('routes_land_', trajectlijn, 'routes_land', "JOIN_ONE_TO_ONE", "KEEP_COMMON", match_option="INTERSECT",search_radius=1)
 
     # generate points
     arcpy.GeneratePointsAlongLines_management('routes_land', 'punten_land', 'DISTANCE', Distance= stapgrootte_punten)
@@ -281,11 +277,11 @@ def extract_z_arcpy(invoerpunten, uitvoerpunten, raster): #
 
 def add_xy(uitvoerpunten,code,trajectlijn):
 
-    existing_fields = arcpy.ListFields(uitvoerpunten)
-    needed_fields = ['OBJECTID', 'Shape', 'profielnummer', 'afstand', 'z_ahn', code]
-    for field in existing_fields:
-        if field.name not in needed_fields:
-            arcpy.DeleteField_management(trajectlijn, field.name)
+    # existing_fields = arcpy.ListFields(uitvoerpunten)
+    # needed_fields = ['OBJECTID','OBJECTID_1','OID@' 'Shape', 'profielnummer', 'afstand', 'z_ahn', code]
+    # # for field in existing_fields:
+    #     if field.name not in needed_fields:
+    #         arcpy.DeleteField_management(trajectlijn, field.name)
 
     arcpy.env.outputCoordinateSystem = arcpy.Describe(uitvoerpunten).spatialReference
     # Set local variables
