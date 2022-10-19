@@ -229,8 +229,13 @@ def find_steepest_profile():
                     if profile_main_bearing > 180:
                         profile_main_bearing = abs(profile_main_bearing-360)
 
-                    bearing_difference = abs(profile_bearing-profile_main_bearing)
-                    profile_row[3] = 90-bearing_difference
+                    # bearing_difference = abs(profile_bearing-profile_main_bearing)
+                    bearing_difference = profile_main_bearing - profile_bearing
+                    if bearing_difference > 0:
+                      profile_row[3] = 90-abs(bearing_difference)
+                    if bearing_difference < 0:
+                      profile_row[3] = 90 + abs(bearing_difference)    
+                    
                     bearing_profile_cursor.updateRow(profile_row)
 
 
@@ -244,7 +249,7 @@ def find_steepest_profile():
 
                 
                 
-                break
+                # break
 
             break
 
