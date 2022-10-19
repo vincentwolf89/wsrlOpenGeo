@@ -100,6 +100,19 @@ def find_steepest_profile():
         raster = str(raster)
         if raster.startswith(raster_prefix) == True:
             arcpy.management.CopyFeatures("profiles_{}".format(str(raster)), "profiles_test")
+
+            # create feature class and insertcursor
+            max_slope_profiles = "max_slope_profiles_"+str(raster)
+            sref = arcpy.Describe(raster).spatialReference
+            arcpy.CreateFeatureclass_management(output_gdb, max_slope_profiles, geometry_type="POLYLINE", spatial_reference= sref)
+            max_slope_insert_fields = ['SHAPE@','profielnummer', 'slope', 'bearing', 'bearing_dike']
+            for field in max_slope_insert_fields:
+                if field != "SHAPE@":
+                    arcpy.AddField_management(max_slope_profiles, field , "DOUBLE", 2, field_is_nullable="NULLABLE")
+            
+            max_slope_insert_cursor = arcpy.da.InsertCursor(max_slope_profiles, max_slope_insert_fields)
+
+
             
             profiles = "profiles_test"
             arcpy.AddField_management(profiles, "extension_river", "DOUBLE", 2, field_is_nullable="NULLABLE")
@@ -112,13 +125,17 @@ def find_steepest_profile():
             # iterate over profiles:
             profile_cursor = arcpy.da.SearchCursor(profiles,['bearing_1','bearing_2','midpoint_x','midpoint_y','extension_river','SHAPE@','profielnummer'])
             for row in profile_cursor:
-
+                
                 attempts = list(range(0,9))
                 profile_main_bearing = row[0]
                 bearing = row[0]-90+18
-                profile_number = row[6]
+
+                if bearing >= 360:
+                    bearing = bearing-360
+
+                profile_main_number = row[6]
                 profile = "testprofile"
-                where = '"profielnummer" = {}'.format(profile_number)
+                where = '"profielnummer" = {}'.format(profile_main_number)
                 arcpy.Select_analysis(profiles, profile, where)
 
                 profile_list = []
@@ -129,6 +146,9 @@ def find_steepest_profile():
                     arcpy.BearingDistanceToLine_management(profile, "profile_{}".format(item), "midpoint_x", "midpoint_y", distance_field="extension_river",bearing_field="bearing_1")
                     # arcpy.BearingDistanceToLine_management(profile, "tester_2_{}".format(str(item)), "midpoint_x", "midpoint_y", distance_field="half_length",bearing_field="bearing_2")
                     bearing += 18
+
+                    if bearing >= 360:
+                        bearing = bearing-360
                     print(bearing)
 
 
@@ -137,8 +157,8 @@ def find_steepest_profile():
                     
                     profile_list.append("profile_{}".format(item))
 
-                max_slope_profiles = "max_slope_profiles_"+str(raster)
-                print(max_slope_profiles)
+                max_slope_profiles = "max_slope_profiles"
+
                 arcpy.management.Merge(profile_list , max_slope_profiles)
                 # add code field
                 arcpy.AddField_management(max_slope_profiles, code, "DOUBLE", 2, field_is_nullable="NULLABLE")
@@ -157,6 +177,7 @@ def find_steepest_profile():
                 slopes_list = []
                 slope_cursor = arcpy.da.SearchCursor(output_points,['profielnummer','afstand','z_ahn'],sql_clause=(None, 'ORDER BY profielnummer, afstand'))
                 for profile_number, group in groupby(slope_cursor, lambda x: x[0]):
+    
                     x_list = []
                     z_list = []
                     for slope_row in group:
@@ -199,15 +220,27 @@ def find_steepest_profile():
                 arcpy.AddField_management(max_slope_profiles, "bearing", "DOUBLE", 2, field_is_nullable="NULLABLE")
                 arcpy.AddField_management(max_slope_profiles, "bearing_dike", "DOUBLE", 2, field_is_nullable="NULLABLE")
                 arcpy.management.CalculateGeometryAttributes(max_slope_profiles, [["bearing", "LINE_BEARING"]])
-                bearing_profile_cursor = arcpy.da.UpdateCursor(max_slope_profiles,['profielnummer','bearing','bearing_dike'])
+                bearing_profile_cursor = arcpy.da.UpdateCursor(max_slope_profiles,['profielnummer','slope','bearing','bearing_dike','SHAPE@'])
                 for profile_row in bearing_profile_cursor:
-                    profile_bearing = row[0]
-                    bearing_difference = abs(profile_main_bearing - profile_main_bearing)
-                    profile_row[2] = 90- bearing_difference
+                    profile_bearing = profile_row[2]
+                    if profile_bearing > 180:
+                        profile_bearing = abs(profile_bearing-360)
+                    
+                    if profile_main_bearing > 180:
+                        profile_main_bearing = abs(profile_main_bearing-360)
+
+                    bearing_difference = abs(profile_bearing-profile_main_bearing)
+                    profile_row[3] = 90-bearing_difference
                     bearing_profile_cursor.updateRow(profile_row)
 
 
-                # create insertcursor for whole profile set to insert max_angle_profiles --> work needed
+                    insertRow = (profile_row[4],profile_main_number,profile_row[1],profile_row[2],profile_row[3])
+
+                
+                del bearing_profile_cursor
+                max_slope_insert_cursor.insertRow(insertRow)
+                
+
 
                 
                 
