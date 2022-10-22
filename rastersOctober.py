@@ -372,21 +372,8 @@ def find_wl_steepest_profile():
             arcpy.management.PointsToLine("punten_profielen_z_wl", "max_slope_profiles_wl_{}".format(raster), "profielnummer", "afstand", "NO_CLOSE")
 
             # add attributes (slope,bearing_dike,....)
-
-
-          
-
-
-
-           
-
-
-
-
-
-            # find closest value 
-
-            # cut profile
+            arcpy.JoinField_management("max_slope_profiles_wl_{}".format(raster), 'profielnummer', max_slope_profiles, 'profielnummer', 'slope')
+            arcpy.JoinField_management("max_slope_profiles_wl_{}".format(raster), 'profielnummer', max_slope_profiles, 'profielnummer', 'bearing_dike')
 
             break
 
