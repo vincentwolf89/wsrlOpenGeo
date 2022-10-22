@@ -137,9 +137,9 @@ def generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier
 def set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten): #rechts = rivier, profielen van binnen naar buiten
     # clean feature
     existing_fields = arcpy.ListFields(profielen)
-    needed_fields = ['OBJECTID', 'SHAPE', 'SHAPE_Length','Shape','Shape_Length','profielnummer']
+    delete_fields = ['van','tot']
     for field in existing_fields:
-        if field.name not in needed_fields:
+        if field.name in delete_fields:
             arcpy.DeleteField_management(profielen, field.name)
 
     # add needed fields
@@ -152,7 +152,7 @@ def set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten): 
     # split profiles
     rivierlijn = "river"
     landlijn = "land"
-    clusterTolerance = 0
+    clusterTolerance = 1
     invoer = [profielen, trajectlijn]
     uitvoer = 'snijpunten_centerline'
     arcpy.Intersect_analysis(invoer, uitvoer, "", clusterTolerance, "point")
