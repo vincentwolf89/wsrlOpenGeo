@@ -354,7 +354,7 @@ def find_wl_steepest_profile():
 
 
             idx = df.groupby(['profielnummer'])['abs_difference'].transform(min) == df['abs_difference']
-            print(df[idx].iloc[0]['afstand'])
+            # print(df[idx].iloc[0]['afstand'])
 
             fx_cursor_wl = arcpy.da.UpdateCursor("punten_profielen_z_wl",['profielnummer','afstand','rastervalue_1','slope','fx_slope','rastervalue_wl','abs_difference'],sql_clause=(None, 'ORDER BY profielnummer, afstand DESC'))
                    
@@ -369,7 +369,7 @@ def find_wl_steepest_profile():
                         pass
 
             # create profile lines
-            arcpy.management.PointsToLine("punten_profielen_z_wl", "max_slope_profiles_wl".format(raster), "profielnummer", "afstand", "NO_CLOSE")
+            arcpy.management.PointsToLine("punten_profielen_z_wl", "max_slope_profiles_wl_{}".format(raster), "profielnummer", "afstand", "NO_CLOSE")
 
             # add attributes (slope,bearing_dike,....)
 
