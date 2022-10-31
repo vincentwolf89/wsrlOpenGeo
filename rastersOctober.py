@@ -130,9 +130,9 @@ def find_steepest_profile():
             profile_cursor = arcpy.da.SearchCursor(profiles,['bearing_1','bearing_2','midpoint_x','midpoint_y','extension_river','SHAPE@','profielnummer'])
             for row in profile_cursor:
                 
-                attempts = list(range(0,9))
+                attempts = list(range(0,59))
                 profile_main_bearing = row[0]
-                bearing = row[0]-90+18
+                bearing = row[0]-90+3
 
                 if bearing >= 360:
                     bearing = bearing-360
@@ -383,3 +383,5 @@ def find_wl_steepest_profile():
 # profiles_part1()
 # find_steepest_profile()
 find_wl_steepest_profile()
+
+
