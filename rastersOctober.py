@@ -135,7 +135,7 @@ def find_steepest_profile():
                 bearing = row[0]-90+3
 
                 if bearing >= 360:
-                    bearing = bearing-360
+                    bearing = bearing-360 
 
                 profile_main_number = row[6]
                 profile = "testprofile"
