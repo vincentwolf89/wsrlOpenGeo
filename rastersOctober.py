@@ -9,6 +9,7 @@ from arcpy.sa import *
 
 # params
 grid_size = 5 #m
+input_rasters = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\rasters_los"
 temp_gdb = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\temp.gdb"#database
 input_gdb = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\input_rasters.gdb"#database
 output_gdb =  r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_rasters.gdb"#database
@@ -18,11 +19,11 @@ code = "code"
 default_code = 1
 fieldnames =['profielnummer', 'afstand', 'z_ahn', 'x', 'y']
 xls_outputloc = r"C:\Users\vince\Desktop\ssh_output\output_xlsx"
-raster_prefix = "KD"
+raster_prefix = "L4KD2CR2C2"
 
 profile_length_river = 100 #m
 profile_length_land = 100 #m
-profile_interval = 20 #m
+profile_interval = 100 #m
 point_interval = 5 #m
 extension_river = 30 #m
 max_search_distance = 400 #m
@@ -32,11 +33,12 @@ def project_rasters():
     arcpy.env.overwriteOutput = True
 
     # set environment to input
-    input_rasters = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\rasters_los"
+    
 
     for raster_name in os.listdir(input_rasters):
         raster = input_rasters+"\{}".format(raster_name)
-        output_raster = raster_name.split("-")[2][0:11]
+        output_raster = raster_name.split("_")[2][0:11]
+        print (output_raster)
     
         arcpy.management.ProjectRaster(raster, output_raster, 'PROJCS["RD_New",GEOGCS["GCS_Amersfoort",DATUM["D_Amersfoort",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Double_Stereographic"],PARAMETER["False_Easting",155000.0],PARAMETER["False_Northing",463000.0],PARAMETER["Central_Meridian",5.38763888888889],PARAMETER["Scale_Factor",0.9999079],PARAMETER["Latitude_Of_Origin",52.15616055555555],UNIT["Meter",1.0]]', "NEAREST", "5 5", None, None, 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]', "NO_VERTICAL")
 
@@ -51,6 +53,7 @@ def rewrite_rasters():
     input_rasters = arcpy.ListRasters("*")
     for raster in input_rasters:
         raster = str(raster)
+        print (raster)
         if raster.startswith(raster_prefix) == True:
             raster_output = raster+"_{}".format(str(grid_size)+"m")
             # raster naar punten vertalen
@@ -130,9 +133,9 @@ def find_steepest_profile():
             profile_cursor = arcpy.da.SearchCursor(profiles,['bearing_1','bearing_2','midpoint_x','midpoint_y','extension_river','SHAPE@','profielnummer'])
             for row in profile_cursor:
                 
-                attempts = list(range(0,59))
+                attempts = list(range(0,29))
                 profile_main_bearing = row[0]
-                bearing = row[0]-90+3
+                bearing = row[0]-42+3
 
                 if bearing >= 360:
                     bearing = bearing-360 
@@ -149,7 +152,7 @@ def find_steepest_profile():
                     
                     arcpy.BearingDistanceToLine_management(profile, "profile_{}".format(item), "midpoint_x", "midpoint_y", distance_field="extension_river",bearing_field="bearing_1")
                     # arcpy.BearingDistanceToLine_management(profile, "tester_2_{}".format(str(item)), "midpoint_x", "midpoint_y", distance_field="half_length",bearing_field="bearing_2")
-                    bearing += 18
+                    bearing += 3
 
                     if bearing >= 360:
                         bearing = bearing-360
@@ -254,9 +257,8 @@ def find_steepest_profile():
 
                 
                 
-                # break
 
-            break
+            
 
 def find_wl_steepest_profile():
     arcpy.env.workspace = output_gdb
@@ -375,7 +377,7 @@ def find_wl_steepest_profile():
             arcpy.JoinField_management("max_slope_profiles_wl_{}".format(raster), 'profielnummer', max_slope_profiles, 'profielnummer', 'slope')
             arcpy.JoinField_management("max_slope_profiles_wl_{}".format(raster), 'profielnummer', max_slope_profiles, 'profielnummer', 'bearing_dike')
 
-            break
+           
 
                    
 # project_rasters()       
