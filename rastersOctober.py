@@ -19,7 +19,7 @@ code = "code"
 default_code = 1
 fieldnames =['profielnummer', 'afstand', 'z_ahn', 'x', 'y']
 xls_outputloc = r"C:\Users\vince\Desktop\ssh_output\output_xlsx"
-raster_prefix = "L4KD2CR2C2"
+raster_prefix = "L4KD"
 
 profile_length_river = 100 #m
 profile_length_land = 100 #m
@@ -156,7 +156,7 @@ def find_steepest_profile():
 
                     if bearing >= 360:
                         bearing = bearing-360
-                    print(bearing)
+                    # print(bearing)
 
 
                     # arcpy.management.Merge(["tester_1_{}".format(str(item)),"tester_2_{}".format(str(item))],"templayer")
@@ -383,7 +383,7 @@ def find_wl_steepest_profile():
 # project_rasters()       
 # rewrite_rasters()
 # profiles_part1()
-# find_steepest_profile()
+find_steepest_profile()
 find_wl_steepest_profile()
 
 
