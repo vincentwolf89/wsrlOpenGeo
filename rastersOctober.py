@@ -19,7 +19,7 @@ code = "code"
 default_code = 1
 fieldnames =['profielnummer', 'afstand', 'z_ahn', 'x', 'y']
 xls_outputloc = r"C:\Users\vince\Desktop\ssh_output\output_xlsx"
-raster_prefix = "L4KD"
+raster_prefix = "L4KDyr
 
 profile_length_river = 100 #m
 profile_length_land = 100 #m
