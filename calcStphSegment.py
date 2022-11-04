@@ -86,15 +86,25 @@ def deel_2():
  
 
 def deel_3():
+    # verwijder nul waardes uit profielen
+    arcpy.CopyFeatures_management(profielen_selectie, "profielen_selectie_filter")
+    profielCursor = arcpy.da.UpdateCursor("profielen_selectie_filter",['SHAPE@','OBJECTID','eindoordeel'])
+    for row in profielCursor:
+        if row[2] is None:
+            profielCursor.deleteRow()
+        else:
+            pass
+
+
     # koppel waardes aan splits
-    arcpy.analysis.SpatialJoin("trajectlijn_splits", profielen_selectie, "splits_join", "JOIN_ONE_TO_ONE", "KEEP_ALL", "","CLOSEST", "10 Meters", '')
+    arcpy.analysis.SpatialJoin("trajectlijn_splits", "profielen_selectie_filter", "splits_join", "JOIN_ONE_TO_ONE", "KEEP_ALL", "","CLOSEST", "10 Meters", '')
     # selecteer splits o.b.v. trajectlijn
     arcpy.MakeFeatureLayer_management("splits_join", "temp_splits_join") 
-    arcpy.management.SelectLayerByLocation("temp_splits_join", "INTERSECT", vakindelingStph, "5 Meters", "NEW_SELECTION", "NOT_INVERT")
+    arcpy.management.SelectLayerByLocation("temp_splits_join", "INTERSECT", vakindelingStph, "10 Meters", "NEW_SELECTION", "NOT_INVERT")
     arcpy.CopyFeatures_management("temp_splits_join", "splits_vakindeling")
 
 # deel_1()
-deel_2()
+# deel_2()
 deel_3()
 
 
