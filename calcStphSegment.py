@@ -12,7 +12,7 @@ filterInterval = 5
 lengteProfielen = 300
 profielBuffer = 10
 profielCode = "OBJECTID"
-veldenPunten = ["Beta_semi_prob","kleur"]
+veldenPunten = ["kleurcode","kleur"]
 profielen_selectie = "profielen_selectie"
 
 def deel_1():
@@ -73,8 +73,8 @@ def deel_2():
         npArray = arcpy.da.FeatureClassToNumPyArray("temp_selectie_punten",veldenPunten)
         profiel_df = pd.DataFrame(npArray)
         try:
-            minBeta = profiel_df[profiel_df.Beta_semi_prob == profiel_df.Beta_semi_prob.min()].iloc[0]['Beta_semi_prob']
-            minKleur = profiel_df[profiel_df.Beta_semi_prob == profiel_df.Beta_semi_prob.min()].iloc[0]['kleur']
+            minBeta = profiel_df[profiel_df.kleurcode == profiel_df.kleurcode.min()].iloc[0]['kleurcode']
+            minKleur = profiel_df[profiel_df.kleurcode == profiel_df.kleurcode.min()].iloc[0]['kleur']
             row[2] = minKleur
             profielCursor.updateRow(row)
             print (minBeta,minKleur)
@@ -104,7 +104,7 @@ def deel_3():
     arcpy.CopyFeatures_management("temp_splits_join", "splits_vakindeling")
 
 # deel_1()
-# deel_2()
+deel_2()
 deel_3()
 
 
