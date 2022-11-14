@@ -6,7 +6,7 @@ arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\safe uittredepu
 
 trajectlijnTotaal = "safe_buitenkruinlijn_wsrl"
 vakindelingStph = "vakindeling_stph"
-uittredePunten = "stph_punten"
+uittredePunten = "stph_punten_nieuw"
 lijnInterval = 10
 filterInterval = 5
 lengteProfielen = 300
@@ -14,6 +14,10 @@ profielBuffer = 10
 profielCode = "OBJECTID"
 veldenPunten = ["kleurcode","kleur"]
 profielen_selectie = "profielen_selectie"
+invoer_tabel = r"C:\Users\vince\Desktop\safe_temp\Kleuren_opgave_totaal.xlsx"
+
+def importeer_tabel():
+    arcpy.conversion.ExcelToTable(invoer_tabel, "tabel_nieuw", "Sheet1")
 
 def deel_1():
     # split trajectlijn in delen
@@ -103,8 +107,9 @@ def deel_3():
     arcpy.management.SelectLayerByLocation("temp_splits_join", "INTERSECT", vakindelingStph, "10 Meters", "NEW_SELECTION", "NOT_INVERT")
     arcpy.CopyFeatures_management("temp_splits_join", "splits_vakindeling")
 
+# importeer_tabel()
 # deel_1()
-deel_2()
+# deel_2()
 deel_3()
 
 
