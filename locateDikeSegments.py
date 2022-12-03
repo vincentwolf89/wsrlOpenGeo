@@ -12,6 +12,9 @@ route_tolerance = 10
 id_field ="id"
 dp_field = "RFTIDENT"
 
+from_field ="dp_van"
+till_field = "dp_tot"
+
 ## create routes for dp :
 # split trajectory on dp
 arcpy.management.SplitLineAtPoint(dike_trajectory, dike_refpoints, "temp_trajectory_split", "{} Meters".format(route_tolerance))
@@ -52,26 +55,18 @@ arcpy.management.JoinField("temp_endpoints_segments", id_field, "temp_located_en
 
 # join meas fields to dike segments
 arcpy.management.CopyFeatures(dike_segments, "temp_ouput_segments")
-arcpy.management.JoinField("temp_ouput_segments", id_field, "temp_located_startpoints", id_field, "MEAS", "NOT_USE_FM", None)
-arcpy.management.JoinField("temp_ouput_segments", id_field, "temp_located_endpoints", id_field, "MEAS", "NOT_USE_FM", None)
 
 arcpy.management.JoinField("temp_ouput_segments", id_field, "temp_located_startpoints", id_field, "start_id", "NOT_USE_FM", None)
 arcpy.management.JoinField("temp_ouput_segments", id_field, "temp_located_endpoints", id_field, "end_id", "NOT_USE_FM", None)
 
-# join dp-idents to segments
+arcpy.management.AlterField("temp_ouput_segments", "MEAS", "start_distance", '', "DOUBLE", 8, "NULLABLE", "DO_NOT_CLEAR")
+arcpy.management.AlterField("temp_ouput_segments", "MEAS_1", "end_distance", '', "DOUBLE", 8, "NULLABLE", "DO_NOT_CLEAR")
 
+# add new fields with correct name
+arcpy.AddField_management("temp_ouput_segments", from_field, "TEXT", 2)
+arcpy.AddField_management("temp_ouput_segments", till_field, "TEXT", 2)
 
-# # create route
-# arcpy.lr.CreateRoutes(dike_trajectory, route_field, "temp_route", "LENGTH", None, None, "UPPER_LEFT", 1, 0, "IGNORE", "INDEX")
+arcpy.management.CalculateField("temp_ouput_segments", from_field, "$feature.start_id + '+'+ Text(Round($feature.start_distance,0))", "ARCADE")
+arcpy.management.CalculateField("temp_ouput_segments", till_field, "$feature.end_id + '+'+ Text(Round($feature.end_distance,0))", "ARCADE")
 
-# # locate endpoints along trajectlijn
-# arcpy.lr.LocateFeaturesAlongRoutes("temp_endpoints", "temp_route", route_field, "{} Meters".format(route_tolerance), "temp_located_points", "RID; Point; MEAS", "FIRST", "DISTANCE", "ZERO", "FIELDS", "M_DIRECTON")
-
-# # reconnect location to points
-# arcpy.management.JoinField("temp_endpoints", id_field, "temp_located_points", id_field, "MEAS", "NOT_USE_FM", None)
-
-# 
-
-# add info
-# reconnent endpoints to trajectlijn
 
