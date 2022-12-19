@@ -4,12 +4,12 @@ from arcpy.sa import *
 
 arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\schets nelle\schets nelle.gdb"
 
-dike_segments = "safe_dvindeling_december_2022_rd"
+dike_segments = "dv_2019_rd"
 dike_trajectory = "trajectlijn_safe_rd"
 dike_refpoints = "dijkpalen_safe_rd"
 route_field = "code"
-route_tolerance = 10
-id_field ="OBJECTID"
+route_tolerance = 15
+id_field ="dijkvak"
 dp_field = "RFTIDENT"
 
 from_field ="dp_van"
