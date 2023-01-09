@@ -9,13 +9,13 @@ import arcpy
 # lagen met geotechnicalSoilName uitlezen!
 
 
-arcpy.env.workspace = r'D:\Projecten\WSRL\xml_boringen_toevoegen\test.gdb'
-gdb = r'D:\Projecten\WSRL\xml_boringen_toevoegen\test.gdb'
+arcpy.env.workspace = r'C:\Users\vince\Documents\ArcGIS\Projects\xml_boringen\xml_boringen.gdb'
+gdb = r'C:\Users\vince\Documents\ArcGIS\Projects\xml_boringen\xml_boringen.gdb'
 arcpy.env.overwriteOutput = True
 
 
-xmlFiles = r'D:\Projecten\WSRL\xml_boringen_toevoegen\XML Boringen'
-xyLayer = "testlaag_xml_boringen"
+xmlFiles = r'C:\Users\vince\Desktop\werk\Projecten\WSRL\xml_boringen_toevoegen\input\xml_hugo_jan_2023'
+xyLayer = "xml_boringen_hugo_jan_2023"
 routingLine = "basislijn_routing_totaal"
 
 
