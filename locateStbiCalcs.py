@@ -3,10 +3,11 @@ arcpy.env.overwriteOutput = True
 from arcpy.sa import *
 
 arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\beoordeling ssh.gdb"
+tempData =  "C:/Users/vince/Documents/ArcGIS/Projects/beoordeling ssh/tempData.gdb/"
 
 input1 = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\test_invoer.xlsx"
 sheetInput1 = "Blad1"
-tableFields = ["dp_van","dp_tot","offset_van","offset_tot"]
+tableFields = ["dp_van","dp_tot","offset_van","offset_tot","oordeel"]
 startIdField = "dp_van"
 startOffsetField = "offset_van"
 endIdField = "dp_tot"
@@ -54,11 +55,13 @@ def createDpRoutes():
     arcpy.management.AlterField("temp_routes_trajectory", "rftident_1", "end_id",clear_field_alias="CLEAR_ALIAS")
 
 
-    # get input excel and locate
-    arcpy.conversion.ExcelToTable(input1, "tableInput1", sheetInput1, 1, '')
-
-# loop through table rows:
+    
+# get input excel and loop through
+arcpy.conversion.ExcelToTable(input1, "tableInput1", sheetInput1, 1, '')
 tableCursor = arcpy.da.SearchCursor("tableInput1",tableFields)
+
+segments = []
+count = 0
 for tableRow in tableCursor:
 
     # create templayer
@@ -72,9 +75,25 @@ for tableRow in tableCursor:
     arcpy.management.CopyFeatures("temp_endpoint", "temp_endpoint_segment")
 
     # create line segment
-    arcpy.management.Merge(["temp_startpoint_segment","temp_endpoint_segment"],"temp_merge_isectpoints")
+    arcpy.management.Merge(["temp_startpoint_segment","temp_endpoint_segment"], "temp_table_row_points")
+    # create splits
+    arcpy.management.SplitLineAtPoint(dikeTrajectory, "temp_table_row_points", "temp_table_row_line_total", "0.5 Meters")
+    # select smallest part
 
-    break
+    # add to segments
+
+
+
+
+    segments.append(segment)
+    count += 1
+
+# merge segments
+arcpy.management.Merge(segments,"temp_test_total")
+
+
+
+
 
 
     
