@@ -1,6 +1,7 @@
 import arcpy
 import math
 import pandas as pd
+from xlsxwriter.workbook import Workbook
 arcpy.env.overwriteOutput = True
 
 def CopyParallelL(plyP,sLength): #functie voor profielen maken haaks op trajectlijn
@@ -303,6 +304,8 @@ def add_xy(uitvoerpunten,code,trajectlijn):
 
 
 def generate_profiles_onpoints(traject_punten,trajectlijn,profielen,code):
+
+
     # traject to points
     traject_punten = traject_punten
     trajectlijn = trajectlijn
@@ -377,3 +380,425 @@ def generate_profiles_onpoints(traject_punten,trajectlijn,profielen,code):
     # arcpy.FlipLine_edit(profielen)
 
     print ('profielen gemaakt op trajectlijn')
+
+
+def excel_writer_factsheets_main(uitvoerpunten,code,excel,id,trajecten,toetspeil,min_plot,max_plot,trajectlijn,img,percelen_zone):
+
+    # toetshoogte aan uitvoerpunten koppelen
+    arcpy.JoinField_management(uitvoerpunten, code, trajecten, code, toetspeil)
+
+    # binnenhalen van dataframe
+    if toetspeil == 999:
+        array = arcpy.da.FeatureClassToNumPyArray(uitvoerpunten,('OBJECTID', 'profielnummer', code, 'afstand', 'z_ahn', 'x', 'y'))
+    else:
+        array = arcpy.da.FeatureClassToNumPyArray(uitvoerpunten, ('OBJECTID', 'profielnummer', code, 'afstand', 'z_ahn', 'x', 'y', toetspeil))
+
+    df = pd.DataFrame(array)
+    df = df.dropna()
+    sorted = df.sort_values(['profielnummer', 'afstand'], ascending=[True, True])
+
+    # opbouw xlsx
+    workbook = Workbook(excel)
+    worksheet1 = workbook.add_worksheet('Overzicht')
+    worksheet2 = workbook.add_worksheet()
+    worksheet3 = workbook.add_worksheet('Perceelgegevens')
+    # stijl toevoegen voor headers
+    bold = workbook.add_format({'bold': True})
+
+
+    # schrijf kolomnamen
+    worksheet2.write(0, 0, "Profielnummer", bold)
+    worksheet2.write(0, 1, "Afstand [m]", bold)
+    worksheet2.write(0, 2, "Hoogte AHN3 [m NAP]", bold)
+    worksheet2.write(0, 3, "x [RD]", bold)
+    worksheet2.write(0, 4, "y [RD]", bold)
+
+    # schrijf kolommen vanuit df
+    worksheet2.write_column('A2', sorted['profielnummer'])
+    worksheet2.write_column('B2', sorted['afstand'])
+    worksheet2.write_column('C2', sorted['z_ahn'])
+    worksheet2.write_column('D2', sorted['x'])
+    worksheet2.write_column('E2', sorted['y'])
+
+    # groepeer per profielnummer
+    grouped = sorted.groupby('profielnummer')
+
+    # definieer startrij
+    startpunt = 2
+
+
+    # lege lijngrafiek invoegen met zowel afstand als hoogte als invoer
+    line_chart1 = workbook.add_chart({'type': 'scatter',
+                                 'subtype': 'straight'})
+
+    ## toetshoogte, aan/uit
+    # toetshoogte toevoegen als horizontale lijn, deel 1 voor legenda
+    # minimum = min(sorted['afstand'])
+    # maximum = max(sorted['afstand'])
+    # th = sorted[toetspeil].iloc[0]
+    #
+    # worksheet.write('K8', minimum)
+    # worksheet.write('K9', maximum)
+    # worksheet.write('K10', th)
+    # worksheet.write('K11', th)
+
+
+    # line_chart1.add_series({
+    #     'name': 'toetshoogte: ' + str(th) + ' m NAP',
+    #
+    #     'categories': '=Sheet1!$K$8:$K$9',
+    #     'values': '=Sheet1!$K$10:$K$11',
+    #     'line': {
+    #         'color': 'red',
+    #         'width': 1.5,
+    #         'dash_type': 'long_dash'
+    #     }
+    # })
+
+    # lijnen toevoegen aan lijngrafiek
+    count = 0
+    for name, group in grouped:
+        profielnaam = str(int(name))
+        meetpunten = len(group['profielnummer'])
+
+        # eerste profiel
+        if count == 0:
+            line_chart1.add_series({
+                'name': 'profiel ' + profielnaam,
+
+                'categories': '=Sheet2!B' + str(startpunt) + ':B' + str(meetpunten + 1),
+                'values': '=Sheet2!C' + str(startpunt) + ':C' + str(meetpunten + 1),
+                'line': {'width': 1}
+            })
+            count +=1
+        # opvolgende profielen
+        else:
+            if count is not 0 and name is not 9999:
+                line_chart1.add_series({
+                    'name': 'profiel '+profielnaam,
+
+                    'categories': '=Sheet2!B'+str(startpunt)+':B' + str(startpunt+meetpunten-1),
+                    'values':     '=Sheet2!C'+str(startpunt)+':C' + str(startpunt+meetpunten-1),
+                    'line': {'width': 1}
+                })
+            if name == 9999:
+                line_chart1.add_series({
+                    'name': 'maatgevend profiel',
+
+                    'categories': '=Sheet2!B'+str(startpunt)+':B' + str(startpunt+meetpunten-1),
+                    'values':     '=Sheet2!C'+str(startpunt)+':C' + str(startpunt+meetpunten-1),
+                    'line': {
+                        'color': 'red',
+                        'width': 3
+                    }
+                })
+        # startpunt verzetten
+        startpunt += (meetpunten)
+
+
+
+    ## toetshoogte toevoegen als horizontale lijn, deel 2 voor voorgrond-lijn
+    # minimum = min(sorted['afstand'])
+    # maximum = max(sorted['afstand'])
+    # th = sorted[toetspeil].iloc[0]
+    #
+    # worksheet.write('K8', minimum)
+    # worksheet.write('K9', maximum)
+    # worksheet.write('K10', th)
+    # worksheet.write('K11', th)
+    #
+    # line_chart1.add_series({
+    #     'name': 'toetshoogte: ' + str(th) + ' m NAP',
+    #
+    #     'categories': '=Sheet1!$K$8:$K$9',
+    #     'values': '=Sheet1!$K$10:$K$11',
+    #     'line': {
+    #         'color': 'red',
+    #         'width': 1.5,
+    #         'dash_type': 'long_dash'
+    #     }
+    # })
+
+    # kolommen aanpassen
+    line_chart1.set_title({'name': 'Overzicht profielen prio-vak '+id})
+    line_chart1.set_x_axis({'name': 'Afstand [m]'})
+    line_chart1.set_y_axis({'name': 'Hoogte [m NAP]'})
+    line_chart1.set_x_axis({'interval_tick': 0.5})
+    line_chart1.set_x_axis({'min': min_plot, 'max': max_plot})
+    line_chart1.set_size({'width': 1000, 'height': 300})
+    # line_chart1.set_style(1)
+    worksheet1.insert_chart('D24', line_chart1) # alleen toevoegen voor toetshoogte
+
+    # worksheet2.insert_chart('G3', line_chart1) # test
+    worksheet2.hide()
+
+    # schrijf parameters uit trajectlijn naar worksheet1
+    # format worksheet
+    cell_format_title = workbook.add_format()
+    cell_format_title.set_font_size(16)
+    cell_format_title.set_bold()
+
+    cell_format_sub = workbook.add_format()
+    cell_format_sub.set_pattern(1)
+    cell_format_sub.set_bg_color('#e6e65c')
+    cell_format_sub.set_bold()
+
+    # stel kolom breedtes in
+    worksheet1.set_column(0, 0, 30)
+    worksheet1.set_column(1, 1, 60)
+    worksheet3.set_column(0, 6, 15)
+
+
+
+    # search cursor om er doorheen te gaan en parameters eruit te halen
+
+    worksheet1.write('A1', "Factsheet prio-vak "+str(id), cell_format_title)
+
+    worksheet1.write('A3', "", cell_format_sub)
+    worksheet1.write('B4', "", cell_format_sub)
+    worksheet1.write('B11', "", cell_format_sub)
+    worksheet1.write('B15', "", cell_format_sub)
+    worksheet1.write('B20', "", cell_format_sub)
+    worksheet1.write('B24', "", cell_format_sub)
+
+    worksheet1.write('B3', "waarde",cell_format_sub)
+
+
+    worksheet1.write('A4', "Algemeen",cell_format_sub)
+    worksheet1.write('A5', "Vaknummer")
+    worksheet1.write('A6', "Van dijkpaal")
+    worksheet1.write('A7', "Tot dijkpaal")
+    worksheet1.write('A8', "Vaklengte [m]")
+    worksheet1.write('A9', "Laatste versterking [traject]")
+    worksheet1.write('A10', "Laatste versterking [jaar]")
+
+    worksheet1.write('A11', "Basisgegevens techniek",cell_format_sub)
+    worksheet1.write('A12', "Dikte deklaag gemiddeld [m]")
+    worksheet1.write('A13', "Dik deklaag variatie [m]")
+    worksheet1.write('A14', "Deformatie gemiddeld[mm/jaar]")
+
+    worksheet1.write('A15', "Basisgegevens conditionering",cell_format_sub)
+    worksheet1.write('A16', "Huizen binnen teenlijn [aantal]")
+    worksheet1.write('A17', "Huizen +20m teenlijn [aantal]")
+    worksheet1.write('A18', "Percelen binnen zone.. [aantal]")
+    worksheet1.write('A19', "Leidingen [m]")
+    worksheet1.write('A20', "Natura 2000")
+
+    worksheet1.write('A21', "Beoordeling techniek",cell_format_sub)
+    worksheet1.write('A22', "STPH [beta]")
+    worksheet1.write('A23', "STBI [beta]")
+    worksheet1.write('A24', "GEKB [beta]")
+
+    worksheet1.write('A25', "Ontwerpproces",cell_format_sub)
+    worksheet1.write('A26', "Groep VVK")
+    worksheet1.write('A27', "Maatregel VVK [soort]")
+    worksheet1.write('A28', "Kosten VVK [*miljoen euro]")
+    worksheet1.write('A29', "Extra sonderingen [aantal]")
+    worksheet1.write('A30', "Extra boringen [aantal]")
+
+    worksheet1.write('A31', "Geometrie")
+
+    # maak array-pandas df van trajectlijn
+    velden = ["prio_nummer","Van","Tot","Shape_Length","TRAJECT","OPLEVERING","gem_dpip","var_dpip","gem_zet","panden_dijkzone", "panden_dijkzone_bit",
+              "lengte_kl", "extra_bo", "extra_so", "gekb_2023","stbi_2023","stph_2023","na2000","extra_inmeten","maatregel","kosten","groep","percelen_zone"]
+    array_fact = arcpy.da.FeatureClassToNumPyArray(trajectlijn,velden)
+    df_fact= pd.DataFrame(array_fact)
+
+
+    nummer = df_fact['prio_nummer'].iloc[0]
+    van = df_fact['Van'].iloc[0]
+    tot = df_fact['Tot'].iloc[0]
+    lengte = int(df_fact['Shape_Length'].iloc[0])
+
+    # test op NaN
+
+    traject = df_fact['TRAJECT'].iloc[0]
+    oplevering = df_fact['OPLEVERING'].iloc[0]
+    gdpip = df_fact['gem_dpip'].iloc[0]
+    vdpip = df_fact['var_dpip'].iloc[0]
+    gzet = df_fact['gem_zet'].iloc[0]
+    pdijk = df_fact['panden_dijkzone'].iloc[0]
+    pbit = df_fact['panden_dijkzone_bit'].iloc[0]
+    lengtekl = df_fact['lengte_kl'].iloc[0]
+    na2000 = df_fact['na2000'].iloc[0]
+    stph = df_fact['stph_2023'].iloc[0]
+    stbi = df_fact['stbi_2023'].iloc[0]
+    gekb = df_fact['gekb_2023'].iloc[0]
+    groep = df_fact['groep'].iloc[0]
+    kosten = df_fact['kosten'].iloc[0]
+    maatregel = df_fact['maatregel'].iloc[0]
+    extrabo = int(df_fact['extra_bo'].iloc[0])
+    extraso = int(df_fact['extra_so'].iloc[0])
+    extrameet= df_fact['extra_inmeten'].iloc[0]
+    percelen = df_fact['percelen_zone'].iloc[0]
+
+
+
+
+    # schrijf parameters naar de excelcellen
+    worksheet1.write('B5',  nummer)
+    worksheet1.write('B6', van)
+    worksheet1.write('B7', tot)
+    worksheet1.write('B8', str(lengte))
+
+    if str(traject) == "None":
+        worksheet1.write('B9', "n.v.t.")
+    else:
+        worksheet1.write('B9', traject)
+
+
+    if str(oplevering) == "None":
+        worksheet1.write('B10', "n.v.t.")
+    else:
+        worksheet1.write('B10', oplevering)
+
+    if pd.isna(gdpip) == True:
+        worksheet1.write('B12', "n.v.t.")
+    else:
+        gdpip = round(gdpip, 1)
+        worksheet1.write('B12', str(gdpip))
+
+    if pd.isna(vdpip) == True:
+        worksheet1.write('B13', "n.v.t.")
+    else:
+        vdpip = round(vdpip, 1)
+        worksheet1.write('B13', str(vdpip))
+
+
+    if pd.isna(gzet) == True:
+        worksheet1.write('B14', "n.v.t.")
+    else:
+        gzet = round(gzet, 1)
+        worksheet1.write('B14', str(gzet))
+
+
+
+
+    if pdijk > 0:
+        pdijk = int(pdijk)
+        worksheet1.write('B16', str(pdijk))
+    else:
+        worksheet1.write('B16', "n.v.t.")
+
+    if pbit > 0:
+        pbit = int(pbit)
+        worksheet1.write('B17', str(pbit))
+    else:
+        worksheet1.write('B17', "n.v.t.")
+
+    if percelen > 0:
+        percelen = int(percelen)
+        worksheet1.write('B18', str(percelen))
+    else:
+        worksheet1.write('B18', "n.v.t.")
+
+
+    if pd.isna(lengtekl) == True:
+        worksheet1.write('B19', "n.v.t.")
+    else:
+        lengtekl = int(lengtekl)
+        worksheet1.write('B19', str(lengtekl))
+
+
+    if na2000 == "Ja":
+        worksheet1.write('B20', "Aanwezig")
+    else:
+        worksheet1.write('B20', "n.v.t.")
+
+    if pd.isna(stph) == True:
+        worksheet1.write('B22', "n.v.t.")
+    else:
+        stph = round(stph, 1)
+        worksheet1.write('B22', str(stph))
+
+    if pd.isna(stbi) == True:
+        worksheet1.write('B23', "n.v.t.")
+    else:
+        stbi = round(stbi, 1)
+        worksheet1.write('B23', str(stbi))
+
+    if pd.isna(gekb) == True:
+        worksheet1.write('B24', "n.v.t.")
+    else:
+        gekb = round(gekb, 1)
+        worksheet1.write('B24', str(gekb))
+
+
+
+    if pd.isna(groep) == True:
+        worksheet1.write('B26', "n.v.t.")
+    else:
+        worksheet1.write('B26', str(groep))
+
+    if pd.isna(maatregel) == True:
+        worksheet1.write('B27', "n.v.t.")
+    else:
+        worksheet1.write('B27', str(maatregel))
+
+
+
+    if pd.isna(kosten) == True:
+        worksheet1.write('B28', "Onbekend")
+    else:
+        worksheet1.write('B28', str(kosten))
+
+
+
+    if pd.isna(extraso) == True or extraso < 1:
+        worksheet1.write('B29', "n.v.t.")
+    else:
+        extrago = int(extraso)
+        worksheet1.write('B29', str(extraso))
+
+    if pd.isna(extrabo) == True or extrabo < 1:
+        worksheet1.write('B30', "n.v.t.")
+    else:
+        extrago = int(extrabo)
+        worksheet1.write('B30', str(extrabo))
+
+    if extrameet == "Ja":
+        worksheet1.write('B31', "Extra inmetingen vereist")
+    else:
+        worksheet1.write('B31', "Geen inmetingen vereist")
+
+
+    # insert plot vanuit arcmap
+    worksheet1.insert_image('D3', img)
+
+
+
+
+    ## voeg perceeldata toe aan nieuwe sheet
+
+    # data binnenhalen
+    velden_percelen = ["OBJECTID","Huisnummer","Huisletter","Postcode","OpenbareRuimteNaam","WoonplaatsNaam"]
+    array_percelen = arcpy.da.FeatureClassToNumPyArray(percelen_zone, velden_percelen, null_value=-9999)
+    df = pd.DataFrame(array_percelen)
+    df_percelen = df.sort_values('OpenbareRuimteNaam', ascending=False)
+
+    # kolomnamen
+    worksheet3.write('A1', "OBJECTID_gis", cell_format_sub)
+    worksheet3.write('B1', "Straatnaam", cell_format_sub)
+    worksheet3.write('C1', "Huisnummer", cell_format_sub)
+    worksheet3.write('D1', "Huisletter", cell_format_sub)
+    worksheet3.write('E1', "Postcode", cell_format_sub)
+    worksheet3.write('F1', "Plaatsnaam", cell_format_sub)
+
+    # schrijven kolommen
+    worksheet3.write_column('A2', df_percelen['OBJECTID'])
+    worksheet3.write_column('B2', df_percelen['OpenbareRuimteNaam'])
+    worksheet3.write_column('C2', df_percelen['Huisnummer'])
+    worksheet3.write_column('D2', df_percelen['Huisletter'])
+    worksheet3.write_column('E2', df_percelen['Postcode'])
+    worksheet3.write_column('F2', df_percelen['WoonplaatsNaam'])
+
+
+    workbook.close()
+    del df
+    del df_percelen
+    del df_fact
+
+
+
+
+    # print *'.xlsx-bestand gemaakt voor factsheet'
