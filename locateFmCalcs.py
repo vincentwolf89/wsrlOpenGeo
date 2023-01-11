@@ -12,6 +12,7 @@ startIdField = "dp_van"
 startOffsetField = "offset_van"
 endIdField = "dp_tot"
 endOffsetField = "offset_tot"
+faalmechanisme = "stbi"
 
 
 dikeTrajectory = "ssh_spst_trajectlijn"
@@ -66,39 +67,44 @@ for tableRow in tableCursor:
 
     # create templayer
     rowItem = tableRow[0]
-
     arcpy.conversion.ExportTable("tableInput1", "temp_tablerow", "{} = '{}'".format(startIdField,rowItem))
 
     arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(startIdField, startOffsetField), "temp_startpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
     arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "end_id", "temp_tablerow", "{}; Point; {}".format(endIdField, endOffsetField), "temp_endpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
-    arcpy.management.CopyFeatures("temp_startpoint", "temp_startpoint_segment")
-    arcpy.management.CopyFeatures("temp_endpoint", "temp_endpoint_segment")
+    arcpy.management.CopyFeatures("temp_startpoint", "startpoint_segment")
+    arcpy.management.CopyFeatures("temp_endpoint", "endpoint_segment")
 
     # create line segment
-    arcpy.management.Merge(["temp_startpoint_segment","temp_endpoint_segment"], "temp_table_row_points")
+    arcpy.management.Merge(["startpoint_segment","endpoint_segment"], "temp_table_row_points")
     # create splits
     arcpy.management.SplitLineAtPoint(dikeTrajectory, "temp_table_row_points", "temp_table_row_line_total", "0.5 Meters")
-    # select smallest part
+    
+    # copy row and create offset point for isect locating
+    arcpy.conversion.ExportTable("tableInput1", "temp_tablerow_offset_locator", "{} = '{}'".format(startIdField,rowItem))
+    tempCursor = arcpy.da.UpdateCursor("temp_tablerow_offset_locator", [startOffsetField])
+    for tempRow in tempCursor:
+        startOffsetPlus = tempRow[0]+1
+        tempRow[0] = startOffsetPlus
+        tempCursor.updateRow(tempRow)
 
+    del tempCursor
+    arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow_offset_locator", "{}; Point; {}".format(startIdField, startOffsetField), "temp_startpoint_offset_locator", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
+    arcpy.management.CopyFeatures("temp_startpoint_offset_locator", "startpoint_offset_locator")
+
+    arcpy.management.MakeFeatureLayer("temp_table_row_line_total", "templayer")
+    arcpy.management.SelectLayerByLocation("templayer", "INTERSECT", "startpoint_offset_locator", None, "NEW_SELECTION", "NOT_INVERT")
+    arcpy.CopyFeatures_management("templayer", "test_segment")
+    # join attributes from tablerow
+    arcpy.management.MakeFeatureLayer("test_segment", "templayer")
+    arcpy.management.AddJoin("templayer", "code", "temp_tablerow", "OBJECTID", "KEEP_ALL", "NO_INDEX_JOIN_FIELDS")
+    segment = "{}tablerow_{}".format(tempData,count)
+    arcpy.CopyFeatures_management("templayer", segment)
     # add to segments
-
-
-
-
     segments.append(segment)
     count += 1
 
 # merge segments
-arcpy.management.Merge(segments,"temp_test_total")
+arcpy.management.Merge(segments,"oordeel_{}".format(faalmechanisme))
 
 
 
-
-
-
-    
-  
-
-
-
-# make first point, make second point, create line segment, add segment to totals layer...
