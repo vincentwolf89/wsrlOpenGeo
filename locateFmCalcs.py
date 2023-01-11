@@ -70,7 +70,7 @@ for tableRow in tableCursor:
     arcpy.conversion.ExportTable("tableInput1", "temp_tablerow", "{} = '{}'".format(startIdField,rowItem))
 
     arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(startIdField, startOffsetField), "temp_startpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
-    arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "end_id", "temp_tablerow", "{}; Point; {}".format(endIdField, endOffsetField), "temp_endpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
+    arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(endIdField, endOffsetField), "temp_endpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
     arcpy.management.CopyFeatures("temp_startpoint", "startpoint_segment")
     arcpy.management.CopyFeatures("temp_endpoint", "endpoint_segment")
 
