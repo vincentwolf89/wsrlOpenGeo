@@ -19,6 +19,7 @@ stapgrootte_punten = 0.5
 raster = r"C:\Users\vince\Desktop\werk\Projecten\WSRL\sterreschans_heteren\GIS\waterlopen300m.gdb\ahn3clipsh1"
 profileNumberField = "profielnummer"
 profileFields = ["profielnummer"]
+isectFields = [profileNumberField,"thema"]
 
 layerForIntersects = ["merge_r_d", "merge_w_d"]
 
@@ -43,15 +44,18 @@ if newProfiles is True:
     for profile in profielCursor:
         # create templayer
         profileNumber = int(profile[0])
-        where = '"' + profileNumberField + '" = ' + "'" + str(profileNumber) + "'"
+        where = '"' + profileNumberField + '" = ' + str(profileNumber)
         temp_profile = "temp_profile"
         arcpy.Select_analysis(profielen, temp_profile, where)
         # check for intersects with layerForIntersects
         for layer in layerForIntersects:
             arcpy.analysis.Intersect([temp_profile,layer], "temp_isects", "ALL", None, "POINT")
-            isectCursor = arcpy.da.SearchCursor("temp_isects", profileFields)
+            isectCursor = arcpy.da.SearchCursor("temp_isects", isectFields)
             for isect in isectCursor:
-                print (isect[0])
+
+                # get isect layer and join to nearest profile point
+                isectTheme = isect[1]
+                print (isect[0], isect[1],layer)
 
        
     
@@ -71,7 +75,7 @@ else:
 
 
 
-# get input for intersecting layers
-# find and locate intersects
-# write all data to seperate excels
+# def excelWriterKL():
+#     # create xlsx
+
 
