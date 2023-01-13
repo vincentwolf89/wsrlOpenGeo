@@ -57,8 +57,8 @@ colors = list(mcolors.cnames.values())
 # schrijf default kolomnamen
 worksheet.write(0, 0, "Perceelnummer", bold)
 worksheet.write(0, 1, "Aantal eigenaren/pachters", bold)
-
 worksheet.write(0, 2, "Soorten pachters", bold)
+worksheet.write(0, 3, "Aantal go locaties", bold)
 
 
 
@@ -106,7 +106,7 @@ for name, groep in groep_percelen:
     
     # if erfpachters == True:
     if pachters == True:
-        kolomnummer = 3
+        kolomnummer = 4
 
         # per perceel een nieuwe rij aanmaken
         worksheet.write(rijnummer, 0, name)
@@ -136,6 +136,8 @@ for name, groep in groep_percelen:
 
         worksheet.write(rijnummer, 1, groupmembers)
         worksheet.write(rijnummer, 2, pachter_list_string)
+        worksheet.write(rijnummer, 3, row['aantal_go'])
+    
 
 
         rijnummer += 1
