@@ -9,12 +9,12 @@ import matplotlib.colors as mcolors
 
 
 arcpy.env.overwriteOutput = True
-arcpy.env.workspace = r'D:\Projecten\WSRL\sterreschans_heteren\percelen_erfpacht\data.gdb'
+arcpy.env.workspace = r'C:\Users\vince\Documents\ArcGIS\Projects\percelen erfpacht januari 2023\percelen erfpacht januari 2023.gdb'
 
-excel = r'D:\Projecten\WSRL\sterreschans_heteren\percelen_erfpacht\percelen_buitendijks_pachters_filter.xlsx'
+excel = r'C:\Users\vince\Documents\ArcGIS\Projects\percelen erfpacht januari 2023\output\uitvoer_percelen_januari2023.xlsx'
 
-percelen = "percelen_zakelijk_recht_buitendijks_totaal"
-velden = ["KADTOTAAL","ZR_OMSCHRIJVING","NAAM","VOORN","VOORL","VOORV","TITEL","STRAAT","HUISNR","POSTCODE","WOONPLAATS"]
+percelen = "meetpunten_percelen_allen"
+velden = ["KADTOTAAL","ZR_OMSCHRIJVING","NAAM","VOORN","VOORL","VOORV","TITEL","STRAAT","HUISNR","POSTCODE","WOONPLAATS","aantal_go"]
 velden_eigenaren = ["ZR_OMSCHRIJVING","NAAM","VOORN","VOORL","VOORV","TITEL","STRAAT","HUISNR","POSTCODE","WOONPLAATS"]
 array = arcpy.da.FeatureClassToNumPyArray(percelen, velden)
 df = pd.DataFrame(array)
@@ -57,6 +57,7 @@ colors = list(mcolors.cnames.values())
 # schrijf default kolomnamen
 worksheet.write(0, 0, "Perceelnummer", bold)
 worksheet.write(0, 1, "Aantal eigenaren/pachters", bold)
+
 worksheet.write(0, 2, "Soorten pachters", bold)
 
 
@@ -69,6 +70,9 @@ rijnummer = 1
 
 for name, groep in groep_percelen:
 
+
+
+
     # erfpachters = False
 
     
@@ -80,7 +84,7 @@ for name, groep in groep_percelen:
 
     # check of pachters aanwezig, anders skippen
 
-    pachters = False
+    pachters = True
     pachter_values = ["Erfpacht","Gebruik","Opstal","Zakelijk"]
     pachter_list = []
 
@@ -114,8 +118,6 @@ for name, groep in groep_percelen:
         
             groupmembers += 1
             
-
-
             # write extra header
             for veld in velden_eigenaren:
                 
