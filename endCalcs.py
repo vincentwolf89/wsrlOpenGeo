@@ -11,7 +11,11 @@ pointInterval = 10 # meters
 pointSearchRadius = 1 # meters
 codeField = "code"
 oidField = "OBJECTID"
-failureMechanisms = ["stbi_results", "stph_results"] # array with all fm
+failureMechanisms = ["stbi_results", "stph_results"] # array with all fm as line input
+scorefield = "eindoordeel"
+insufficientValue = "onvoldoende"
+
+endScorefield = "eindoordeel_totaal"
 
 # trajectline to points
 arcpy.management.GeneratePointsAlongLines(dikeTrajectory, "temp_trajectory_points", "DISTANCE", "{} Meters".format(pointInterval), None, None)
@@ -23,7 +27,7 @@ arcpy.management.SplitLineAtPoint(dikeTrajectory, "temp_trajectory_points", "tem
 arcpy.management.FeatureVerticesToPoints("temp_trajectory_splitted", "temp_trajectory_splitted_midpoints", "MID")
 
 # iterate over midpoints, select all lines and iterate lines
-segmentCursor = arcpy.da.UpdateCursor("temp_trajectory_splitted", ["OBJECTID"])
+segmentCursor = arcpy.da.UpdateCursor("temp_trajectory_splitted", ["OBJECTID", endScorefield])
 for segmentRow in segmentCursor:
 
     # create templayer
@@ -33,8 +37,25 @@ for segmentRow in segmentCursor:
     arcpy.Select_analysis("temp_trajectory_splitted", temp_section, where)
 
     # find intersecting failure mechanisms
+    score = "voldoende"
+    scores = []
     for fm in failureMechanisms:
         # spatial join temp_section to fm
+
         # check output and do calc considering rules
+
+        # add score to scores
+
+    if insufficientValue in scores:
+        score = "onvoldoende"
+
+    segmentRow[1] = score
+    segmentCursor.updateRow(segmentRow)
+
+
+
+
+
+
 
     

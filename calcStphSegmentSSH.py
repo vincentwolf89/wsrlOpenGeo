@@ -4,7 +4,7 @@ from base import *
 arcpy.env.overwriteOutput = True
 arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\beoordeling ssh.gdb"
 
-trajectlijnTotaal = "stph_testtraject"
+trajectlijnTotaal = "ssh_spst_traject"
 vakindelingStph = "vakindeling_stph"
 uittredePunten = "temp_uittredepunten_stph"
 lijnInterval = 10
@@ -12,11 +12,12 @@ filterInterval = 5
 lengteProfielen = 300
 profielBuffer = 10
 profielCode = "OBJECTID"
-veldenPunten = ["Categorie_prob"]
+veldenPunten = ["Beta_prob","Categorie_prob"]
 profielen_selectie = "profielen_selectie"
 invoer_tabel = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stph\invoer_stph.xlsx"
 xField = "X_uittrede"
 yField = "Y_uittrede"
+betaField = "Beta_prob"
 catField = "Categorie_prob"
 
 def importeer_tabel():
@@ -79,9 +80,9 @@ def deel_2():
         profiel_df = pd.DataFrame(npArray)
         print (profiel_df)
         try:
-            minBeta = profiel_df[profiel_df[catField] == profiel_df[catField].min()].iloc[0][catField]
-            # minKleur = profiel_df[profiel_df.kleurcode == profiel_df.kleurcode.min()].iloc[0]['kleur']
-            row[2] = minBeta
+            minBeta = profiel_df[profiel_df[betaField] == profiel_df[betaField].min()].iloc[0][betaField]
+            minCat = profiel_df[profiel_df[betaField] == profiel_df[betaField].min()].iloc[0][catField]
+            row[2] = minCat
             profielCursor.updateRow(row)
             print (minBeta)
         except Exception:
@@ -133,9 +134,9 @@ def deel_3():
 
     # merge datasets tot uitvoer
 
-# importeer_tabel()
-# deel_1()
-# deel_2()
+importeer_tabel()
+deel_1()
+deel_2()
 deel_3()
 
 
