@@ -2,9 +2,9 @@ import arcpy
 arcpy.env.overwriteOutput = True
 from arcpy.sa import *
 
-arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\schets nelle\schets nelle.gdb"
+arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\safe aanpassingen scope lijnen\safe aanpassingen scope lijnen.gdb"
 
-dike_segments = "dv_2019_rd"
+dike_segments = "safe_scope_uitbreiding_december_2022"
 dike_trajectory = "trajectlijn_safe_rd"
 dike_refpoints = "dijkpalen_safe_rd"
 route_field = "code"

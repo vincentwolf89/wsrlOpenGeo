@@ -5,14 +5,14 @@ from arcpy.sa import *
 arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\beoordeling ssh.gdb"
 tempData =  "C:/Users/vince/Documents/ArcGIS/Projects/beoordeling ssh/tempData.gdb/"
 
-input1 = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\test_invoer.xlsx"
-sheetInput1 = "Blad1"
-tableFields = ["dp_van","dp_tot","offset_van","offset_tot","oordeel"]
+input1 = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stbi\input_stbi_jan_2023.xlsx"
+sheetInput1 = "STBI"
+tableFields = ["dp_van","dp_tot","offset_van","offset_tot","cat_oordeel_2075","dijkvak"]
 startIdField = "dp_van"
 startOffsetField = "offset_van"
 endIdField = "dp_tot"
 endOffsetField = "offset_tot"
-faalmechanisme = "stbi"
+faalmechanisme = "stbi_jan_2023"
 
 
 dikeTrajectory = "ssh_spst_trajectlijn"
@@ -65,9 +65,14 @@ segments = []
 count = 0
 for tableRow in tableCursor:
 
+    arcpy.conversion.ExportTable("tableInput1", r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\beoordeling ssh.gdb\tableInput1_ExportTable", "dp_van = 'DR183.' And offset_van = 0", "NOT_USE_ALIAS", 'dijkvak "dijkvak" true true false 255 Text 0 0,First,#,tableInput1,dijkvak,0,255;dp_van "dp_van" true true false 255 Text 0 0,First,#,tableInput1,dp_van,0,255;dp_tot "dp_tot" true true false 255 Text 0 0,First,#,tableInput1,dp_tot,0,255;offset_van "offset_van" true true false 4 Long 0 0,First,#,tableInput1,offset_van,-1,-1;offset_tot "offset_tot" true true false 4 Long 0 0,First,#,tableInput1,offset_tot,-1,-1;cat_oordeel_2075 "cat_oordeel_2075" true true false 255 Text 0 0,First,#,tableInput1,cat_oordeel_2075,0,255', None)
+
     # create templayer
-    rowItem = tableRow[0]
-    arcpy.conversion.ExportTable("tableInput1", "temp_tablerow", "{} = '{}'".format(startIdField,rowItem))
+    rowIdStart = tableRow[0]
+    rowOffsetStart = tableRow[2]
+
+    # arcpy.conversion.ExportTable("tableInput1", "temp_tablerow", "{} = '{}'".format(startIdField,rowIdStart))
+    arcpy.conversion.ExportTable("tableInput1", "temp_tablerow", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
 
     arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(startIdField, startOffsetField), "temp_startpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
     arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(endIdField, endOffsetField), "temp_endpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
@@ -80,7 +85,8 @@ for tableRow in tableCursor:
     arcpy.management.SplitLineAtPoint(dikeTrajectory, "temp_table_row_points", "temp_table_row_line_total", "0.5 Meters")
     
     # copy row and create offset point for isect locating
-    arcpy.conversion.ExportTable("tableInput1", "temp_tablerow_offset_locator", "{} = '{}'".format(startIdField,rowItem))
+    # arcpy.conversion.ExportTable("tableInput1", "temp_tablerow_offset_locator", "{} = '{}'".format(startIdField,rowIdStart))
+    arcpy.conversion.ExportTable("tableInput1", "temp_tablerow_offset_locator", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
     tempCursor = arcpy.da.UpdateCursor("temp_tablerow_offset_locator", [startOffsetField])
     for tempRow in tempCursor:
         startOffsetPlus = tempRow[0]+1
