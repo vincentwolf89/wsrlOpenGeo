@@ -19,6 +19,8 @@ xField = "X_uittrede"
 yField = "Y_uittrede"
 betaField = "Beta_prob"
 catField = "Categorie_prob"
+eindOordeelLijn = "eindoordeel_stph"
+categoriesInSufficient = ["IV","V","VI"]
 
 def importeer_tabel():
     arcpy.conversion.ExcelToTable(invoer_tabel, "temp_stph_table", "Sheet1")
@@ -126,17 +128,28 @@ def deel_3():
     arcpy.management.AlterField("splits_vakindeling_null", "eindoordeel_1", "eindoordeel")
 
     # merge datasets
-    arcpy.Merge_management(["splits_vakindeling_null","splits_vakindeling_not_null"], "eindoordeel_stph")
+    arcpy.Merge_management(["splits_vakindeling_null","splits_vakindeling_not_null"], eindOordeelLijn)
 
+    # bereken eindoordeel
+    arcpy.AddField_management(eindOordeelLijn, "eindoordeel_final", "TEXT", 2)
+    oordeelCursor = arcpy.da.UpdateCursor(eindOordeelLijn,["eindoordeel","eindoordeel_final"])
+    for oordeelRow in oordeelCursor:
+        finalOordeel = "voldoende"
+        for oordeel in categoriesInSufficient:
+            
+            if oordeelRow[0].startswith(oordeel):
+                finalOordeel = "onvoldoende"
+                break
+
+        oordeelRow[1] = finalOordeel
+        oordeelCursor.updateRow(oordeelRow)
 
     
+        
 
-
-    # merge datasets tot uitvoer
-
-importeer_tabel()
-deel_1()
-deel_2()
+# importeer_tabel()
+# deel_1()
+# deel_2()
 deel_3()
 
 

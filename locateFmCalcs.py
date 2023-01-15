@@ -7,12 +7,14 @@ tempData =  "C:/Users/vince/Documents/ArcGIS/Projects/beoordeling ssh/tempData.g
 
 input1 = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stbi\input_stbi_jan_2023.xlsx"
 sheetInput1 = "STBI"
-tableFields = ["dp_van","dp_tot","offset_van","offset_tot","cat_oordeel_2075","dijkvak"]
+oordeelField = "cat_oordeel_2075"
+tableFields = ["dp_van","dp_tot","offset_van","offset_tot",oordeelField,"dijkvak"]
 startIdField = "dp_van"
 startOffsetField = "offset_van"
 endIdField = "dp_tot"
 endOffsetField = "offset_tot"
-faalmechanisme = "stbi_jan_2023"
+eindOordeelLijn = "oordeel_stbi_jan_2023"
+categoriesInSufficient = ["IV","V","VI"]
 
 
 dikeTrajectory = "ssh_spst_trajectlijn"
@@ -56,61 +58,86 @@ def createDpRoutes():
     arcpy.management.AlterField("temp_routes_trajectory", "rftident_1", "end_id",clear_field_alias="CLEAR_ALIAS")
 
 
-    
-# get input excel and loop through
-arcpy.conversion.ExcelToTable(input1, "tableInput1", sheetInput1, 1, '')
-tableCursor = arcpy.da.SearchCursor("tableInput1",tableFields)
+def calcBase():   
+    # get input excel and loop through
+    arcpy.conversion.ExcelToTable(input1, "tableInput1", sheetInput1, 1, '')
+    tableCursor = arcpy.da.SearchCursor("tableInput1",tableFields)
 
-segments = []
-count = 0
-for tableRow in tableCursor:
+    segments = []
+    count = 0
+    for tableRow in tableCursor:
 
-    arcpy.conversion.ExportTable("tableInput1", r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\beoordeling ssh.gdb\tableInput1_ExportTable", "dp_van = 'DR183.' And offset_van = 0", "NOT_USE_ALIAS", 'dijkvak "dijkvak" true true false 255 Text 0 0,First,#,tableInput1,dijkvak,0,255;dp_van "dp_van" true true false 255 Text 0 0,First,#,tableInput1,dp_van,0,255;dp_tot "dp_tot" true true false 255 Text 0 0,First,#,tableInput1,dp_tot,0,255;offset_van "offset_van" true true false 4 Long 0 0,First,#,tableInput1,offset_van,-1,-1;offset_tot "offset_tot" true true false 4 Long 0 0,First,#,tableInput1,offset_tot,-1,-1;cat_oordeel_2075 "cat_oordeel_2075" true true false 255 Text 0 0,First,#,tableInput1,cat_oordeel_2075,0,255', None)
+        arcpy.conversion.ExportTable("tableInput1", r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\beoordeling ssh.gdb\tableInput1_ExportTable", "dp_van = 'DR183.' And offset_van = 0", "NOT_USE_ALIAS", 'dijkvak "dijkvak" true true false 255 Text 0 0,First,#,tableInput1,dijkvak,0,255;dp_van "dp_van" true true false 255 Text 0 0,First,#,tableInput1,dp_van,0,255;dp_tot "dp_tot" true true false 255 Text 0 0,First,#,tableInput1,dp_tot,0,255;offset_van "offset_van" true true false 4 Long 0 0,First,#,tableInput1,offset_van,-1,-1;offset_tot "offset_tot" true true false 4 Long 0 0,First,#,tableInput1,offset_tot,-1,-1;cat_oordeel_2075 "cat_oordeel_2075" true true false 255 Text 0 0,First,#,tableInput1,cat_oordeel_2075,0,255', None)
 
-    # create templayer
-    rowIdStart = tableRow[0]
-    rowOffsetStart = tableRow[2]
+        # create templayer
+        rowIdStart = tableRow[0]
+        rowOffsetStart = tableRow[2]
 
-    # arcpy.conversion.ExportTable("tableInput1", "temp_tablerow", "{} = '{}'".format(startIdField,rowIdStart))
-    arcpy.conversion.ExportTable("tableInput1", "temp_tablerow", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
+        # arcpy.conversion.ExportTable("tableInput1", "temp_tablerow", "{} = '{}'".format(startIdField,rowIdStart))
+        arcpy.conversion.ExportTable("tableInput1", "temp_tablerow", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
 
-    arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(startIdField, startOffsetField), "temp_startpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
-    arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(endIdField, endOffsetField), "temp_endpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
-    arcpy.management.CopyFeatures("temp_startpoint", "startpoint_segment")
-    arcpy.management.CopyFeatures("temp_endpoint", "endpoint_segment")
+        arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(startIdField, startOffsetField), "temp_startpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
+        arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(endIdField, endOffsetField), "temp_endpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
+        arcpy.management.CopyFeatures("temp_startpoint", "startpoint_segment")
+        arcpy.management.CopyFeatures("temp_endpoint", "endpoint_segment")
 
-    # create line segment
-    arcpy.management.Merge(["startpoint_segment","endpoint_segment"], "temp_table_row_points")
-    # create splits
-    arcpy.management.SplitLineAtPoint(dikeTrajectory, "temp_table_row_points", "temp_table_row_line_total", "0.5 Meters")
-    
-    # copy row and create offset point for isect locating
-    # arcpy.conversion.ExportTable("tableInput1", "temp_tablerow_offset_locator", "{} = '{}'".format(startIdField,rowIdStart))
-    arcpy.conversion.ExportTable("tableInput1", "temp_tablerow_offset_locator", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
-    tempCursor = arcpy.da.UpdateCursor("temp_tablerow_offset_locator", [startOffsetField])
-    for tempRow in tempCursor:
-        startOffsetPlus = tempRow[0]+1
-        tempRow[0] = startOffsetPlus
-        tempCursor.updateRow(tempRow)
+        # create line segment
+        arcpy.management.Merge(["startpoint_segment","endpoint_segment"], "temp_table_row_points")
+        # create splits
+        arcpy.management.SplitLineAtPoint(dikeTrajectory, "temp_table_row_points", "temp_table_row_line_total", "0.5 Meters")
+        
+        # copy row and create offset point for isect locating
+        # arcpy.conversion.ExportTable("tableInput1", "temp_tablerow_offset_locator", "{} = '{}'".format(startIdField,rowIdStart))
+        arcpy.conversion.ExportTable("tableInput1", "temp_tablerow_offset_locator", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
+        tempCursor = arcpy.da.UpdateCursor("temp_tablerow_offset_locator", [startOffsetField])
+        for tempRow in tempCursor:
+            startOffsetPlus = tempRow[0]+1
+            tempRow[0] = startOffsetPlus
+            tempCursor.updateRow(tempRow)
 
-    del tempCursor
-    arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow_offset_locator", "{}; Point; {}".format(startIdField, startOffsetField), "temp_startpoint_offset_locator", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
-    arcpy.management.CopyFeatures("temp_startpoint_offset_locator", "startpoint_offset_locator")
+        del tempCursor
+        arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow_offset_locator", "{}; Point; {}".format(startIdField, startOffsetField), "temp_startpoint_offset_locator", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
+        arcpy.management.CopyFeatures("temp_startpoint_offset_locator", "startpoint_offset_locator")
 
-    arcpy.management.MakeFeatureLayer("temp_table_row_line_total", "templayer")
-    arcpy.management.SelectLayerByLocation("templayer", "INTERSECT", "startpoint_offset_locator", None, "NEW_SELECTION", "NOT_INVERT")
-    arcpy.CopyFeatures_management("templayer", "test_segment")
-    # join attributes from tablerow
-    arcpy.management.MakeFeatureLayer("test_segment", "templayer")
-    arcpy.management.AddJoin("templayer", "code", "temp_tablerow", "OBJECTID", "KEEP_ALL", "NO_INDEX_JOIN_FIELDS")
-    segment = "{}tablerow_{}".format(tempData,count)
-    arcpy.CopyFeatures_management("templayer", segment)
-    # add to segments
-    segments.append(segment)
-    count += 1
+        arcpy.management.MakeFeatureLayer("temp_table_row_line_total", "templayer")
+        arcpy.management.SelectLayerByLocation("templayer", "INTERSECT", "startpoint_offset_locator", None, "NEW_SELECTION", "NOT_INVERT")
+        arcpy.CopyFeatures_management("templayer", "test_segment")
+        # join attributes from tablerow
+        arcpy.management.MakeFeatureLayer("test_segment", "templayer")
+        arcpy.management.AddJoin("templayer", "code", "temp_tablerow", "OBJECTID", "KEEP_ALL", "NO_INDEX_JOIN_FIELDS")
+        segment = "{}tablerow_{}".format(tempData,count)
+        arcpy.CopyFeatures_management("templayer", segment)
+        # add to segments
+        segments.append(segment)
+        count += 1
 
-# merge segments
-arcpy.management.Merge(segments,"oordeel_{}".format(faalmechanisme))
+    # merge segments
+    arcpy.management.Merge(segments, eindOordeelLijn)
+    arcpy.management.AlterField(eindOordeelLijn, "temp_tablerow_{}".format(oordeelField), oordeelField)
+
+def calcFinal():
+    existingFields = arcpy.ListFields(eindOordeelLijn)
+    for field in existingFields:
+        if field.name == "eindoordeel_final":
+            pass
+        else:
+             arcpy.AddField_management(eindOordeelLijn, "eindoordeel_final", "TEXT", 2)
+
+    oordeelCursor = arcpy.da.UpdateCursor(eindOordeelLijn,[oordeelField,"eindoordeel_final"])
+    for oordeelRow in oordeelCursor:
+        finalOordeel = "voldoende"
+        for oordeel in categoriesInSufficient:
+            
+            if oordeelRow[0].startswith(oordeel):
+                finalOordeel = "onvoldoende"
+                break
+
+        oordeelRow[1] = finalOordeel
+        oordeelCursor.updateRow(oordeelRow)
+
+
+calcBase()
+calcFinal()
 
 
 
