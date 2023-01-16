@@ -18,14 +18,64 @@ code = "deeltraject"
 stapgrootte_punten = 0.5
 raster = r"C:\Users\vince\Desktop\werk\Projecten\WSRL\sterreschans_heteren\GIS\waterlopen300m.gdb\ahn3clipsh1"
 profileNumberField = "profielnummer"
+isectNumberField = "OBJECTID"
 profileFields = ["profielnummer"]
-isectFields = [profileNumberField,"thema"]
+isectFields = [isectNumberField,profileNumberField,"thema"]
+isectDfColumns = ["type","afstand","hoogte"]
+elevationSourceName = "AHN3"
+fieldsProfile = ["profielnummer","afstand","z_ahn","x","y"]
+plotLocation= "C:/Users/vince/Desktop/temp/"
 
-layerForIntersects = ["merge_r_d", "merge_w_d"]
+layersForIntersects = ["merge_r_d", "merge_w_d"]
 
 # temp variables
 invoerpunten = "punten_profielen"
 uitvoerpunten = "punten_profielen_z"
+
+def createProfileSheet(sheetName, profilePoints , isectPoints):
+    
+    workbook = Workbook(plotLocation+sheetName)
+    worksheet1 = workbook.add_worksheet('Overzicht')
+    # worksheet2 = workbook.add_worksheet()
+
+    # style for headers
+    bold = workbook.add_format({'bold': True})
+
+
+    # write column headers
+    # worksheet1.write(0, 0, "Profielnummer", bold)
+    worksheet1.write(0, 0, "Profielnummer", bold)
+    worksheet1.write(0, 1, "Afstand [m]", bold)
+    worksheet1.write(0, 2, "Hoogte {} [m NAP]".format(elevationSourceName), bold)
+    worksheet1.write(0, 3, "x [RD]", bold)
+    worksheet1.write(0, 4, "y [RD]", bold)
+
+    worksheet1.write(0, 5, "Type", bold)
+    worksheet1.write(0, 6, "Afstand", bold)
+    worksheet1.write(0, 7, "Hoogte", bold)
+
+    # write colums
+    worksheet1.write_column('A2', profilePoints['profielnummer'])
+    worksheet1.write_column('B2', profilePoints['afstand'])
+    worksheet1.write_column('C2', profilePoints['z_ahn'])
+    worksheet1.write_column('D2', profilePoints['x'])
+    worksheet1.write_column('E2', profilePoints['y'])
+
+    worksheet1.write_column('F2', isectPoints['type'])
+    worksheet1.write_column('G2', isectPoints['afstand'])
+    worksheet1.write_column('H2', isectPoints['hoogte'])
+
+
+
+    # definieer startrij
+    startpunt = 2
+
+
+    # lege lijngrafiek invoegen met zowel afstand als hoogte als invoer
+    line_chart1 = workbook.add_chart({'type': 'scatter',
+                                 'subtype': 'straight'})
+
+    workbook.close()
 
 
 
@@ -42,28 +92,61 @@ if newProfiles is True:
     # loop through profielen and check for 
     profielCursor = arcpy.da.SearchCursor(profielen, profileFields)
     for profile in profielCursor:
+
+        # create array for isects
+        isectDf = pd.DataFrame(columns = isectDfColumns)
+
         # create templayer
         profileNumber = int(profile[0])
         where = '"' + profileNumberField + '" = ' + str(profileNumber)
         temp_profile = "temp_profile"
         arcpy.Select_analysis(profielen, temp_profile, where)
+        arcpy.Select_analysis(uitvoerpunten, "temp_uitvoerpunten_profile", where)
         # check for intersects with layerForIntersects
-        for layer in layerForIntersects:
+        for layer in layersForIntersects:
+
+            
+
+
             arcpy.analysis.Intersect([temp_profile,layer], "temp_isects", "ALL", None, "POINT")
             isectCursor = arcpy.da.SearchCursor("temp_isects", isectFields)
             for isect in isectCursor:
 
                 # get isect layer and join to nearest profile point
-                isectTheme = isect[1]
-                print (isect[0], isect[1],layer)
+                isectNumber = int(isect[0])
+                where = '"' + isectNumberField + '" = ' + str(isectNumber)
+                temp_isect = "temp_isect"
+                arcpy.Select_analysis("temp_isects", temp_isect, where)
 
+                arcpy.analysis.SpatialJoin(temp_isect, "temp_uitvoerpunten_profile", "temp_isect_loc", "JOIN_ONE_TO_ONE", "KEEP_ALL", "", "CLOSEST", None, '')
+                distanceValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", "afstand")][0]
+                zValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", "z_ahn")][0]
+                isectTheme = isect[2]
+
+
+                isectRow = {'type': isectTheme, 'afstand': distanceValue, 'hoogte' : zValue}
+                isectDf = isectDf.append(isectRow, ignore_index=True)
+                
+                # print (profileNumber, distanceValue, zValue)
+                
+
+               
+                
+              
+
+                # break
+    
+        
+        
+        # create dataframe for plotting 
+        profileArray = arcpy.da.FeatureClassToNumPyArray("temp_uitvoerpunten_profile", fieldsProfile, null_value=-9999)
+        df = pd.DataFrame(profileArray)
+        dfProfile = df.sort_values('afstand', ascending=True)
+
+        sheetName = "Profiel_{}.xlsx".format(str(profileNumber))
+        createProfileSheet(sheetName, dfProfile, isectDf)
        
     
-
-
-    # get nearest afstand, z and profile number
-    # put in array
-    # 
 
 
 
@@ -74,8 +157,5 @@ else:
     add_xy(uitvoerpunten,code,trajectlijn)
 
 
-
-# def excelWriterKL():
-#     # create xlsx
 
 
