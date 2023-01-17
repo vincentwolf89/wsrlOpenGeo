@@ -25,8 +25,19 @@ isectDfColumns = ["type","afstand","hoogte"]
 elevationSourceName = "AHN3"
 fieldsProfile = ["profielnummer","afstand","z_ahn","x","y"]
 plotLocation= "C:/Users/vince/Desktop/temp/"
+isectPlotElevation = 4
 
-layersForIntersects = ["merge_r_d", "merge_w_d"]
+
+layersForIntersects = {
+  "riool": "merge_r_d_rd",
+  "water": "merge_w_d_rd",
+}
+
+colorsForIntersects = {
+  "riool": "red",
+  "water": "blue",
+}
+
 
 # temp variables
 invoerpunten = "punten_profielen"
@@ -34,7 +45,7 @@ uitvoerpunten = "punten_profielen_z"
 
 def createProfileSheet(sheetName, profilePoints , isectPoints):
     
-    workbook = Workbook(plotLocation+sheetName)
+    workbook = Workbook(plotLocation+sheetName+".xlsx")
     worksheet1 = workbook.add_worksheet('Overzicht')
     # worksheet2 = workbook.add_worksheet()
 
@@ -65,6 +76,8 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write_column('G2', isectPoints['afstand'])
     worksheet1.write_column('H2', isectPoints['hoogte'])
 
+    
+
 
 
     # definieer startrij
@@ -75,17 +88,62 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     line_chart1 = workbook.add_chart({'type': 'scatter',
                                  'subtype': 'straight'})
 
+    meetpunten = len(profilePoints['profielnummer'])
+    line_chart1.add_series({
+        'name': '{}-profiel'.format(elevationSourceName),
+        'categories': '=Overzicht!B'+str(startpunt)+':B' + str(startpunt+meetpunten-1),
+        'values':     '=Overzicht!C'+str(startpunt)+':C' + str(startpunt+meetpunten-1),
+        'line': {'width': 1}
+    })
+
+    line_chart1.set_title({'name': 'Overzicht {}'.format(sheetName)})
+    line_chart1.set_x_axis({'name': 'Afstand [m]'})
+    line_chart1.set_y_axis({'name': 'Hoogte [m NAP]'})
+    line_chart1.set_x_axis({'interval_tick': 0.5})
+    # line_chart1.set_x_axis({'min': min_plot, 'max': max_plot})
+    line_chart1.set_size({'width': 1000, 'height': 300})
+    # line_chart1.set_style(1)
+    worksheet1.insert_chart('D24', line_chart1) 
+
+    # iterate over isectPoints and create separate series for each intersect
+    for index, row in isectPoints.iterrows():
+   
+        rowIndex = str(index+2)
+
+        line_chart1.add_series({
+            'name': row['type'],
+            'categories': '=Overzicht!$G${}:$G${}'.format(rowIndex,rowIndex),
+            'values':     '=Overzicht!$H${}:$H${}'.format(rowIndex,rowIndex),
+            'marker': {
+                'type': 'circle',
+                'size': 8,
+                # 'border': {'color': 'black'},
+                'fill':   {'color': colorsForIntersects[row['type']]},
+            },
+        })
+
+   
+        # chart.add_series({
+        #     'values': '=Sheet1!$A$1:$A$6',
+        #     'marker': {
+        #         'type': 'square',
+        #         'size': 8,
+        #         'border': {'color': 'black'},
+        #         'fill':   {'color': 'red'},
+        #     },
+        # })
+
     workbook.close()
 
 
 
 
 if newProfiles is True:
-    copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
-    generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier,trajectlijn,code,profielen)
-    set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
-    extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
-    add_xy(uitvoerpunten,code,trajectlijn)
+    # copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
+    # generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier,trajectlijn,code,profielen)
+    # set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
+    # extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
+    # add_xy(uitvoerpunten,code,trajectlijn)
 
     
 
@@ -103,12 +161,16 @@ if newProfiles is True:
         arcpy.Select_analysis(profielen, temp_profile, where)
         arcpy.Select_analysis(uitvoerpunten, "temp_uitvoerpunten_profile", where)
         # check for intersects with layerForIntersects
-        for layer in layersForIntersects:
 
-            
+        print (profileNumber)
+    
+        
+        for key, value in layersForIntersects.items():
 
+            # print (profileNumber,layer,temp_profile)
 
-            arcpy.analysis.Intersect([temp_profile,layer], "temp_isects", "ALL", None, "POINT")
+            arcpy.analysis.Intersect([value,temp_profile], "temp_isects", "ALL", None, "POINT")
+
             isectCursor = arcpy.da.SearchCursor("temp_isects", isectFields)
             for isect in isectCursor:
 
@@ -121,13 +183,18 @@ if newProfiles is True:
                 arcpy.analysis.SpatialJoin(temp_isect, "temp_uitvoerpunten_profile", "temp_isect_loc", "JOIN_ONE_TO_ONE", "KEEP_ALL", "", "CLOSEST", None, '')
                 distanceValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", "afstand")][0]
                 zValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", "z_ahn")][0]
+                if zValue == None:
+                    zValue = 0
                 isectTheme = isect[2]
 
 
-                isectRow = {'type': isectTheme, 'afstand': distanceValue, 'hoogte' : zValue}
+                isectRow = {'type': key, 'afstand': distanceValue, 'hoogte' : isectPlotElevation}
                 isectDf = isectDf.append(isectRow, ignore_index=True)
                 
                 # print (profileNumber, distanceValue, zValue)
+          
+            
+
                 
 
                
@@ -139,11 +206,13 @@ if newProfiles is True:
         
         
         # create dataframe for plotting 
-        profileArray = arcpy.da.FeatureClassToNumPyArray("temp_uitvoerpunten_profile", fieldsProfile, null_value=-9999)
+        profileArray = arcpy.da.FeatureClassToNumPyArray("temp_uitvoerpunten_profile", fieldsProfile, skip_nulls=True)
+    
+
         df = pd.DataFrame(profileArray)
         dfProfile = df.sort_values('afstand', ascending=True)
 
-        sheetName = "Profiel_{}.xlsx".format(str(profileNumber))
+        sheetName = "Profiel_{}".format(str(profileNumber))
         createProfileSheet(sheetName, dfProfile, isectDf)
        
     
