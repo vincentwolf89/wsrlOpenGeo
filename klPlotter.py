@@ -1,5 +1,6 @@
 # generate profiles or get profile input
 from xlsxwriter.workbook import Workbook
+import collections
 
 import arcpy
 from base import *
@@ -20,7 +21,8 @@ raster = r"C:\Users\vince\Desktop\werk\Projecten\WSRL\sterreschans_heteren\GIS\w
 profileNumberField = "profielnummer"
 isectNumberField = "OBJECTID"
 profileFields = ["profielnummer"]
-isectFields = [isectNumberField,profileNumberField,"thema"]
+subTypeField = "thema"
+isectFields = [isectNumberField,profileNumberField,subTypeField]
 isectDfColumns = ["type","afstand","hoogte"]
 elevationSourceName = "AHN3"
 fieldsProfile = ["profielnummer","afstand","z_ahn","x","y"]
@@ -28,14 +30,28 @@ plotLocation= "C:/Users/vince/Desktop/temp/"
 isectPlotElevation = 4
 
 
+
 layersForIntersects = {
-  "riool": "merge_r_d_rd",
-  "water": "merge_w_d_rd",
+    "riool": {
+        "name":"merge_r_d_rd",
+        "symbol":"circle",
+    },
+    "water": {
+        "name":"merge_w_d_rd",
+        "symbol":"circle",
+    },
+    "kruinlijn": {
+        "name":"testsectie",
+        "symbol":"square",
+    },
+  
 }
 
 colorsForIntersects = {
-  "riool": "red",
+  "rioolVrijverval": "blue",
+  "rioolOnderOverOfOnderdruk":"yellow",
   "water": "blue",
+  "buitenkruin":"orange"
 }
 
 
@@ -52,7 +68,6 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     # style for headers
     bold = workbook.add_format({'bold': True})
 
-
     # write column headers
     # worksheet1.write(0, 0, "Profielnummer", bold)
     worksheet1.write(0, 0, "Profielnummer", bold)
@@ -62,8 +77,9 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write(0, 4, "y [RD]", bold)
 
     worksheet1.write(0, 5, "Type", bold)
-    worksheet1.write(0, 6, "Afstand", bold)
-    worksheet1.write(0, 7, "Hoogte", bold)
+    worksheet1.write(0, 6, "Subtype", bold)
+    worksheet1.write(0, 7, "Afstand", bold)
+    worksheet1.write(0, 8, "Hoogte", bold)
 
     # write colums
     worksheet1.write_column('A2', profilePoints['profielnummer'])
@@ -73,16 +89,12 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write_column('E2', profilePoints['y'])
 
     worksheet1.write_column('F2', isectPoints['type'])
-    worksheet1.write_column('G2', isectPoints['afstand'])
-    worksheet1.write_column('H2', isectPoints['hoogte'])
-
-    
-
-
+    worksheet1.write_column('G2', isectPoints['subtype'])
+    worksheet1.write_column('H2', isectPoints['afstand'])
+    worksheet1.write_column('I2', isectPoints['hoogte'])
 
     # definieer startrij
     startpunt = 2
-
 
     # lege lijngrafiek invoegen met zowel afstand als hoogte als invoer
     line_chart1 = workbook.add_chart({'type': 'scatter',
@@ -102,36 +114,59 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     line_chart1.set_x_axis({'interval_tick': 0.5})
     # line_chart1.set_x_axis({'min': min_plot, 'max': max_plot})
     line_chart1.set_size({'width': 1000, 'height': 300})
-    # line_chart1.set_style(1)
+    line_chart1.set_style(1)
+    
     worksheet1.insert_chart('D24', line_chart1) 
 
     # iterate over isectPoints and create separate series for each intersect
+    indexes = []
+    seriesInChart = {}
     for index, row in isectPoints.iterrows():
    
         rowIndex = str(index+2)
+        layerType = row['type']
+        
 
         line_chart1.add_series({
-            'name': row['type'],
-            'categories': '=Overzicht!$G${}:$G${}'.format(rowIndex,rowIndex),
-            'values':     '=Overzicht!$H${}:$H${}'.format(rowIndex,rowIndex),
+            'name': row['subtype'],
+            'categories': '=Overzicht!$H${}:$H${}'.format(rowIndex,rowIndex),
+            'values':     '=Overzicht!$I${}:$I${}'.format(rowIndex,rowIndex),
+            # 'y_error_bars': {
+            #     'type': 'fixed',
+            #     'value': 5,
+            #     'end_style': 0,
+            #     'direction': 'plus',
+            #     'color':'yellow'
+            # },
+            'line':   {'none': True},
             'marker': {
-                'type': 'circle',
+                'type': layersForIntersects[layerType]["symbol"],
                 'size': 8,
-                # 'border': {'color': 'black'},
-                'fill':   {'color': colorsForIntersects[row['type']]},
+                'border': {'none': True},
+                'fill':   {'color': colorsForIntersects[row['subtype']]},
             },
+            # 'data_labels': {'value': True, 'legend_key': True},
         })
 
-   
-        # chart.add_series({
-        #     'values': '=Sheet1!$A$1:$A$6',
-        #     'marker': {
-        #         'type': 'square',
-        #         'size': 8,
-        #         'border': {'color': 'black'},
-        #         'fill':   {'color': 'red'},
-        #     },
-        # })
+
+        indexes.append(index+1)
+        seriesInChart[index+1] = row['subtype']
+    
+    
+    # remove duplicates from legend
+    rev_dict = {}
+    for key, value in seriesInChart.items():
+        rev_dict.setdefault(value, set()).add(key)
+        
+    result = [key for key, values in rev_dict.items()
+                                if len(values) > 1]
+    
+    duplicates = []
+    for value in result:
+        key = [k for k, v in seriesInChart.items() if v == value][0]
+        duplicates.append(key)
+    
+    line_chart1.set_legend({'delete_series': duplicates})
 
     workbook.close()
 
@@ -165,11 +200,9 @@ if newProfiles is True:
         print (profileNumber)
     
         
-        for key, value in layersForIntersects.items():
+        for theme, layer in layersForIntersects.items():
 
-            # print (profileNumber,layer,temp_profile)
-
-            arcpy.analysis.Intersect([value,temp_profile], "temp_isects", "ALL", None, "POINT")
+            arcpy.analysis.Intersect([layer["name"],temp_profile], "temp_isects", "ALL", None, "POINT")
 
             isectCursor = arcpy.da.SearchCursor("temp_isects", isectFields)
             for isect in isectCursor:
@@ -182,26 +215,16 @@ if newProfiles is True:
 
                 arcpy.analysis.SpatialJoin(temp_isect, "temp_uitvoerpunten_profile", "temp_isect_loc", "JOIN_ONE_TO_ONE", "KEEP_ALL", "", "CLOSEST", None, '')
                 distanceValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", "afstand")][0]
+                subType = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", subTypeField)][0]
                 zValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", "z_ahn")][0]
                 if zValue == None:
                     zValue = 0
                 isectTheme = isect[2]
 
 
-                isectRow = {'type': key, 'afstand': distanceValue, 'hoogte' : isectPlotElevation}
+                isectRow = {'type': theme, 'subtype':subType, 'afstand': distanceValue, 'hoogte' : isectPlotElevation}
                 isectDf = isectDf.append(isectRow, ignore_index=True)
-                
-                # print (profileNumber, distanceValue, zValue)
-          
-            
 
-                
-
-               
-                
-              
-
-                # break
     
         
         
