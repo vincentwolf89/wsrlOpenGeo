@@ -13,9 +13,9 @@ arcpy.env.workspace = r'C:\Users\vince\Documents\ArcGIS\Projects\percelen erfpac
 
 excel = r'C:\Users\vince\Documents\ArcGIS\Projects\percelen erfpacht januari 2023\output\uitvoer_percelen_januari2023.xlsx'
 
-meetpunten = "meetpunten"
+meetpunten = "meetpunten_update_24_jan"
 meetpunt_veld = "Werknummer"
-percelen = "meetpunten_percelen_allen"
+percelen = "meetpunten_percelen_allen_update_24_jan"
 velden = ["KADTOTAAL","ZR_OMSCHRIJVING","NAAM","VOORN","VOORL","VOORV","TITEL","STRAAT","HUISNR","POSTCODE","WOONPLAATS","aantal_go","go_nummers"]
 velden_eigenaren = ["ZR_OMSCHRIJVING","NAAM","VOORN","VOORL","VOORV","TITEL","STRAAT","HUISNR","POSTCODE","WOONPLAATS"]
 array = arcpy.da.FeatureClassToNumPyArray(percelen, velden)

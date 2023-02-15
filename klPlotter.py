@@ -1,6 +1,6 @@
 # generate profiles or get profile input
 from xlsxwriter.workbook import Workbook
-import collections
+
 
 import arcpy
 from base import *
@@ -21,15 +21,25 @@ raster = r"C:\Users\vince\Desktop\werk\Projecten\WSRL\sterreschans_heteren\GIS\w
 profileNumberField = "profielnummer"
 isectNumberField = "OBJECTID"
 profileFields = ["profielnummer"]
+
 subTypeField = "thema"
+diameterField = "diameter"
+pressureField = "druk"
+materialField = "label"
+
 isectFields = [isectNumberField,profileNumberField,subTypeField]
-isectDfColumns = ["type","afstand","hoogte"]
+isectFieldsKL = [isectNumberField,profileNumberField,subTypeField,diameterField,pressureField,materialField]
+
+isectDfColumns = ["type","afstand","hoogte","diameter","druk","materiaal"]
 elevationSourceName = "AHN3"
 fieldsProfile = ["profielnummer","afstand","z_ahn","x","y"]
 plotLocation= "C:/Users/vince/Desktop/temp/"
 isectPlotElevation = 4
 
+# def diameter, druk, materiaalsoort
 
+
+klThemes = ["riool","water"]
 
 layersForIntersects = {
     "riool": {
@@ -80,6 +90,9 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write(0, 6, "Subtype", bold)
     worksheet1.write(0, 7, "Afstand", bold)
     worksheet1.write(0, 8, "Hoogte", bold)
+    worksheet1.write(0, 9, "Diameter", bold)
+    worksheet1.write(0, 10, "Druk", bold)
+    worksheet1.write(0, 11, "Materiaal", bold)
 
     # write colums
     worksheet1.write_column('A2', profilePoints['profielnummer'])
@@ -92,6 +105,10 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write_column('G2', isectPoints['subtype'])
     worksheet1.write_column('H2', isectPoints['afstand'])
     worksheet1.write_column('I2', isectPoints['hoogte'])
+    
+    worksheet1.write_column('J2', isectPoints['diameter'])
+    worksheet1.write_column('K2', isectPoints['druk'])
+    worksheet1.write_column('L2', isectPoints['materiaal'])
 
     # definieer startrij
     startpunt = 2
@@ -201,10 +218,14 @@ if newProfiles is True:
     
         
         for theme, layer in layersForIntersects.items():
+            if theme in klThemes:
+                fieldsForIsect = isectFieldsKL
+            else:
+                fieldsForIsect = isectFields
 
             arcpy.analysis.Intersect([layer["name"],temp_profile], "temp_isects", "ALL", None, "POINT")
 
-            isectCursor = arcpy.da.SearchCursor("temp_isects", isectFields)
+            isectCursor = arcpy.da.SearchCursor("temp_isects", fieldsForIsect)
             for isect in isectCursor:
 
                 # get isect layer and join to nearest profile point
@@ -217,12 +238,31 @@ if newProfiles is True:
                 distanceValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", "afstand")][0]
                 subType = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", subTypeField)][0]
                 zValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", "z_ahn")][0]
+
+                if theme in klThemes:
+                    diameterValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", diameterField)][0]
+                    pressureValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", pressureField)][0]
+                    materialValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", materialField)][0]
+                else:
+                    diameterValue = None
+                    pressureValue = None
+                    materialValue = None
+
                 if zValue == None:
                     zValue = 0
                 isectTheme = isect[2]
 
 
-                isectRow = {'type': theme, 'subtype':subType, 'afstand': distanceValue, 'hoogte' : isectPlotElevation}
+                isectRow = {
+                    'type': theme, 
+                    'subtype':subType, 
+                    'afstand': distanceValue, 
+                    'hoogte' : isectPlotElevation,
+                    'diameter': diameterValue,
+                    'druk': pressureValue,
+                    'materiaal': materialValue
+                    
+                    }
                 isectDf = isectDf.append(isectRow, ignore_index=True)
 
     
