@@ -14,12 +14,12 @@ profielBuffer = 10
 profielCode = "OBJECTID"
 veldenPunten = ["Beta_prob","Categorie_prob"]
 profielen_selectie = "profielen_selectie"
-invoer_tabel = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stph\invoer_stph.xlsx"
+invoer_tabel = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stph\invoer_stph_22032023.xlsx"
 xField = "X_uittrede"
 yField = "Y_uittrede"
 betaField = "Beta_prob"
 catField = "Categorie_prob"
-eindOordeelLijn = "eindoordeel_stph"
+eindOordeelLijn = "eindoordeel_stph_22032023"
 categoriesInSufficient = ["IV","V","VI"]
 
 def importeer_tabel():

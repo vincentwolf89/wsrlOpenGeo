@@ -5,15 +5,15 @@ from arcpy.sa import *
 arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\beoordeling ssh.gdb"
 tempData =  "C:/Users/vince/Documents/ArcGIS/Projects/beoordeling ssh/tempData.gdb/"
 
-input1 = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stbi\input_stbi_jan_2023.xlsx"
-sheetInput1 = "STBI"
+input1 = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stbi\input_stbi_maart_2023.xlsx"
+sheetInput1 = "invoer_gis"
 oordeelField = "cat_oordeel_2075"
 tableFields = ["dp_van","dp_tot","offset_van","offset_tot",oordeelField,"dijkvak"]
 startIdField = "dp_van"
 startOffsetField = "offset_van"
 endIdField = "dp_tot"
 endOffsetField = "offset_tot"
-eindOordeelLijn = "oordeel_stbi_jan_2023"
+eindOordeelLijn = "oordeel_stbi_maart_2023"
 categoriesInSufficient = ["IV","V","VI"]
 
 
