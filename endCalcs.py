@@ -1,17 +1,17 @@
 import arcpy
 arcpy.env.overwriteOutput = True
-from arcpy.sa import *
+# from arcpy.sa import *
 
 arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\beoordeling ssh.gdb"
 tempData =  "C:/Users/vince/Documents/ArcGIS/Projects/beoordeling ssh/tempData.gdb/"
 
 
-dikeTrajectory = "testtraject" #"ssh_spst_traject"
+dikeTrajectory = "ssh_spst_traject" #"ssh_spst_traject"
 pointInterval = 5 # meters 
 pointSearchRadius = 1 # meters
 codeField = "code"
 oidField = "OBJECTID"
-failureMechanisms = ["oordeel_stbi_jan_2023", "eindoordeel_stph"] # array with all fm as line input
+failureMechanisms = ["oordeel_stbi_maart_2023", "eindoordeel_stph_22032023"] # array with all fm as line input
 scorefield = "eindoordeel_final"
 insufficientValue = "onvoldoende"
 

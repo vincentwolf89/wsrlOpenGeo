@@ -4,7 +4,7 @@ from arcpy.sa import *
 
 arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\safe aanpassingen scope lijnen\repaired.gdb"
 # safe_priovakken_2022_nieuw_rd
-dike_segments = "scope_uitbreiding_nieuw_rd"
+dike_segments = "scope_april_2023_input"
 dike_trajectory = "trajectlijn_safe_rd"
 dike_refpoints = "dijkpalen_safe_rd"
 route_field = "code"
@@ -79,4 +79,4 @@ arcpy.AddField_management("temp_ouput_segments", till_field, "TEXT", 2)
 
 arcpy.management.CalculateField("temp_ouput_segments", from_field, "$feature.start_id + '+'+ Text(Round($feature.start_distance,0))", "ARCADE")
 arcpy.management.CalculateField("temp_ouput_segments", till_field, "$feature.end_id + '+'+ Text(Round($feature.end_distance,0))", "ARCADE")
-
+print ("done")
