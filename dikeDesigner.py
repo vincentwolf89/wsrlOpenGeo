@@ -255,14 +255,13 @@ with arcpy.da.SearchCursor(designFeatures, ["dijkvak","onderdeel","offset","z"])
             distance_field_name=""
         )
 
-        # dissolve
-        arcpy.management.Dissolve(
+        # pairwise dissolve
+        arcpy.analysis.PairwiseDissolve(
             in_features="tempSelected3dPartsSjoin_{}".format(k),
-            out_feature_class="tempSelected3dPartsSjoinDissolve_{}".format(k),
+            out_feature_class="designs3d_{}".format(k),
             dissolve_field="onderdeel",
             statistics_fields=None,
             multi_part="MULTI_PART",
-            unsplit_lines="DISSOLVE_LINES",
             concatenation_separator=""
         )
 
