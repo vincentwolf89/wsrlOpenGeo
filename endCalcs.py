@@ -6,12 +6,12 @@ arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh
 tempData =  "C:/Users/vince/Documents/ArcGIS/Projects/beoordeling ssh/tempData.gdb/"
 
 
-dikeTrajectory = "ssh_spst_traject" #"ssh_spst_traject"
-pointInterval = 5 # meters 
+dikeTrajectory = "testtraject" #"ssh_spst_traject"
+pointInterval = 20 # meters 
 pointSearchRadius = 1 # meters
 codeField = "code"
 oidField = "OBJECTID"
-failureMechanisms = ["oordeel_stbi_maart_2023", "eindoordeel_stph_22032023"] # array with all fm as line input
+failureMechanisms = ["oordeel_stbi_maart_2023", "eindoordeel_stph_22032023","test_kl_segmenten_ovd"] # array with all fm as line input
 scorefield = "eindoordeel_final"
 insufficientValue = "onvoldoende"
 
