@@ -54,7 +54,6 @@ arcpy.management.AddField(designPartFeatures, "onderdeel", "TEXT", field_length=
 arcpy.management.AddField(dikeSegmentsForIter, "dijkvak", "TEXT", field_length=200)
 
 
-
 # iterate over design, groupby 
 with arcpy.da.SearchCursor(inputTable, designFields) as cursor:
     for dijkvak, g in groupby(cursor, lambda x: x[0]):
