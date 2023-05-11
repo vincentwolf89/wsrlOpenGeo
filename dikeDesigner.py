@@ -14,7 +14,7 @@ dikeSegments = "test_dijkvakken"
 bikLine = "safe_binnenkruinlijn_rd"
 
 inputXls = r"C:\Users\vince\Documents\ArcGIS\Projects\3d ontwerpen safe 2023\input\demoset_1.xlsx"
-inputSheet = "Blad2"
+inputSheet = "Blad5"
 inputTable = "designTable"
 groupbyField = "dijkvak"
 designFields = ["dijkvak","onderdeel","start_offset","end_offset","start_z","end_z","referentie"]
@@ -57,75 +57,78 @@ arcpy.management.AddField(dikeSegmentsForIter, "dijkvak", "TEXT", field_length=2
 # iterate over design, groupby 
 with arcpy.da.SearchCursor(inputTable, designFields) as cursor:
     for dijkvak, g in groupby(cursor, lambda x: x[0]):
+
         print (dijkvak, "loop1")
         tempLayer = arcpy.MakeFeatureLayer_management(dikeSegments,"templayer")
         arcpy.management.SelectLayerByAttribute(tempLayer, "NEW_SELECTION", "dijkvak = '{}'".format(dijkvak))
         dikeSegmentSelect = arcpy.management.CopyFeatures(tempLayer, "tempSelect")
 
             
-        dsCur = arcpy.da.InsertCursor(dikeSegmentsForIter, ["SHAPE@","dijkvak"])
-        # get ref
-        for row in g:
-            ref = row[6]
-            break
-        print (ref)
+        # dsCur = arcpy.da.InsertCursor(dikeSegmentsForIter, ["SHAPE@","dijkvak"])
+        # # get ref
+        # for row in g:
+        #     ref = row[6]
+        #     break
+        # print (ref)
 
-        if ref =="bik":
-            # transects on endpoints
-            arcpy.management.GenerateTransectsAlongLines(
-                in_features=dikeSegmentSelect,
-                out_feature_class="tempTransects",
-                interval="99999 Meters",
-                transect_length="60 Meters",
-                include_ends="END_POINTS"
-            )
+        # if ref =="bik":
+        #     # transects on endpoints
+        #     arcpy.management.GenerateTransectsAlongLines(
+        #         in_features=dikeSegmentSelect,
+        #         out_feature_class="tempTransects",
+        #         interval="99999 Meters",
+        #         transect_length="60 Meters",
+        #         include_ends="END_POINTS"
+        #     )
 
-            arcpy.analysis.Intersect(
-                in_features="tempTransects #;{} #".format(bikLine),
-                out_feature_class="tempSplitpoints",
-                join_attributes="ALL",
-                output_type="POINT"
-            )
+        #     arcpy.analysis.Intersect(
+        #         in_features="tempTransects #;{} #".format(bikLine),
+        #         out_feature_class="tempSplitpoints",
+        #         join_attributes="ALL",
+        #         output_type="POINT"
+        #     )
 
-            arcpy.management.SplitLineAtPoint(
-                in_features=bikLine,
-                point_features="tempSplitpoints",
-                out_feature_class="tempBikParts",
-                search_radius="0.1 Meters"
-            )
-            # create profile on midpoint dike section
-            sectionLength = round(([f[0] for f in arcpy.da.SearchCursor(dikeSegmentSelect, 'SHAPE@LENGTH')][0]),0)
-            print (sectionLength)
-            arcpy.management.GenerateTransectsAlongLines(
-                in_features=dikeSegmentSelect,
-                out_feature_class="tempTransectMid",
-                interval="{} Meters".format(sectionLength/2),
-                transect_length="60 Meters",
-                include_ends="NO_END_POINTS"
-            )
+        #     arcpy.management.SplitLineAtPoint(
+        #         in_features=bikLine,
+        #         point_features="tempSplitpoints",
+        #         out_feature_class="tempBikParts",
+        #         search_radius="0.1 Meters"
+        #     )
+        #     # create profile on midpoint dike section
+        #     sectionLength = round(([f[0] for f in arcpy.da.SearchCursor(dikeSegmentSelect, 'SHAPE@LENGTH')][0]),0)
+        #     print (sectionLength)
+        #     arcpy.management.GenerateTransectsAlongLines(
+        #         in_features=dikeSegmentSelect,
+        #         out_feature_class="tempTransectMid",
+        #         interval="{} Meters".format(sectionLength/2),
+        #         transect_length="60 Meters",
+        #         include_ends="NO_END_POINTS"
+        #     )
 
-            # select intersecting part of bikpart with mid section
-            tempLayer = arcpy.MakeFeatureLayer_management("tempBikParts","templayer")
-            arcpy.management.SelectLayerByLocation(
-                in_layer=tempLayer,
-                overlap_type="INTERSECT",
-                select_features="tempTransectMid",
-                search_distance=None,
-                selection_type="NEW_SELECTION",
-                invert_spatial_relationship="NOT_INVERT"
-            )
-            bikSegmentSelect = arcpy.management.CopyFeatures("templayer", "tempBikSelect")
-            bikSegmentGeom = ([g[0] for g in arcpy.da.SearchCursor("tempBikSelect", 'SHAPE@')][0])
-            dsCur.insertRow((bikSegmentGeom, dijkvak))
+        #     # select intersecting part of bikpart with mid section
+        #     tempLayer = arcpy.MakeFeatureLayer_management("tempBikParts","templayer")
+        #     arcpy.management.SelectLayerByLocation(
+        #         in_layer=tempLayer,
+        #         overlap_type="INTERSECT",
+        #         select_features="tempTransectMid",
+        #         search_distance=None,
+        #         selection_type="NEW_SELECTION",
+        #         invert_spatial_relationship="NOT_INVERT"
+        #     )
+        #     bikSegmentSelect = arcpy.management.CopyFeatures("templayer", "tempBikSelect")
+        #     bikSegmentGeom = ([g[0] for g in arcpy.da.SearchCursor("tempBikSelect", 'SHAPE@')][0])
+        #     dsCur.insertRow((bikSegmentGeom, dijkvak))
 
-            dikeSegmentSelect = bikSegmentSelect
+        #     dikeSegmentSelect = bikSegmentSelect
 
-        else:
+        # else:
 
-            segmentGeom = ([g[0] for g in arcpy.da.SearchCursor(dikeSegmentSelect, 'SHAPE@')][0])
-            dsCur.insertRow((segmentGeom, dijkvak))
+        #     segmentGeom = ([g[0] for g in arcpy.da.SearchCursor(dikeSegmentSelect, 'SHAPE@')][0])
+        #     dsCur.insertRow((segmentGeom, dijkvak))
 
-        del dsCur
+        # del dsCur
+
+        rowCount = 0
 
 
         for row in g:
@@ -136,6 +139,76 @@ with arcpy.da.SearchCursor(inputTable, designFields) as cursor:
             start_z = row[4]
             end_z = row[5]
             ref = row[6]
+
+            # test
+            if rowCount == 0:
+                dsCur = arcpy.da.InsertCursor(dikeSegmentsForIter, ["SHAPE@","dijkvak"])
+
+                print (ref,"test")
+
+                if ref =="bik":
+                    # transects on endpoints
+                    arcpy.management.GenerateTransectsAlongLines(
+                        in_features=dikeSegmentSelect,
+                        out_feature_class="tempTransects",
+                        interval="99999 Meters",
+                        transect_length="60 Meters",
+                        include_ends="END_POINTS"
+                    )
+
+                    arcpy.analysis.Intersect(
+                        in_features="tempTransects #;{} #".format(bikLine),
+                        out_feature_class="tempSplitpoints",
+                        join_attributes="ALL",
+                        output_type="POINT"
+                    )
+
+                    arcpy.management.SplitLineAtPoint(
+                        in_features=bikLine,
+                        point_features="tempSplitpoints",
+                        out_feature_class="tempBikParts",
+                        search_radius="0.1 Meters"
+                    )
+                    # create profile on midpoint dike section
+                    sectionLength = round(([f[0] for f in arcpy.da.SearchCursor(dikeSegmentSelect, 'SHAPE@LENGTH')][0]),0)
+                    print (sectionLength)
+                    arcpy.management.GenerateTransectsAlongLines(
+                        in_features=dikeSegmentSelect,
+                        out_feature_class="tempTransectMid",
+                        interval="{} Meters".format(sectionLength/2),
+                        transect_length="60 Meters",
+                        include_ends="NO_END_POINTS"
+                    )
+
+                    # select intersecting part of bikpart with mid section
+                    tempLayer = arcpy.MakeFeatureLayer_management("tempBikParts","templayer")
+                    arcpy.management.SelectLayerByLocation(
+                        in_layer=tempLayer,
+                        overlap_type="INTERSECT",
+                        select_features="tempTransectMid",
+                        search_distance=None,
+                        selection_type="NEW_SELECTION",
+                        invert_spatial_relationship="NOT_INVERT"
+                    )
+                    bikSegmentSelect = arcpy.management.CopyFeatures("templayer", "tempBikSelect")
+                    bikSegmentGeom = ([g[0] for g in arcpy.da.SearchCursor("tempBikSelect", 'SHAPE@')][0])
+                    dsCur.insertRow((bikSegmentGeom, dijkvak))
+
+                    dikeSegmentSelect = bikSegmentSelect
+
+                else:
+
+                    segmentGeom = ([g[0] for g in arcpy.da.SearchCursor(dikeSegmentSelect, 'SHAPE@')][0])
+                    dsCur.insertRow((segmentGeom, dijkvak))
+
+                del dsCur
+
+            # test end
+
+
+
+            rowCount += 1
+            print (onderdeel,"onderdeel")
 
             # copy parallel
             with arcpy.da.SearchCursor(dikeSegmentSelect, ("Shape@")) as sCur:
@@ -162,6 +235,8 @@ with arcpy.da.SearchCursor(inputTable, designFields) as cursor:
                     del dfCur
 
                     dpCur = arcpy.da.InsertCursor(designPartFeatures, ["SHAPE@","dijkvak","onderdeel"])
+
+                    
                         
                     # middle part for joining onderdeel
                     
@@ -180,18 +255,20 @@ with arcpy.da.SearchCursor(inputTable, designFields) as cursor:
 
 # #iterate over created features per section
 with arcpy.da.SearchCursor(designFeatures, ["dijkvak","onderdeel","offset","z"]) as cursor:
-    for k, g in groupby(cursor, lambda x: x[0]):
-        print (k,"loop2")
+    for sectionName, g in groupby(cursor, lambda x: x[0]):
+        print (sectionName ,"loop2")
+
+        sectionName = sectionName.replace("+","_")
         
 
         # save items in separate featureclass
         tempLayer = arcpy.MakeFeatureLayer_management(designFeatures,"templayer")
-        tempSelect = arcpy.management.SelectLayerByAttribute(tempLayer, "NEW_SELECTION", "dijkvak = '{}'".format(k))
+        tempSelect = arcpy.management.SelectLayerByAttribute(tempLayer, "NEW_SELECTION", "dijkvak = '{}'".format(sectionName))
         designFeaturesSelect= arcpy.management.CopyFeatures(tempLayer, "tempDesignfeatures")
 
         # get dike segment
         tempLayer = arcpy.MakeFeatureLayer_management(dikeSegmentsForIter,"templayer")
-        tempSelect = arcpy.management.SelectLayerByAttribute(tempLayer, "NEW_SELECTION", "dijkvak = '{}'".format(k))
+        tempSelect = arcpy.management.SelectLayerByAttribute(tempLayer, "NEW_SELECTION", "dijkvak = '{}'".format(sectionName))
         dikeSegmentSelect= arcpy.management.CopyFeatures(tempLayer, "tempSelectDikesection")
 
             
@@ -306,13 +383,13 @@ with arcpy.da.SearchCursor(designFeatures, ["dijkvak","onderdeel","offset","z"])
             selection_type="NEW_SELECTION",
             invert_spatial_relationship="NOT_INVERT"
         )
-        selected3dParts = arcpy.management.CopyFeatures(tempLayer, "tempSelected3dParts_{}".format(k))
+        selected3dParts = arcpy.management.CopyFeatures(tempLayer, "tempSelected3dParts_{}".format(sectionName))
 
         # spatial join
         arcpy.analysis.SpatialJoin(
-            target_features="tempSelected3dParts_{}".format(k),
+            target_features="tempSelected3dParts_{}".format(sectionName),
             join_features="testParts",
-            out_feature_class="tempSelected3dPartsSjoin_{}".format(k),
+            out_feature_class="tempSelected3dPartsSjoin_{}".format(sectionName),
             join_operation="JOIN_ONE_TO_ONE",
             join_type="KEEP_ALL",
             match_option="INTERSECT",
@@ -322,8 +399,8 @@ with arcpy.da.SearchCursor(designFeatures, ["dijkvak","onderdeel","offset","z"])
 
         # pairwise dissolve
         arcpy.analysis.PairwiseDissolve(
-            in_features="tempSelected3dPartsSjoin_{}".format(k),
-            out_feature_class="designs3d_{}".format(k),
+            in_features="tempSelected3dPartsSjoin_{}".format(sectionName),
+            out_feature_class="designs3d_{}".format(sectionName),
             dissolve_field="onderdeel",
             statistics_fields=None,
             multi_part="MULTI_PART",

@@ -5,8 +5,8 @@ arcpy.env.overwriteOutput = True
 arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\safe uittredepunten\safe uittredepunten.gdb"
 
 trajectlijnTotaal = "safe_buitenkruinlijn_wsrl"
-vakindelingStph = "vakindeling_stph"
-uittredePunten = "stph_punten_nieuw"
+vakindelingStph = "vakindeling_stph_mei_2023_rd"
+uittredePunten = "stph_punten_mei_2023"
 lijnInterval = 10
 filterInterval = 5
 lengteProfielen = 300
@@ -106,8 +106,9 @@ def deel_3():
     arcpy.MakeFeatureLayer_management("splits_join", "temp_splits_join") 
     arcpy.management.SelectLayerByLocation("temp_splits_join", "INTERSECT", vakindelingStph, "10 Meters", "NEW_SELECTION", "NOT_INVERT")
     arcpy.CopyFeatures_management("temp_splits_join", "splits_vakindeling")
+    print ("all done...")
 
 # importeer_tabel()
-# deel_1()
-# deel_2()
+deel_1()
+deel_2()
 deel_3()
