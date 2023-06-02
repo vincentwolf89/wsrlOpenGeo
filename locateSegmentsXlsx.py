@@ -2,23 +2,25 @@ import arcpy
 arcpy.env.overwriteOutput = True
 from arcpy.sa import *
 
-arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\beoordeling ssh.gdb"
-tempData =  "C:/Users/vince/Documents/ArcGIS/Projects/beoordeling ssh/tempData.gdb/"
+arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\safe aanpassingen scope lijnen\locate_segments.gdb"
+tempData =  "C:/Users/vince/Documents/ArcGIS\Projects/safe aanpassingen scope lijnen/locate_segments.gdb/"
 
 input1 = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stbi\input_stbi_maart_2023.xlsx"
 sheetInput1 = "invoer_gis"
-oordeelField = "cat_oordeel_2075"
-tableFields = ["dp_van","dp_tot","offset_van","offset_tot",oordeelField,"dijkvak"]
+
+inTable = "dvTable"
+nameField = "PRJ"
+tableFields = ["dp_van","dp_tot","offset_van","offset_tot",nameField]
 startIdField = "dp_van"
 startOffsetField = "offset_van"
 endIdField = "dp_tot"
 endOffsetField = "offset_tot"
-eindOordeelLijn = "oordeel_stbi_maart_2023"
-categoriesInSufficient = ["IV","V","VI"]
+eindOordeelLijn = "dijvakken_safe_test"
 
 
-dikeTrajectory = "ssh_spst_trajectlijn"
-dikeRefpoints = "merge_dp_ssh_spst"
+
+dikeTrajectory = "safe_buitenkruinlijn_wsrl"
+dikeRefpoints = "dijkpalen_safe_rd"
 route_field = "code"
 route_tolerance = 15
 id_field ="dijkvak"
@@ -59,9 +61,7 @@ def createDpRoutes():
 
 
 def calcBase():   
-    # get input excel and loop through
-    arcpy.conversion.ExcelToTable(input1, "tableInput1", sheetInput1, 1, '')
-    tableCursor = arcpy.da.SearchCursor("tableInput1",tableFields)
+    tableCursor = arcpy.da.SearchCursor(inTable,tableFields)
 
     segments = []
     count = 0
@@ -71,8 +71,8 @@ def calcBase():
         rowIdStart = tableRow[0]
         rowOffsetStart = tableRow[2]
 
-
-        arcpy.conversion.ExportTable("tableInput1", "temp_tablerow", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
+        # arcpy.conversion.ExportTable("tableInput1", "temp_tablerow", "{} = '{}'".format(startIdField,rowIdStart))
+        arcpy.conversion.ExportTable(inTable, "temp_tablerow", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
 
         arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(startIdField, startOffsetField), "temp_startpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
         arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(endIdField, endOffsetField), "temp_endpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
@@ -113,28 +113,28 @@ def calcBase():
     arcpy.management.Merge(segments, eindOordeelLijn)
     arcpy.management.AlterField(eindOordeelLijn, "temp_tablerow_{}".format(oordeelField), oordeelField)
 
-def calcFinal():
-    existingFields = arcpy.ListFields(eindOordeelLijn)
-    for field in existingFields:
-        if field.name == "eindoordeel_final":
-            pass
-        else:
-             arcpy.AddField_management(eindOordeelLijn, "eindoordeel_final", "TEXT", 2)
+# def calcFinal():
+    # existingFields = arcpy.ListFields(eindOordeelLijn)
+    # for field in existingFields:
+    #     if field.name == "eindoordeel_final":
+    #         pass
+    #     else:
+    #          arcpy.AddField_management(eindOordeelLijn, "eindoordeel_final", "TEXT", 2)
 
-    oordeelCursor = arcpy.da.UpdateCursor(eindOordeelLijn,[oordeelField,"eindoordeel_final"])
-    for oordeelRow in oordeelCursor:
-        finalOordeel = "voldoende"
-        for oordeel in categoriesInSufficient:
+    # oordeelCursor = arcpy.da.UpdateCursor(eindOordeelLijn,[nameField])
+    # for oordeelRow in oordeelCursor:
+    #     finalOordeel = "voldoende"
+    #     for oordeel in categoriesInSufficient:
             
-            if oordeelRow[0].startswith(oordeel):
-                finalOordeel = "onvoldoende"
-                break
+    #         if oordeelRow[0].startswith(oordeel):
+    #             finalOordeel = "onvoldoende"
+    #             break
 
-        oordeelRow[1] = finalOordeel
-        oordeelCursor.updateRow(oordeelRow)
+    #     oordeelRow[1] = finalOordeel
+    #     oordeelCursor.updateRow(oordeelRow)
 
-# createDpRoutes()
-calcBase()
+createDpRoutes()
+# calcBase()
 # calcFinal()
 
 
