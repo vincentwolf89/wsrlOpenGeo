@@ -6,7 +6,7 @@ arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh
 
 trajectlijnTotaal = "ssh_spst_traject"
 vakindelingStph = "vakindeling_stph"
-uittredePunten = "temp_uittredepunten_stph"
+uittredePunten = "temp_uittredepunten_stph_juni_2023"
 lijnInterval = 10
 filterInterval = 5
 lengteProfielen = 300
@@ -14,12 +14,12 @@ profielBuffer = 10
 profielCode = "OBJECTID"
 veldenPunten = ["Beta_prob","Categorie_prob"]
 profielen_selectie = "profielen_selectie"
-invoer_tabel = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stph\invoer_stph_22032023.xlsx"
+invoer_tabel = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stph\invoer_stph_08062023.xlsx"
 xField = "X_uittrede"
 yField = "Y_uittrede"
 betaField = "Beta_prob"
 catField = "Categorie_prob"
-eindOordeelLijn = "eindoordeel_stph_22032023"
+eindOordeelLijn = "eindoordeel_stph_08062023"
 categoriesInSufficient = ["IV","V","VI"]
 
 def importeer_tabel():
@@ -88,6 +88,8 @@ def deel_2():
             profielCursor.updateRow(row)
             print (minBeta)
         except Exception:
+            row[2] = None
+            profielCursor.updateRow(row)
             print (Exception)
         
         # break

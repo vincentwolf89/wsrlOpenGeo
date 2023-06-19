@@ -83,6 +83,9 @@ def deel_2():
             profielCursor.updateRow(row)
             print (minBeta,minKleur)
         except Exception:
+
+            row[2] = None
+            profielCursor.updateRow(row)
             print (Exception)
         
         # break

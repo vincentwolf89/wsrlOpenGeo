@@ -6,14 +6,15 @@ arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh
 tempData =  "C:/Users/vince/Documents/ArcGIS/Projects/beoordeling ssh/tempData.gdb/"
 
 
-dikeTrajectory = "testtraject" #"ssh_spst_traject"
+dikeTrajectory = "ssh_spst_traject" #"ssh_spst_traject"
 pointInterval = 20 # meters 
 pointSearchRadius = 1 # meters
 codeField = "code"
 oidField = "OBJECTID"
-failureMechanisms = ["oordeel_stbi_mei_2023", "eindoordeel_stph_22032023"] # array with all fm as line input
+failureMechanisms = ["Oordeel_STPH_juni_23", "Oordeel_STBI_juni_23","Oordeel_KL_juni_23"] # array with all fm as line input
 scorefield = "eindoordeel_final"
 insufficientValue = "onvoldoende"
+endCalcName = "eindoordeel_gecombineerd_19062023"
 
 endScorefield = "eindoordeel_totaal"
 
@@ -59,7 +60,6 @@ for segmentRow in segmentCursor:
 
 
 
-
-
+arcpy.CopyFeatures_management("temp_trajectory_splitted", endCalcName)
 
     
