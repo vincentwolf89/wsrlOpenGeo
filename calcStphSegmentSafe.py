@@ -2,19 +2,24 @@ import arcpy
 from base import *
 
 arcpy.env.overwriteOutput = True
-arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\safe uittredepunten\safe uittredepunten.gdb"
+arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\safe uittredepunten\stph_resultaten_12072023.gdb"
 
 trajectlijnTotaal = "safe_buitenkruinlijn_wsrl"
-vakindelingStph = "vakindeling_stph_mei_2023_rd"
-uittredePunten = "stph_punten_mei_2023"
+vakindelingStph = "vakindeling_stph_23072023_select_rd"
+uittredePunten = "stph_basis_23052023_punten_rd"
 lijnInterval = 10
 filterInterval = 5
 lengteProfielen = 300
 profielBuffer = 10
 profielCode = "OBJECTID"
-veldenPunten = ["kleurcode","kleur"]
+betaField = "Beta_prob_agg"
+catField = "Categorie_prob"
+veldenPunten = ["Beta_prob_agg","Categorie_prob"] #["kleurcode","kleur"]
 profielen_selectie = "profielen_selectie"
 invoer_tabel = r"C:\Users\vince\Desktop\safe_temp\Kleuren_opgave_totaal.xlsx"
+
+# output
+outputVakindeling = "{}_updated".format(vakindelingStph)
 
 def importeer_tabel():
     arcpy.conversion.ExcelToTable(invoer_tabel, "tabel_nieuw", "Sheet1")
@@ -53,7 +58,7 @@ def deel_1():
 def deel_2():
 # bereken profiel oordeel
 # itereer over profielen
-    profielCursor = arcpy.da.UpdateCursor(profielen_selectie,['SHAPE@','OBJECTID','eindoordeel'])
+    profielCursor = arcpy.da.UpdateCursor(profielen_selectie,['SHAPE@','OBJECTID','eindoordeel','min_beta'])
     for row in profielCursor:
         id = row[1]
         where = '"' + profielCode + '" = {}'.format(str(id))
@@ -76,12 +81,22 @@ def deel_2():
         # selecteer laagte beta en koppel kleur terug aan profiel
         npArray = arcpy.da.FeatureClassToNumPyArray("temp_selectie_punten",veldenPunten)
         profiel_df = pd.DataFrame(npArray)
+        
+   
         try:
-            minBeta = profiel_df[profiel_df.kleurcode == profiel_df.kleurcode.min()].iloc[0]['kleurcode']
-            minKleur = profiel_df[profiel_df.kleurcode == profiel_df.kleurcode.min()].iloc[0]['kleur']
-            row[2] = minKleur
+            # minBeta = profiel_df[profiel_df.kleurcode == profiel_df.kleurcode.min()].iloc[0]['kleurcode']
+            # minKleur = profiel_df[profiel_df.kleurcode == profiel_df.kleurcode.min()].iloc[0]['kleur']
+            
+            # row[2] = minKleur
+            # profielCursor.updateRow(row)
+            # print (minBeta,minKleur)
+
+            minBeta = profiel_df[profiel_df[betaField] == profiel_df[betaField].min()].iloc[0][betaField]
+            minCat = profiel_df[profiel_df[betaField] == profiel_df[betaField].min()].iloc[0][catField]
+            row[2] = minCat
+            row[3] = minBeta
             profielCursor.updateRow(row)
-            print (minBeta,minKleur)
+            print (minBeta, minCat)
         except Exception:
 
             row[2] = None
@@ -111,7 +126,52 @@ def deel_3():
     arcpy.CopyFeatures_management("temp_splits_join", "splits_vakindeling")
     print ("all done...")
 
+# new part for safe to get back to the line segments, use groupby to get it or something
+def deel_4():
+    # copy to new layer
+    arcpy.CopyFeatures_management(vakindelingStph, outputVakindeling)
+    # add field
+    arcpy.AddField_management(outputVakindeling, "minbeta_vak", "DOUBLE", 2, field_is_nullable="NULLABLE")
+    # iterate over segments
+    segmentCursor = arcpy.da.UpdateCursor(outputVakindeling,['SHAPE@','OBJECTID','minbeta_vak'])
+    for row in segmentCursor:
+        id = row[1]
+        where = '"' + profielCode + '" = {}'.format(str(id))
+        arcpy.Select_analysis(outputVakindeling, "temp_section", where)
+
+
+        # select profiles by location with sjoin
+        arcpy.analysis.SpatialJoin(
+            target_features=profielen_selectie,
+            join_features="temp_section",
+            out_feature_class="temp_section_profiles",
+            join_operation="JOIN_ONE_TO_ONE",
+            join_type="KEEP_COMMON",
+            match_option="INTERSECT",
+            search_radius="1 Meters",
+        )
+
+        profileCursor = arcpy.da.SearchCursor("temp_section_profiles",["min_beta"])
+        scores = []
+        for pRow in profileCursor:
+            if pRow[0] is not None:
+                scores.append(pRow[0])
+
+        try:
+            minScore = min(scores)
+            row[2] = minScore
+            segmentCursor.updateRow(row)
+            print (minScore)
+
+        except Exception:
+            print ("error")
+            pass
+
+
+
+
 # importeer_tabel()
-deel_1()
-deel_2()
-deel_3()
+# deel_1()
+# deel_2()
+# deel_3()
+deel_4()
