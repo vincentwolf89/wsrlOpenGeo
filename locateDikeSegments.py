@@ -4,7 +4,7 @@ from arcpy.sa import *
 
 arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\safe aanpassingen scope lijnen\repaired.gdb"
 # safe_priovakken_2022_nieuw_rd
-dike_segments = "scope_april_2023_input"
+dike_segments = "vakindeling_stph_230712_rd"
 dike_trajectory = "trajectlijn_safe_rd"
 dike_refpoints = "dijkpalen_safe_rd"
 route_field = "code"
