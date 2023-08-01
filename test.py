@@ -1,2 +1,1 @@
-import arcpy
-print ("test")
+print (type(1.0))
