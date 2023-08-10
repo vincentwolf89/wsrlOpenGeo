@@ -150,13 +150,25 @@ def set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten): 
 
     #arcpy.CalculateField_management(profielen, "profielnummer", '!OBJECTID!', "PYTHON")
 
+
+
     # split profiles
     rivierlijn = "river"
     landlijn = "land"
     clusterTolerance = 1
     invoer = [profielen, trajectlijn]
     uitvoer = 'snijpunten_centerline'
-    arcpy.Intersect_analysis(invoer, uitvoer, "", clusterTolerance, "point")
+
+    arcpy.analysis.Intersect(
+        in_features=invoer,
+        out_feature_class=uitvoer,
+        join_attributes="ALL",
+        cluster_tolerance=0.1,
+        output_type="POINT"
+    )
+
+
+    # arcpy.Intersect_analysis(invoer, uitvoer, "", clusterTolerance, "point")
     arcpy.SplitLineAtPoint_management(profielen, uitvoer, 'profielsplits', 1)
 
     velden = ['profielnummer', 'van', 'tot',code]

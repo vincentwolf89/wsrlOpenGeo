@@ -368,7 +368,6 @@ def find_wl_steepest_profile():
                 for wl_row in group:
                     try:
                         isect =  df[idx].iloc[int(profile_number)-1]['afstand']
-        
                         if wl_row[1] < isect:
                             fx_cursor_wl.deleteRow()
 
@@ -392,6 +391,6 @@ def find_wl_steepest_profile():
 # profiles_part1()
 
 # find_steepest_profile()
-# find_wl_steepest_profile()
+find_wl_steepest_profile()
 
 
