@@ -25,7 +25,7 @@ code = "code"
 default_code = 1
 fieldnames =['profielnummer', 'afstand', 'z_ahn', 'x', 'y']
 xls_outputloc = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_xlsx"
-raster_prefix = "KD3CR3C3_Resample"
+raster_prefix = "KD3CR3C3"
 
 profile_length_river = 100 #m
 profile_length_land = 100 #m

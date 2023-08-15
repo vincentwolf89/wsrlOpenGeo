@@ -45,8 +45,18 @@ def project_rasters():
         raster = input_rasters+"\{}".format(raster_name)
         output_raster = raster_name.split("_")[3][0:11]
         print (output_raster)
+
     
-        arcpy.management.ProjectRaster(raster, output_raster, 'PROJCS["RD_New",GEOGCS["GCS_Amersfoort",DATUM["D_Amersfoort",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Double_Stereographic"],PARAMETER["False_Easting",155000.0],PARAMETER["False_Northing",463000.0],PARAMETER["Central_Meridian",5.38763888888889],PARAMETER["Scale_Factor",0.9999079],PARAMETER["Latitude_Of_Origin",52.15616055555555],UNIT["Meter",1.0]]', "NEAREST", "5 5", None, None, 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]', "NO_VERTICAL")
+        arcpy.management.ProjectRaster(raster, 
+        output_raster, 
+            'PROJCS["RD_New",GEOGCS["GCS_Amersfoort",DATUM["D_Amersfoort",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Double_Stereographic"],PARAMETER["False_Easting",155000.0],PARAMETER["False_Northing",463000.0],PARAMETER["Central_Meridian",5.38763888888889],PARAMETER["Scale_Factor",0.9999079],PARAMETER["Latitude_Of_Origin",52.15616055555555],UNIT["Meter",1.0]]',
+            "BILINEAR", 
+            "5 5", 
+            None, 
+            None,                 
+            'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]', 
+            "NO_VERTICAL"
+        )
 
 
 
@@ -386,11 +396,11 @@ def find_wl_steepest_profile():
            
 
                    
-# project_rasters()       
+project_rasters()       
 # rewrite_rasters()
 # profiles_part1()
 
 # find_steepest_profile()
-find_wl_steepest_profile()
+#find_wl_steepest_profile()
 
 

@@ -2,24 +2,24 @@ import arcpy
 arcpy.env.overwriteOutput = True
 from arcpy.sa import *
 
-arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\safe aanpassingen scope lijnen\locate_segments.gdb"
-tempData =  "C:/Users/vince/Documents/ArcGIS\Projects/safe aanpassingen scope lijnen/locate_segments.gdb/"
+arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb"
+tempData =  "C:/Users/vince/Mijn Drive/WSRL/safe_data/safe_data/tempdata.gdb/"
 
 input1 = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stbi\input_stbi_maart_2023.xlsx"
 sheetInput1 = "invoer_gis"
 
-inTable = "dvTable"
-nameField = "PRJ"
+inTable = "OverzichtSTBI2023163en164_15082023"
+nameField = "Dijkvak_____"
 tableFields = ["dp_van","dp_tot","offset_van","offset_tot",nameField]
 startIdField = "dp_van"
 startOffsetField = "offset_van"
 endIdField = "dp_tot"
 endOffsetField = "offset_tot"
-eindOordeelLijn = "dijvakken_safe_test"
+eindOordeelLijn = "dijkvakken_safe_15082023"
 
 
 
-dikeTrajectory = "safe_buitenkruinlijn_wsrl"
+dikeTrajectory = "trajectlijn_safe_rd"
 dikeRefpoints = "dijkpalen_safe_rd"
 route_field = "code"
 route_tolerance = 15
@@ -71,7 +71,6 @@ def calcBase():
         rowIdStart = tableRow[0]
         rowOffsetStart = tableRow[2]
 
-        # arcpy.conversion.ExportTable("tableInput1", "temp_tablerow", "{} = '{}'".format(startIdField,rowIdStart))
         arcpy.conversion.ExportTable(inTable, "temp_tablerow", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
 
         arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(startIdField, startOffsetField), "temp_startpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
@@ -85,8 +84,7 @@ def calcBase():
         arcpy.management.SplitLineAtPoint(dikeTrajectory, "temp_table_row_points", "temp_table_row_line_total", "0.5 Meters")
         
         # copy row and create offset point for isect locating
-        # arcpy.conversion.ExportTable("tableInput1", "temp_tablerow_offset_locator", "{} = '{}'".format(startIdField,rowIdStart))
-        arcpy.conversion.ExportTable("tableInput1", "temp_tablerow_offset_locator", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
+        arcpy.conversion.ExportTable(inTable, "temp_tablerow_offset_locator", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
         tempCursor = arcpy.da.UpdateCursor("temp_tablerow_offset_locator", [startOffsetField])
         for tempRow in tempCursor:
             startOffsetPlus = tempRow[0]+1
@@ -109,33 +107,18 @@ def calcBase():
         segments.append(segment)
         count += 1
 
+        print (startOffsetPlus, count)
+
+
+
     # merge segments
     arcpy.management.Merge(segments, eindOordeelLijn)
-    arcpy.management.AlterField(eindOordeelLijn, "temp_tablerow_{}".format(oordeelField), oordeelField)
 
-# def calcFinal():
-    # existingFields = arcpy.ListFields(eindOordeelLijn)
-    # for field in existingFields:
-    #     if field.name == "eindoordeel_final":
-    #         pass
-    #     else:
-    #          arcpy.AddField_management(eindOordeelLijn, "eindoordeel_final", "TEXT", 2)
 
-    # oordeelCursor = arcpy.da.UpdateCursor(eindOordeelLijn,[nameField])
-    # for oordeelRow in oordeelCursor:
-    #     finalOordeel = "voldoende"
-    #     for oordeel in categoriesInSufficient:
-            
-    #         if oordeelRow[0].startswith(oordeel):
-    #             finalOordeel = "onvoldoende"
-    #             break
 
-    #     oordeelRow[1] = finalOordeel
-    #     oordeelCursor.updateRow(oordeelRow)
+# createDpRoutes()
+calcBase()
 
-createDpRoutes()
-# calcBase()
-# calcFinal()
 
 
 
