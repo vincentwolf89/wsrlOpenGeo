@@ -33,7 +33,7 @@ isectFieldsKL = [isectNumberField,profileNumberField,subTypeField,diameterField,
 isectDfColumns = ["type","afstand","hoogte","diameter","druk","materiaal"]
 elevationSourceName = "AHN3"
 fieldsProfile = ["profielnummer","afstand","z_ahn","x","y"]
-plotLocation= "C:/Users/vince/Desktop/temp/"
+plotLocation= "C:/Users/vince/Mijn Drive/WSRL/kabels en leidingen ssh/output/xlsx/"
 isectPlotElevation = 4
 
 # def diameter, druk, materiaalsoort
