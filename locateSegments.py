@@ -4,12 +4,12 @@ from arcpy.sa import *
 
 arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb"
 # safe_priovakken_2022_nieuw_rd
-dike_segments = "prioriteringsvakken_03082023"
+dike_segments = "templayer"
 dike_trajectory = "trajectlijn_safe_rd"
 dike_refpoints = "dijkpalen_safe_rd"
 route_field = "code"
-route_tolerance = 15
-id_field ="Dijkvak_PUF"
+route_tolerance = 15 # normal 15
+id_field ="OBJECTID"
 dp_field = "RFTIDENT"
 
 from_field ="dp_van"

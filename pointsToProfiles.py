@@ -2,10 +2,10 @@ import arcpy
 from base import *
 
 arcpy.env.overwriteOutput = True
-arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\safe aanpassingen scope lijnen\repaired.gdb"
+arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb"
 
-traject_punten = "puflocs_15072023"
+traject_punten = "puflocs_nietprio_21082023_points"
 trajectlijn = "trajectlijn_safe_rd"
-profielen = "puflocs_profiles_15072023"
+profielen = "puflocs_nietprio_profiles_21082023"
 code = "code"
 generate_profiles_onpoints(traject_punten,trajectlijn,profielen,code)

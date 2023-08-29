@@ -23,7 +23,7 @@ code = "code"
 default_code = 1
 fieldnames =['profielnummer', 'afstand', 'z_ahn', 'x', 'y']
 xls_outputloc = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_xlsx"
-raster_prefix = "KD1CR1C1"
+raster_prefix = "KD"
 
 profile_length_river = 100 #m
 profile_length_land = 100 #m
@@ -35,7 +35,7 @@ max_search_distance = 400 #m
 arcpy.env.workspace = output_gdb
 
 def project_rasters():
-    arcpy.env.workspace = temp_gdb
+    arcpy.env.workspace = input_gdb
     arcpy.env.overwriteOutput = True
 
     # set environment to input
@@ -396,9 +396,9 @@ def find_wl_steepest_profile():
            
 
                    
-project_rasters()       
-# rewrite_rasters()
-# profiles_part1()
+# project_rasters()       
+# rewrite_rasters() # old
+profiles_part1()
 
 # find_steepest_profile()
 #find_wl_steepest_profile()

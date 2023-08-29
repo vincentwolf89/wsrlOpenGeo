@@ -6,11 +6,11 @@ import arcpy
 from base import *
 
 arcpy.env.overwriteOutput = True
-arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\kabels en leidingen ssh\test.gdb"
+arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\kabels en leidingen ssh\test.gdb"
 
 offsetTrajectory = 10
 newProfiles = True
-trajectlijn = "testsectie"
+trajectlijn = "deeltraject_c_testsectie"
 profielen = "profielen_{}".format(trajectlijn)
 profiel_interval = 50
 profiel_lengte_land = 100
@@ -39,29 +39,36 @@ isectPlotElevation = 4
 # def diameter, druk, materiaalsoort
 
 
-klThemes = ["riool","water"]
+klThemes = ["riool","water","ogc"]
 
 layersForIntersects = {
     "riool": {
-        "name":"merge_r_d_rd",
+        "name":"merge_r_rd",
         "symbol":"circle",
     },
     "water": {
-        "name":"merge_w_d_rd",
+        "name":"merge_w_rd",
+        "symbol":"circle",
+    },
+    "ogc": {
+        "name":"merge_ogc_rd",
         "symbol":"circle",
     },
     "kruinlijn": {
-        "name":"testsectie",
+        "name":trajectlijn,
         "symbol":"square",
     },
   
 }
 
 colorsForIntersects = {
-  "rioolVrijverval": "blue",
-  "rioolOnderOverOfOnderdruk":"yellow",
-  "water": "blue",
-  "buitenkruin":"orange"
+  "rioolVrijverval": "#F64222",
+  "rioolOnderOverOfOnderdruk":"#C72205",
+  "water": "#2232F6",
+  "buisleidingGevaarlijkeInhoud":"#DCCA11",
+  "gasHogeDruk":"#0066B2",
+  "gasLageDruk":"#25A3FF",
+  "buitenkruin":"#000000",
 }
 
 
@@ -191,11 +198,11 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
 
 
 if newProfiles is True:
-    # copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
-    # generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier,trajectlijn,code,profielen)
-    # set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
-    # extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
-    # add_xy(uitvoerpunten,code,trajectlijn)
+    copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
+    generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier,trajectlijn,code,profielen)
+    set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
+    extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
+    add_xy(uitvoerpunten,code,trajectlijn)
 
     
 
@@ -263,7 +270,10 @@ if newProfiles is True:
                     'materiaal': materialValue
                     
                     }
-                isectDf = isectDf.append(isectRow, ignore_index=True)
+                
+                isectRow_df = pd.DataFrame([isectRow])
+                isectDf = pd.concat([isectDf, isectRow_df], ignore_index=True)
+       
 
     
         

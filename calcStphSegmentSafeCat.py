@@ -5,19 +5,22 @@ arcpy.env.overwriteOutput = True
 arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\tempdata.gdb"
 
 trajectlijnTotaal = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb\safe_buitenkruinlijn_wsrl"
-vakindelingStph = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb\vakindeling_stph_23072023_select_rd"
-uittredePunten = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb\stph_24082023_punten_rd"
+vakindelingStph = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb\vakindeling_stph_24082023"
+uittredePunten = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb\stph_urgentie_24082023_punten_rd"
 lijnInterval = 10
 filterInterval = 5
 lengteProfielen = 300
 profielBuffer = 10
 profielCode = "OBJECTID"
 betaField = "Beta_prob_agg"
-catField = "Categorie_prob"
-veldenPunten = ["Beta_prob_agg","Categorie_prob"] #["kleurcode","kleur"]
+catField = "Urgentie_prob"
+veldenPunten = ["Beta_prob_agg","Urgentie_prob"] #["kleurcode","kleur"]
 profielen_selectie = "profielen_selectie"
 invoer_tabel = r"C:\Users\vince\Desktop\safe_temp\Kleuren_opgave_totaal.xlsx"
 
+categorieInsufficient = "Onvoldoende"
+categorieBetween = "Tussencategorie"
+categorieSufficient = "Voldoende"
 # output
 outputVakindeling = "C:/Users/vince/Mijn Drive/WSRL/safe_data/safe_data/safe_data.gdb/{}_updated".format(vakindelingStph)
 
@@ -26,11 +29,11 @@ def importeer_tabel():
 
 def deel_1():
     # split trajectlijn in delen
-    arcpy.management.GeneratePointsAlongLines("safe_buitenkruinlijn_wsrl", "trajectlijn_splitpoints", "DISTANCE", "{} Meters".format(lijnInterval), None, None)
-    arcpy.management.SplitLineAtPoint("safe_buitenkruinlijn_wsrl", "trajectlijn_splitpoints", "trajectlijn_splits", "0.1 Meters")
+    arcpy.management.GeneratePointsAlongLines(trajectlijnTotaal, "trajectlijn_splitpoints", "DISTANCE", "{} Meters".format(lijnInterval), None, None)
+    arcpy.management.SplitLineAtPoint(trajectlijnTotaal, "trajectlijn_splitpoints", "trajectlijn_splits", "0.1 Meters")
 
     # maak profielen op gewenste interval
-    arcpy.management.GenerateTransectsAlongLines("safe_buitenkruinlijn_wsrl", "trajectlijn_profielen_nofilter", "{} Meters".format(filterInterval), "{} Meters".format(lengteProfielen), "END_POINTS")
+    arcpy.management.GenerateTransectsAlongLines(trajectlijnTotaal, "trajectlijn_profielen_nofilter", "{} Meters".format(filterInterval), "{} Meters".format(lengteProfielen), "END_POINTS")
 
     # selecteer profielen zonder intersect met punten 
     arcpy.MakeFeatureLayer_management("trajectlijn_profielen_nofilter", "templayer") 
@@ -58,7 +61,7 @@ def deel_1():
 def deel_2():
 # bereken profiel oordeel
 # itereer over profielen
-    profielCursor = arcpy.da.UpdateCursor(profielen_selectie,['SHAPE@','OBJECTID','eindoordeel','min_beta'])
+    profielCursor = arcpy.da.UpdateCursor(profielen_selectie,['SHAPE@','OBJECTID','eindoordeel'])
     for row in profielCursor:
         id = row[1]
         where = '"' + profielCode + '" = {}'.format(str(id))
@@ -70,11 +73,6 @@ def deel_2():
         # selecteer alle punten binnen buffer
         arcpy.MakeFeatureLayer_management(uittredePunten, "uittredepunten") 
 
-        # testcursor = arcpy.da.SearchCursor("uittredepunten",["Vaknaam"])
-        # for trow in testcursor:
-        #     print (trow[0])
-
-
         arcpy.management.SelectLayerByLocation("uittredepunten", "INTERSECT", "temp_profiel_buffer", None, "NEW_SELECTION", "NOT_INVERT")
         arcpy.CopyFeatures_management("uittredepunten", "temp_selectie_punten")
 
@@ -84,19 +82,20 @@ def deel_2():
         
    
         try:
-            # minBeta = profiel_df[profiel_df.kleurcode == profiel_df.kleurcode.min()].iloc[0]['kleurcode']
-            # minKleur = profiel_df[profiel_df.kleurcode == profiel_df.kleurcode.min()].iloc[0]['kleur']
-            
-            # row[2] = minKleur
-            # profielCursor.updateRow(row)
-            # print (minBeta,minKleur)
 
-            minBeta = profiel_df[profiel_df[betaField] == profiel_df[betaField].min()].iloc[0][betaField]
+            if categorieInsufficient in profiel_df[catField].values:
+                minCat = categorieInsufficient
+            else:
+                if categorieBetween in profiel_df[catField].values:
+                    minCat = categorieBetween
+                else:
+                    minCat = categorieSufficient
+
             minCat = profiel_df[profiel_df[betaField] == profiel_df[betaField].min()].iloc[0][catField]
             row[2] = minCat
-            row[3] = minBeta
             profielCursor.updateRow(row)
-            print (minBeta, minCat)
+            print (minCat)
+
         except Exception:
 
             row[2] = None
@@ -131,9 +130,9 @@ def deel_4():
     # copy to new layer
     arcpy.CopyFeatures_management(vakindelingStph, outputVakindeling)
     # add field
-    arcpy.AddField_management(outputVakindeling, "minbeta_vak", "DOUBLE", 2, field_is_nullable="NULLABLE")
+    arcpy.AddField_management(outputVakindeling, "minoordeel_vak", "DOUBLE", 2, field_is_nullable="NULLABLE")
     # iterate over segments
-    segmentCursor = arcpy.da.UpdateCursor(outputVakindeling,['SHAPE@','OBJECTID','minbeta_vak'])
+    segmentCursor = arcpy.da.UpdateCursor(outputVakindeling,['SHAPE@','OBJECTID','minoordeel_vak'])
     for row in segmentCursor:
         id = row[1]
         where = '"' + profielCode + '" = {}'.format(str(id))
@@ -151,15 +150,21 @@ def deel_4():
             search_radius="1 Meters",
         )
 
-        profileCursor = arcpy.da.SearchCursor("temp_section_profiles",["min_beta"])
+        profileCursor = arcpy.da.SearchCursor("temp_section_profiles",["eindoordeel"])
         scores = []
         for pRow in profileCursor:
             if pRow[0] is not None:
                 scores.append(pRow[0])
 
         try:
-            minScore = min(scores)
-            row[2] = minScore
+            if categorieInsufficient in scores:
+                minScore = categorieInsufficient
+            else:
+                if categorieBetween in scores:
+                    minScore = categorieBetween
+                else:
+                    minScore = categorieSufficient
+
             segmentCursor.updateRow(row)
             print (minScore)
 
@@ -171,7 +176,7 @@ def deel_4():
 
 
 # importeer_tabel()
-# deel_1()
-# deel_2()
-# deel_3()
-deel_4()
+deel_1()
+deel_2()
+deel_3()
+# deel_4()

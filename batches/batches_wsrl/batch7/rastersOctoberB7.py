@@ -15,15 +15,15 @@ input_rasters = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktobe
 temp_gdb = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\temp.gdb"#database
 input_gdb = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\input_rasters.gdb"#database
 
-output_gdb =  r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\batchdbs\output_rasters_4.gdb"#database
-trajectory = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\batchdbs\output_rasters_4.gdb\deeltraject_c"
-raster_waterlevel = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\batchdbs\output_rasters_4.gdb\waterlevel_01082023"
+output_gdb =  r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\batchdbs\output_rasters_7.gdb"#database
+trajectory = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\batchdbs\output_rasters_7.gdb\deeltraject_c"
+raster_waterlevel = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\batchdbs\output_rasters_7.gdb\waterlevel_01082023"
 
 code = "code"
 default_code = 1
 fieldnames =['profielnummer', 'afstand', 'z_ahn', 'x', 'y']
 xls_outputloc = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_xlsx"
-raster_prefix = "KD2CR1"
+raster_prefix = "KD3CR1"
 
 profile_length_river = 100 #m
 profile_length_land = 100 #m

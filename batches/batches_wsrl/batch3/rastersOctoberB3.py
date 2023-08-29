@@ -19,13 +19,11 @@ output_gdb =  r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\
 trajectory = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\batchdbs\output_rasters_3.gdb\deeltraject_c"
 raster_waterlevel = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\batchdbs\output_rasters_3.gdb\waterlevel_01082023"
 
-
-
 code = "code"
 default_code = 1
 fieldnames =['profielnummer', 'afstand', 'z_ahn', 'x', 'y']
 xls_outputloc = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_xlsx"
-raster_prefix = "KD3CR3C3"
+raster_prefix = "KD1CR3"
 
 profile_length_river = 100 #m
 profile_length_land = 100 #m
@@ -382,7 +380,7 @@ def find_wl_steepest_profile():
 # rewrite_rasters()
 # profiles_part1()
 
-find_steepest_profile()
+# find_steepest_profile()
 find_wl_steepest_profile()
 
 
