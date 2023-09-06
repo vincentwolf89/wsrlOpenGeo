@@ -18,6 +18,7 @@ input_gdb = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\in
 output_gdb =  r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_rasters.gdb"#database
 trajectory = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_rasters.gdb\deeltraject_c"
 raster_waterlevel = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_rasters.gdb\waterlevel_01082023"
+merged_result_data = "merged_results_wl"
 
 code = "code"
 default_code = 1
@@ -31,6 +32,7 @@ profile_interval = 100 #m
 point_interval = 5 #m
 extension_river = 30 #m
 max_search_distance = 400 #m
+join_field = "profielnummer"
 
 arcpy.env.workspace = output_gdb
 
@@ -394,13 +396,66 @@ def find_wl_steepest_profile():
             arcpy.JoinField_management("max_slope_profiles_wl_{}".format(raster), 'profielnummer', max_slope_profiles, 'profielnummer', 'bearing_dike')
 
            
+def mergeResultDataSets():
+    arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\uitvoer_01092023_copy.gdb"
 
+    # iterate over rest of featureclasses
+    feature_classes = arcpy.ListFeatureClasses(wild_card="max_slope_profiles_wl*")
+    feature_classes.sort()
+
+    # create base featureclass
+    arcpy.management.CopyFeatures(feature_classes[0], "temp")   
+    fields = arcpy.ListFields("temp")
+    field_exists = False
+    for field in fields:
+        if field.name != join_field:
+            try:
+                arcpy.DeleteField_management("temp", field.name)
+            except:
+                pass
+
+    arcpy.management.FeatureVerticesToPoints(
+        in_features="temp",
+        out_feature_class=merged_result_data,
+        point_location="END"
+    )
+
+    # iterate through the list of relevant feature classes
+    for feature_class in feature_classes:
+        result_field_name = "l_{}".format(feature_class)
+        fields = arcpy.ListFields(feature_class)
+    
+        field_exists = False
+        for field in fields:
+            if field.name == result_field_name:
+                field_exists = True
+                break
+        if field_exists:
+            arcpy.DeleteField_management(feature_class, result_field_name,)
+        arcpy.AddField_management(feature_class, result_field_name, "DOUBLE", 2, field_is_nullable="NULLABLE")
+
+        # calc field with line length
+        arcpy.CalculateField_management(feature_class, result_field_name, "round(!shape.length!,2)", "PYTHON3")
+
+        # join field to base featureclass
+        arcpy.management.JoinField(
+            merged_result_data,
+            join_field, 
+            feature_class, 
+            join_field, 
+            result_field_name
+        )
+        print (feature_class)
+
+
+    
                    
 # project_rasters()       
 # rewrite_rasters() # old
-profiles_part1()
+# profiles_part1()
 
 # find_steepest_profile()
 #find_wl_steepest_profile()
+mergeResultDataSets()
 
 
