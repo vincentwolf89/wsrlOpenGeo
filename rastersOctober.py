@@ -12,10 +12,10 @@ arcpy.env.parallelProcessingFactor = "100%"
 # params
 grid_size = 5 #m
 
-input_rasters = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\rasters_los_2023_c"
+input_rasters = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\rasters_los_06_09_2023"
 temp_gdb = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\temp.gdb"#database
 input_gdb = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\input_rasters.gdb"#database
-output_gdb =  r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_rasters.gdb"#database
+output_gdb =  r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\uitvoer_06092023.gdb"#database
 trajectory = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_rasters.gdb\deeltraject_c"
 raster_waterlevel = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_rasters.gdb\waterlevel_01082023"
 merged_result_data = "merged_results_wl"
@@ -24,7 +24,7 @@ code = "code"
 default_code = 1
 fieldnames =['profielnummer', 'afstand', 'z_ahn', 'x', 'y']
 xls_outputloc = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_xlsx"
-raster_prefix = "KD"
+raster_prefix = "HEAD"
 
 profile_length_river = 100 #m
 profile_length_land = 100 #m
@@ -451,11 +451,11 @@ def mergeResultDataSets():
     
                    
 # project_rasters()       
-# rewrite_rasters() # old
+# rewrite_rasters() # old, dont use
 # profiles_part1()
 
-# find_steepest_profile()
-#find_wl_steepest_profile()
-mergeResultDataSets()
+find_steepest_profile()
+find_wl_steepest_profile()
+# mergeResultDataSets()
 
 
