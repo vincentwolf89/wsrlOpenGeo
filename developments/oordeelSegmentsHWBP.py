@@ -56,8 +56,6 @@ arcpy.AddField_management(output_segments, "stph_stbi_voldoende" , "DOUBLE", 2, 
 arcpy.AddField_management(output_segments, "stph_stbi_onvoldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
 arcpy.AddField_management(output_segments, "stbi_voldoende_stph_onvoldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
 arcpy.AddField_management(output_segments, "stbi_onvoldoende_stph_voldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
-arcpy.AddField_management(output_segments, "stph_voldoende_stbi_onvoldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
-arcpy.AddField_management(output_segments, "stph_onvoldoende_stbi_voldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
 arcpy.AddField_management(output_segments, "berekende_lengte" , "DOUBLE", 2, field_is_nullable="NULLABLE")
 
 
@@ -68,8 +66,6 @@ segment_cursor = arcpy.da.UpdateCursor(output_segments, [
     "stph_stbi_onvoldoende",
     "stbi_voldoende_stph_onvoldoende",
     "stbi_onvoldoende_stph_voldoende",
-    "stph_voldoende_stbi_onvoldoende",
-    "stph_onvoldoende_stbi_voldoende",
     "berekende_lengte"
 ])
 
@@ -81,8 +77,6 @@ for row in segment_cursor:
     stph_stbi_onvoldoende_m = 0
     stbi_voldoende_stph_onvoldoende_m = 0
     stbi_onvoldoende_stph_voldoende_m = 0
-    stph_voldoende_stbi_onvoldoende_m = 0
-    stph_onvoldoende_stbi_voldoende_m = 0
     berekende_lengte_m = 0
 
     
@@ -119,15 +113,6 @@ for row in segment_cursor:
         elif category_stbi in categories_insufficient and category_stph in categories_sufficient:
             stbi_onvoldoende_stph_voldoende_m += length
             berekende_lengte_m += length
-
-        elif category_stph in categories_sufficient and category_stbi in categories_insufficient:
-            stph_voldoende_stbi_onvoldoende_m += length
-            berekende_lengte_m += length
-
-        elif category_stph in categories_insufficient and category_stbi in categories_sufficient:
-            stph_onvoldoende_stbi_voldoende_m += length
-            berekende_lengte_m += length
-
         
 
         
@@ -135,9 +120,7 @@ for row in segment_cursor:
     row[2] = stph_stbi_onvoldoende_m
     row[3] = stbi_voldoende_stph_onvoldoende_m
     row[4] = stbi_onvoldoende_stph_voldoende_m
-    row[5] = stph_voldoende_stbi_onvoldoende_m
-    row[6] = stph_onvoldoende_stbi_voldoende_m
-    row[7] = berekende_lengte_m
+    row[5] = berekende_lengte_m
 
     segment_cursor.updateRow(row)
 
