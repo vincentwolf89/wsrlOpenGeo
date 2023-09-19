@@ -12,11 +12,10 @@ stbi_field = "STBI"
 stph_field = "STPH"
 id_field = "project_id"
 
-categories_sufficient = ["Iv","IIv"]
-categories_mid = ["IIIv"]
+categories_sufficient = ["Iv","IIv","IIIv","-"]
 categories_insufficient = ["IVv","Vv","VIv"]
 
-output_segments = "projectdefinities_wvp_v2_oordeel"
+output_segments = "projectdefinities_wvp_v2_oordeel_v2"
 
 # copy feature
 arcpy.management.CopyFeatures(input_segments, output_segments)
@@ -53,30 +52,42 @@ arcpy.analysis.SpatialJoin(
 
 
 # add fields
-arcpy.AddField_management(output_segments, "stbi_voldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
-arcpy.AddField_management(output_segments, "stbi_midden" , "DOUBLE", 2, field_is_nullable="NULLABLE")
-arcpy.AddField_management(output_segments, "stbi_onvoldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
-
-arcpy.AddField_management(output_segments, "stph_voldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
-arcpy.AddField_management(output_segments, "stph_midden" , "DOUBLE", 2, field_is_nullable="NULLABLE")
-arcpy.AddField_management(output_segments, "stph_onvoldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
+arcpy.AddField_management(output_segments, "stph_stbi_voldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
+arcpy.AddField_management(output_segments, "stph_stbi_onvoldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
+arcpy.AddField_management(output_segments, "stbi_voldoende_stph_onvoldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
+arcpy.AddField_management(output_segments, "stbi_onvoldoende_stph_voldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
+arcpy.AddField_management(output_segments, "stph_voldoende_stbi_onvoldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
+arcpy.AddField_management(output_segments, "stph_onvoldoende_stbi_voldoende" , "DOUBLE", 2, field_is_nullable="NULLABLE")
+arcpy.AddField_management(output_segments, "berekende_lengte" , "DOUBLE", 2, field_is_nullable="NULLABLE")
 
 
 # iterate over segments
-segment_cursor = arcpy.da.UpdateCursor(output_segments, ["project_id","stbi_voldoende","stbi_midden","stbi_onvoldoende","stph_voldoende","stph_midden","stph_onvoldoende"])
+segment_cursor = arcpy.da.UpdateCursor(output_segments, [
+    "project_id",
+    "stph_stbi_voldoende",
+    "stph_stbi_onvoldoende",
+    "stbi_voldoende_stph_onvoldoende",
+    "stbi_onvoldoende_stph_voldoende",
+    "stph_voldoende_stbi_onvoldoende",
+    "stph_onvoldoende_stbi_voldoende",
+    "berekende_lengte"
+])
+
 for row in segment_cursor:
     project_id = row[0]
     print (project_id)
 
-    stbi_sufficient_m = 0
-    stbi_mid_m = 0
-    stbi_insufficient_m = 0
-    stph_sufficient_m = 0
-    stph_mid_m = 0
-    stph_insufficient_m = 0
+    stph_stbi_voldoende_m = 0
+    stph_stbi_onvoldoende_m = 0
+    stbi_voldoende_stph_onvoldoende_m = 0
+    stbi_onvoldoende_stph_voldoende_m = 0
+    stph_voldoende_stbi_onvoldoende_m = 0
+    stph_onvoldoende_stbi_voldoende_m = 0
+    berekende_lengte_m = 0
 
-    # stbi part
-    temp_stbi = arcpy.MakeFeatureLayer_management(temp_category_layer, "templayer") 
+    
+    # stph+stbi part
+    temp_oordeel_layer = arcpy.MakeFeatureLayer_management(temp_category_layer, "templayer") 
     arcpy.management.SelectLayerByAttribute(
         in_layer_or_view="templayer",
         selection_type="NEW_SELECTION",
@@ -84,50 +95,49 @@ for row in segment_cursor:
         invert_where_clause=None
     )
     
-    stbi_cursor = arcpy.da.SearchCursor(temp_stbi, [stbi_field,"SHAPE@LENGTH"])
-    for stbi_row in stbi_cursor:
-        category = stbi_row[0]
-        length = stbi_row[1]
+    o_cur = arcpy.da.SearchCursor(temp_oordeel_layer, [[stph_field, stbi_field],"SHAPE@LENGTH"])
+    for o_row in o_cur:
 
-        if category in categories_sufficient:
-            stbi_sufficient_m += length
+
+        category_stph = o_row[0]
+        category_stbi = o_row[1]
+        length = o_row[2]
+
+
+        if category_stph in categories_sufficient and category_stbi in categories_sufficient:
+            stph_stbi_voldoende_m += length
+            berekende_lengte_m += length
+
+        elif category_stph in categories_insufficient and category_stbi in categories_insufficient:
+            stph_stbi_onvoldoende_m += length
+            berekende_lengte_m += length
+
+        elif category_stbi in categories_sufficient and category_stph in categories_insufficient:
+            stbi_voldoende_stph_onvoldoende_m += length
+            berekende_lengte_m += length
+
+        elif category_stbi in categories_insufficient and category_stph in categories_sufficient:
+            stbi_onvoldoende_stph_voldoende_m += length
+            berekende_lengte_m += length
+
+        elif category_stph in categories_sufficient and category_stbi in categories_insufficient:
+            stph_voldoende_stbi_onvoldoende_m += length
+            berekende_lengte_m += length
+
+        elif category_stph in categories_insufficient and category_stbi in categories_sufficient:
+            stph_onvoldoende_stbi_voldoende_m += length
+            berekende_lengte_m += length
+
         
-        if category in categories_mid:
-            stbi_mid_m += length
 
-        if category in categories_insufficient:
-            stbi_insufficient_m += length
         
-    row[1] = stbi_sufficient_m
-    row[2] = stbi_mid_m
-    row[3] = stbi_insufficient_m
-
-    # stph part
-    temp_stph = arcpy.MakeFeatureLayer_management(temp_category_layer, "templayer") 
-    arcpy.management.SelectLayerByAttribute(
-        in_layer_or_view="templayer",
-        selection_type="NEW_SELECTION",
-        where_clause="{} = '{}'".format(id_field,project_id),
-        invert_where_clause=None
-    )
-    
-    stph_cursor = arcpy.da.SearchCursor(temp_stph, [stph_field,"SHAPE@LENGTH"])
-    for stph_row in stph_cursor:
-        category = stph_row[0]
-        length = stph_row[1]
-
-        if category in categories_sufficient:
-            stph_sufficient_m += length
-        
-        if category in categories_mid:
-            stph_mid_m += length
-
-        if category in categories_insufficient:
-            stph_insufficient_m += length
-        
-    row[4] = stph_sufficient_m
-    row[5] = stph_mid_m
-    row[6] = stph_insufficient_m
+    row[1] = stph_stbi_voldoende_m
+    row[2] = stph_stbi_onvoldoende_m
+    row[3] = stbi_voldoende_stph_onvoldoende_m
+    row[4] = stbi_onvoldoende_stph_voldoende_m
+    row[5] = stph_voldoende_stbi_onvoldoende_m
+    row[6] = stph_onvoldoende_stbi_voldoende_m
+    row[7] = berekende_lengte_m
 
     segment_cursor.updateRow(row)
 
