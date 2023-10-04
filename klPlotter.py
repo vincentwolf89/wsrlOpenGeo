@@ -279,7 +279,7 @@ if newProfiles is True:
                     materialValue = None
 
                 if zValue == None:
-                    zValue = 0
+                    zValue = isectPlotElevation
                 isectTheme = isect[2]
 
 
@@ -287,7 +287,7 @@ if newProfiles is True:
                     'type': theme, 
                     'subtype':subType, 
                     'afstand': distanceValue, 
-                    'hoogte' : isectPlotElevation,
+                    'hoogte' : zValue,
                     'diameter': diameterValue,
                     'druk': pressureValue,
                     'materiaal': materialValue
