@@ -11,6 +11,12 @@ arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\kabels en leidingen ssh\t
 offsetTrajectory = 10
 newProfiles = True
 trajectlijn = "deeltraject_c_testsectie"
+
+butlijn = "butlijn_ssh"
+buklijn = "buklijn_ssh"
+biklijn = "biklijn_ssh"
+bitlijn = "bitlijn_ssh"
+
 profielen = "profielen_{}".format(trajectlijn)
 profiel_interval = 50
 profiel_lengte_land = 100
@@ -54,8 +60,20 @@ layersForIntersects = {
         "name":"merge_ogc_rd",
         "symbol":"circle",
     },
-    "kruinlijn": {
-        "name":trajectlijn,
+    "buitenteen": {
+        "name":butlijn,
+        "symbol":"square",
+    },
+        "buitenkruin": {
+        "name":buklijn,
+        "symbol":"square",
+    },
+        "binnenkruin": {
+        "name":biklijn,
+        "symbol":"square",
+    },
+        "binnenteen": {
+        "name":bitlijn,
         "symbol":"square",
     },
   
@@ -68,7 +86,10 @@ colorsForIntersects = {
   "buisleidingGevaarlijkeInhoud":"#DCCA11",
   "gasHogeDruk":"#0066B2",
   "gasLageDruk":"#25A3FF",
-  "buitenkruin":"#000000",
+  "buitenkruin":"#C1781F",
+  "binnenkruin":"#EA5611",
+  "binnenteen":"#148809",
+  "buitenteen":"#1E47C6",
 }
 
 
@@ -146,6 +167,8 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     indexes = []
     seriesInChart = {}
     for index, row in isectPoints.iterrows():
+
+        
    
         rowIndex = str(index+2)
         layerType = row['type']
