@@ -116,13 +116,38 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write(0, 3, "x [RD]", bold)
     worksheet1.write(0, 4, "y [RD]", bold)
 
-    worksheet1.write(0, 5, "Type", bold)
-    worksheet1.write(0, 6, "Subtype", bold)
-    worksheet1.write(0, 7, "Afstand", bold)
-    worksheet1.write(0, 8, "Hoogte", bold)
-    worksheet1.write(0, 9, "Diameter", bold)
-    worksheet1.write(0, 10, "Druk", bold)
-    worksheet1.write(0, 11, "Materiaal", bold)
+    worksheet1.write(0, 6, "Type", bold)
+    worksheet1.write(0, 7, "Subtype", bold)
+    worksheet1.write(0, 8, "Afstand", bold)
+    worksheet1.write(0, 9, "Hoogte", bold)
+    worksheet1.write(0, 10, "Diameter", bold)
+    worksheet1.write(0, 11, "Druk", bold)
+    worksheet1.write(0, 12, "Materiaal", bold)
+
+    worksheet1.write(0, 14, "Breedte kruin", bold)
+    worksheet1.write(0, 15, "Hoogte dijk", bold)
+    worksheet1.write(0, 16, "Breedte berm", bold)
+    worksheet1.write(0, 17, "Dikte deklaag", bold)
+    worksheet1.write(0, 18, "Binnenteen (Xbit)", bold)
+    worksheet1.write(0, 19, "Binnenteen naar berm (Xlb)", bold)
+    worksheet1.write(0, 20, "Type dijk", bold)
+    worksheet1.write(0, 21, "Kraterstraal (R)", bold)
+    worksheet1.write(0, 22, "Kraterdiepte", bold)
+
+    worksheet1.write(0, 23, "C1A", bold)
+    worksheet1.write(0, 23, "C1B", bold)
+    worksheet1.write(0, 24, "C2A", bold)
+    worksheet1.write(0, 25, "C2B", bold)
+    worksheet1.write(0, 26, "C2C", bold)
+    worksheet1.write(0, 27, "C2D", bold)
+    worksheet1.write(0, 28, "C3", bold)
+    worksheet1.write(0, 29, "C4", bold)
+    worksheet1.write(0, 29, "Afstand leiding tot dijk", bold)
+    
+
+
+
+
 
     # write colums
     worksheet1.write_column('A2', profilePoints['profielnummer'])
