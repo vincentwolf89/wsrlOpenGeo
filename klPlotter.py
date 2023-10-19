@@ -9,15 +9,17 @@ arcpy.env.overwriteOutput = True
 arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\kabels en leidingen ssh\test.gdb"
 
 offsetTrajectory = 10
-newProfiles = True
-trajectlijn = "deeltraject_c_testsectie"
+newProfiles = False
+trajectlijn = "deeltraject_c"
+# profielen = "profielen_{}".format(trajectlijn)
+profielen = "profielen_deeltraject_c_testsectie_joost"
 
 butlijn = "butlijn_ssh"
 buklijn = "buklijn_ssh"
 biklijn = "biklijn_ssh"
 bitlijn = "bitlijn_ssh"
 
-profielen = "profielen_{}".format(trajectlijn)
+
 profiel_interval = 50
 profiel_lengte_land = 100
 profiel_lengte_rivier = 100
@@ -39,7 +41,7 @@ isectFieldsKL = [isectNumberField,profileNumberField,subTypeField,diameterField,
 isectDfColumns = ["type","afstand","hoogte","diameter","druk","materiaal"]
 elevationSourceName = "AHN3"
 fieldsProfile = ["profielnummer","afstand","z_ahn","x","y"]
-plotLocation= "C:/Users/vince/Mijn Drive/WSRL/kabels en leidingen ssh/output/xlsx/"
+plotLocation= "C:/Users/vince/Mijn Drive/WSRL/kabels en leidingen ssh/output/xlsx_joost_19102023/"
 isectPlotElevation = 4
 
 # def diameter, druk, materiaalsoort
@@ -217,18 +219,7 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
 
     workbook.close()
 
-
-
-
-if newProfiles is True:
-    copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
-    generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier,trajectlijn,code,profielen)
-    set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
-    extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
-    add_xy(uitvoerpunten,code,trajectlijn)
-
-    
-
+def createProfileData(profielen, profileFields):
     # loop through profielen and check for 
     profielCursor = arcpy.da.SearchCursor(profielen, profileFields)
     for profile in profielCursor:
@@ -310,6 +301,21 @@ if newProfiles is True:
 
         sheetName = "Profiel_{}".format(str(profileNumber))
         createProfileSheet(sheetName, dfProfile, isectDf)
+
+
+
+
+if newProfiles is True:
+    copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
+    generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier,trajectlijn,code,profielen)
+    set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
+    extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
+    add_xy(uitvoerpunten,code,trajectlijn)
+    createProfileData(profielen, profileFields)
+
+    
+
+    
        
     
 
@@ -320,6 +326,7 @@ else:
     set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
     extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
     add_xy(uitvoerpunten,code,trajectlijn)
+    createProfileData(profielen, profileFields)
 
 
 
