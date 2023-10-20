@@ -38,7 +38,7 @@ materialField = "label"
 isectFields = [isectNumberField,profileNumberField,subTypeField]
 isectFieldsKL = [isectNumberField,profileNumberField,subTypeField,diameterField,pressureField,materialField]
 
-isectDfColumns = ["type","afstand","hoogte","diameter","druk","materiaal"]
+isectDfColumns = ["type","afstand","hoogte","diameter","druk","materiaal","breedte_kruin","hoogte_dijk"]
 elevationSourceName = "AHN3"
 fieldsProfile = ["profielnummer","afstand","z_ahn","x","y"]
 plotLocation= "C:/Users/vince/Mijn Drive/WSRL/kabels en leidingen ssh/output/xlsx_joost_19102023/"
@@ -46,39 +46,48 @@ isectPlotElevation = 4
 
 # def diameter, druk, materiaalsoort
 
+defaultDikeHeight = 5
+
 
 klThemes = ["riool","water","ogc"]
+refThemes = ["buitenteen","buitenkruin","binnenkruin","binnenteen"]
 
 layersForIntersects = {
+    "buitenteen": {
+        "type":"ref",
+        "name":butlijn,
+        "symbol":"square",
+    },
+    "buitenkruin": {
+        "type":"ref",
+        "name":buklijn,
+        "symbol":"square",
+    },
+    "binnenkruin": {
+        "type":"ref",
+        "name":biklijn,
+        "symbol":"square",
+    },
+    "binnenteen": {
+        "type":"ref",
+        "name":bitlijn,
+        "symbol":"square",
+    },
     "riool": {
+        "type":"kl",
         "name":"merge_r_rd",
         "symbol":"circle",
     },
     "water": {
+        "type":"kl",
         "name":"merge_w_rd",
         "symbol":"circle",
     },
     "ogc": {
+        "type":"kl",
         "name":"merge_ogc_rd",
         "symbol":"circle",
     },
-    "buitenteen": {
-        "name":butlijn,
-        "symbol":"square",
-    },
-        "buitenkruin": {
-        "name":buklijn,
-        "symbol":"square",
-    },
-        "binnenkruin": {
-        "name":biklijn,
-        "symbol":"square",
-    },
-        "binnenteen": {
-        "name":bitlijn,
-        "symbol":"square",
-    },
-  
 }
 
 colorsForIntersects = {
@@ -98,6 +107,9 @@ colorsForIntersects = {
 # temp variables
 invoerpunten = "punten_profielen"
 uitvoerpunten = "punten_profielen_z"
+
+
+
 
 def createProfileSheet(sheetName, profilePoints , isectPoints):
     
@@ -134,15 +146,15 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write(0, 21, "Kraterstraal (R)", bold)
     worksheet1.write(0, 22, "Kraterdiepte", bold)
 
-    worksheet1.write(0, 23, "C1A", bold)
-    worksheet1.write(0, 23, "C1B", bold)
-    worksheet1.write(0, 24, "C2A", bold)
-    worksheet1.write(0, 25, "C2B", bold)
-    worksheet1.write(0, 26, "C2C", bold)
-    worksheet1.write(0, 27, "C2D", bold)
-    worksheet1.write(0, 28, "C3", bold)
-    worksheet1.write(0, 29, "C4", bold)
-    worksheet1.write(0, 29, "Afstand leiding tot dijk", bold)
+    worksheet1.write(0, 24, "C1A", bold)
+    worksheet1.write(0, 25, "C1B", bold)
+    worksheet1.write(0, 26, "C2A", bold)
+    worksheet1.write(0, 27, "C2B", bold)
+    worksheet1.write(0, 28, "C2C", bold)
+    worksheet1.write(0, 29, "C2D", bold)
+    worksheet1.write(0, 30, "C3", bold)
+    worksheet1.write(0, 31, "C4", bold)
+    worksheet1.write(0, 32, "Afstand leiding tot dijk", bold)
     
 
 
@@ -156,14 +168,23 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write_column('D2', profilePoints['x'])
     worksheet1.write_column('E2', profilePoints['y'])
 
-    worksheet1.write_column('F2', isectPoints['type'])
-    worksheet1.write_column('G2', isectPoints['subtype'])
-    worksheet1.write_column('H2', isectPoints['afstand'])
-    worksheet1.write_column('I2', isectPoints['hoogte'])
-    
-    worksheet1.write_column('J2', isectPoints['diameter'])
-    worksheet1.write_column('K2', isectPoints['druk'])
-    worksheet1.write_column('L2', isectPoints['materiaal'])
+    worksheet1.write_column('G2', isectPoints['type'])
+    worksheet1.write_column('H2', isectPoints['subtype'])
+    worksheet1.write_column('I2', isectPoints['afstand'])
+    worksheet1.write_column('J2', isectPoints['hoogte'])
+    worksheet1.write_column('K2', isectPoints['diameter'])
+    worksheet1.write_column('L2', isectPoints['druk'])
+    worksheet1.write_column('M2', isectPoints['materiaal'])
+
+
+    # # calc hoogte 
+    worksheet1.write_column('O2', isectPoints['breedte_kruin'])
+    worksheet1.write_column('P2', isectPoints['hoogte_dijk'])
+    # worksheet1.write_column('P2', isectPoints['materiaal'])
+    # worksheet1.write_column('Q2', isectPoints['materiaal'])
+    # worksheet1.write_column('R2', isectPoints['materiaal'])
+    # worksheet1.write_column('S2', isectPoints['materiaal'])
+    # worksheet1.write_column('T2', isectPoints['materiaal'])
 
     # definieer startrij
     startpunt = 2
@@ -203,8 +224,8 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
 
         line_chart1.add_series({
             'name': row['subtype'],
-            'categories': '=Overzicht!$H${}:$H${}'.format(rowIndex,rowIndex),
-            'values':     '=Overzicht!$I${}:$I${}'.format(rowIndex,rowIndex),
+            'categories': '=Overzicht!$I${}:$I${}'.format(rowIndex,rowIndex),
+            'values':     '=Overzicht!$J${}:$J${}'.format(rowIndex,rowIndex),
             # 'y_error_bars': {
             #     'type': 'fixed',
             #     'value': 5,
@@ -262,12 +283,12 @@ def createProfileData(profielen, profileFields):
 
         print (profileNumber)
     
-        
-        for theme, layer in layersForIntersects.items():
-            if theme in klThemes:
-                fieldsForIsect = isectFieldsKL
-            else:
-                fieldsForIsect = isectFields
+        # first do ref part
+        refDict = {theme: layer for theme, layer in layersForIntersects.items() if theme in refThemes}
+        klDict = {theme: layer for theme, layer in layersForIntersects.items() if theme in klThemes}
+        for theme, layer in refDict.items():
+   
+            fieldsForIsect = isectFields
 
             arcpy.analysis.Intersect([layer["name"],temp_profile], "temp_isects", "ALL", None, "POINT")
 
@@ -285,14 +306,9 @@ def createProfileData(profielen, profileFields):
                 subType = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", subTypeField)][0]
                 zValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", "z_ahn")][0]
 
-                if theme in klThemes:
-                    diameterValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", diameterField)][0]
-                    pressureValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", pressureField)][0]
-                    materialValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", materialField)][0]
-                else:
-                    diameterValue = None
-                    pressureValue = None
-                    materialValue = None
+                diameterValue = None
+                pressureValue = None
+                materialValue = None
 
                 if zValue == None:
                     zValue = isectPlotElevation
@@ -306,8 +322,79 @@ def createProfileData(profielen, profileFields):
                     'hoogte' : zValue,
                     'diameter': diameterValue,
                     'druk': pressureValue,
-                    'materiaal': materialValue
+                    'materiaal': materialValue,
+                    'breedte_kruin' : "",
+                    'hoogte_dijk' : "",
                     
+                    }
+                
+                isectRow_df = pd.DataFrame([isectRow])
+                isectDf = pd.concat([isectDf, isectRow_df], ignore_index=True)
+
+        
+
+        # calc geom data if possible
+        z_bik = isectDf.loc[isectDf['type'] == 'binnenkruin', 'hoogte'].values[0] 
+        z_buk = isectDf.loc[isectDf['type'] == 'buitenkruin', 'hoogte'].values[0] 
+        z_bit = isectDf.loc[isectDf['type'] == 'binnenteen', 'hoogte'].values[0] 
+        z_but = isectDf.loc[isectDf['type'] == 'buitenteen', 'hoogte'].values[0]
+
+
+        base_elevation = calculate_absolute_difference(z_bit, z_but)
+        top_elevation = calculate_absolute_difference(z_bik, z_buk)
+        if base_elevation is None or top_elevation is None: 
+            dike_height = defaultDikeHeight
+        else:
+            dike_height = round(abs(base_elevation-top_elevation),2)
+
+        crest_width = round(abs(isectDf.loc[isectDf['type'] == 'binnenkruin', 'afstand'].values[0] -isectDf.loc[isectDf['type'] == 'buitenkruin', 'afstand'].values[0]),2)
+
+
+ 
+
+        print (dike_height, crest_width)
+
+
+        # after that kl part
+        for theme, layer in klDict.items():
+   
+            fieldsForIsect = isectFieldsKL
+      
+            arcpy.analysis.Intersect([layer["name"],temp_profile], "temp_isects", "ALL", None, "POINT")
+
+            isectCursor = arcpy.da.SearchCursor("temp_isects", fieldsForIsect)
+            for isect in isectCursor:
+
+                # get isect layer and join to nearest profile point
+                isectNumber = int(isect[0])
+                where = '"' + isectNumberField + '" = ' + str(isectNumber)
+                temp_isect = "temp_isect"
+                arcpy.Select_analysis("temp_isects", temp_isect, where)
+
+                arcpy.analysis.SpatialJoin(temp_isect, "temp_uitvoerpunten_profile", "temp_isect_loc", "JOIN_ONE_TO_ONE", "KEEP_ALL", "", "CLOSEST", None, '')
+                distanceValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", "afstand")][0]
+                subType = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", subTypeField)][0]
+                zValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", "z_ahn")][0]
+
+                diameterValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", diameterField)][0]
+                pressureValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", pressureField)][0]
+                materialValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", materialField)][0]
+
+
+                if zValue == None:
+                    zValue = isectPlotElevation
+                isectTheme = isect[2]
+
+                isectRow = {
+                    'type': theme, 
+                    'subtype':subType, 
+                    'afstand': distanceValue, 
+                    'hoogte' : zValue,
+                    'diameter': diameterValue,
+                    'druk': pressureValue,
+                    'materiaal': materialValue,
+                    'breedte_kruin' : crest_width,
+                    'hoogte_dijk' : dike_height,
                     }
                 
                 isectRow_df = pd.DataFrame([isectRow])
@@ -347,12 +434,23 @@ if newProfiles is True:
 
 
 else:
-    copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
-    set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
-    extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
-    add_xy(uitvoerpunten,code,trajectlijn)
+    # copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
+    # set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
+    # extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
+    # add_xy(uitvoerpunten,code,trajectlijn)
     createProfileData(profielen, profileFields)
 
 
 
 # to do: join results to profiles, add calcs... 
+
+
+
+
+
+
+
+
+
+
+

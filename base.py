@@ -485,7 +485,7 @@ def excel_writer_factsheets_main(uitvoerpunten,code,excel,id,trajecten,toetspeil
             count +=1
         # opvolgende profielen
         else:
-            if count is not 0 and name is not 9999:
+            if count != 0 and name != 9999:
                 line_chart1.add_series({
                     'name': 'profiel '+profielnaam,
 
@@ -814,3 +814,15 @@ def excel_writer_factsheets_main(uitvoerpunten,code,excel,id,trajecten,toetspeil
 
 
     # print *'.xlsx-bestand gemaakt voor factsheet'
+
+
+
+def calculate_absolute_difference(a, b):
+    if a is not None and b is not None:
+        return (a+b)/2
+    elif a is not None:
+        return a
+    elif b is not None:
+        return b
+    else:
+        return None
