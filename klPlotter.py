@@ -44,9 +44,17 @@ fieldsProfile = ["profielnummer","afstand","z_ahn","x","y"]
 plotLocation= "C:/Users/vince/Mijn Drive/WSRL/kabels en leidingen ssh/output/xlsx_joost_19102023/"
 isectPlotElevation = 4
 
-# def diameter, druk, materiaalsoort
-
+# outputvariables for toetsing
 defaultDikeHeight = 5
+faalkansenTable = r"C:\Users\vince\Mijn Drive\WSRL\kabels en leidingen ssh\aanlevering\toetsingtabellen\toetstabel_kl_deltares_03102023.xlsx"
+lfSheetWater = "lf_drinkwater"
+lfSheetGas = "lf_gas"
+defaultDiameter = 100 # change this!
+defaultPressure = 0.1
+defaultMaterial = "Staal"
+materialFieldLfTable = "Materiaal"
+
+
 
 
 klThemes = ["riool","water","ogc"]
@@ -266,6 +274,15 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     workbook.close()
 
 def createProfileData(profielen, profileFields):
+    
+    # create df for toetsingstabellen
+    df_lf_water = pd.read_excel(faalkansenTable, sheet_name=lfSheetWater)
+    df_lf_gas = pd.read_excel(faalkansenTable, sheet_name=lfSheetGas)
+
+    # Display the DataFrame
+    print(df_lf_water)
+    print (df_lf_gas)
+
     # loop through profielen and check for 
     profielCursor = arcpy.da.SearchCursor(profielen, profileFields)
     for profile in profielCursor:
@@ -306,9 +323,6 @@ def createProfileData(profielen, profileFields):
                 subType = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", subTypeField)][0]
                 zValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", "z_ahn")][0]
 
-                diameterValue = None
-                pressureValue = None
-                materialValue = None
 
                 if zValue == None:
                     zValue = isectPlotElevation
@@ -320,9 +334,9 @@ def createProfileData(profielen, profileFields):
                     'subtype':subType, 
                     'afstand': distanceValue, 
                     'hoogte' : zValue,
-                    'diameter': diameterValue,
-                    'druk': pressureValue,
-                    'materiaal': materialValue,
+                    'diameter': "",
+                    'druk': "",
+                    'materiaal': "",
                     'breedte_kruin' : "",
                     'hoogte_dijk' : "",
                     
@@ -350,11 +364,6 @@ def createProfileData(profielen, profileFields):
         crest_width = round(abs(isectDf.loc[isectDf['type'] == 'binnenkruin', 'afstand'].values[0] -isectDf.loc[isectDf['type'] == 'buitenkruin', 'afstand'].values[0]),2)
 
 
- 
-
-        print (dike_height, crest_width)
-
-
         # after that kl part
         for theme, layer in klDict.items():
    
@@ -379,6 +388,33 @@ def createProfileData(profielen, profileFields):
                 diameterValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", diameterField)][0]
                 pressureValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", pressureField)][0]
                 materialValue = [cur[0] for cur in arcpy.da.SearchCursor("temp_isect_loc", materialField)][0]
+
+                # find kraterstraal, kraterdiepte, set defaults --> work needed
+                if diameterValue is None or diameterValue =="":
+                    diameterValue = defaultDiameter 
+
+                if pressureValue is None or pressureValue =="":
+                    pressureValue = defaultPressure
+
+                if materialValue is None or materialValue =="":
+                    materialValue = defaultMaterial
+
+                # find kraterstraal, kraterdiepte, read from df
+                def check_range(header, value):
+                    if "-" in header: 
+                        lower, upper = map(int, header.split('-'))
+                        return lower <= value <= upper
+
+                # Find the matching columns
+                if theme =="water":
+                    try:
+                        waterRangeDiameter = [col for col in df_lf_water.columns if check_range(col, int(diameterValue))][0]
+                        kraterStraalWater = df_lf_water.loc[df_lf_water[materialFieldLfTable] == "Staal", waterRangeDiameter].values[0] # need to find something for the materials
+                        print (waterRangeDiameter, kraterStraalWater,"test")
+                    except Exception as e:
+                        print (e, waterRangeDiameter)
+
+
 
 
                 if zValue == None:
