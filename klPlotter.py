@@ -38,7 +38,7 @@ materialField = "label"
 isectFields = [isectNumberField,profileNumberField,subTypeField]
 isectFieldsKL = [isectNumberField,profileNumberField,subTypeField,diameterField,pressureField,materialField]
 
-isectDfColumns = ["type","afstand","hoogte","diameter","druk","materiaal","breedte_kruin","hoogte_dijk"]
+isectDfColumns = ["type","afstand","hoogte","diameter","druk","materiaal","breedte_kruin","hoogte_dijk","krater_straal","krater_diepte"]
 elevationSourceName = "AHN3"
 fieldsProfile = ["profielnummer","afstand","z_ahn","x","y"]
 plotLocation= "C:/Users/vince/Mijn Drive/WSRL/kabels en leidingen ssh/output/xlsx_joost_19102023/"
@@ -55,6 +55,7 @@ defaultDiameter = 100 # change this!
 defaultPressure = 0.1
 defaultMaterial = "Staal"
 materialFieldLfTable = "Materiaal"
+kraterDiepteColumn = "kraterdiepte"
 
 
 
@@ -190,8 +191,8 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     # # calc hoogte 
     worksheet1.write_column('O2', isectPoints['breedte_kruin'])
     worksheet1.write_column('P2', isectPoints['hoogte_dijk'])
-    # worksheet1.write_column('P2', isectPoints['materiaal'])
-    # worksheet1.write_column('Q2', isectPoints['materiaal'])
+    worksheet1.write_column('V2', isectPoints['krater_straal'])
+    worksheet1.write_column('W2', isectPoints['krater_diepte'])
     # worksheet1.write_column('R2', isectPoints['materiaal'])
     # worksheet1.write_column('S2', isectPoints['materiaal'])
     # worksheet1.write_column('T2', isectPoints['materiaal'])
@@ -341,7 +342,8 @@ def createProfileData(profielen, profileFields):
                     'materiaal': "",
                     'breedte_kruin' : "",
                     'hoogte_dijk' : "",
-                    
+                    'krater_straal': "",
+                    'krater_diepte': "",
                     }
                 
                 isectRow_df = pd.DataFrame([isectRow])
@@ -405,51 +407,44 @@ def createProfileData(profielen, profileFields):
                 if materialValue is None or materialValue =="":
                     lookupMaterial = defaultMaterial
 
-                # find kraterstraal, kraterdiepte, read from df
-                # def check_range(header, value):
-                #     if "-" in header: 
-                #         print(lower,upper, value)
-                #         lower, upper = map(int, header.split('-'))
-                #         return lower <= value <= upper
 
-                # Find the matching columns
-                if theme =="water":
+                # find kraterstraal, kraterdiepte
+                kraterStraal = ""
+                kraterDiepte = ""
+                if theme =="water" or theme == "ogc":
+                    if theme == "water":
+                        df_krater = df_kr_water
+                    if theme == "ogc":
+                        df_krater = df_kr_gas
+                    
                     try:
-
-                        waterRangeDiameter = None
-
-                        for val in df_kr_water[df_kr_water.columns[0]]:
+                        rangeDiameter = None
+                        for val in df_krater[df_krater.columns[0]]:
                             if "-" in val:
                                 lower, upper = map(float, val.split('-'))
                                 # print (lower,upper, lookupDiameter)
                                 if lower <=lookupDiameter <= upper:
-                                    waterRangeDiameter = val
+                                    rangeDiameter = val
                                     break
                         
-                        
-                        waterRangePressure = None
-
-                        for col in df_kr_water.columns:
+                        rangePressure = None
+                        for col in df_krater.columns:
                             if "-" in col:
                                 lower, upper = map(float, col.split('-'))
-                                # print(lower, upper,lookupPressure)
                                 if lower <= lookupPressure <= upper:
-                                    waterRangePressure = col
+                                    rangePressure = col
                                     break
-                        # if waterRangeDiameter in df_kr_water.index and waterRangePressure in df_kr_water.columns:
-                        #     lookup_value = df_kr_water.loc[waterRangePressure, waterRangePressure]
-                        #     print(f"Found value: {lookup_value}" if lookup_value is not None else "Value not found.")
-                        # else:
-                        #     print("Value not found.")
-
-                        # kraterStraalWater = df_kr_water.loc[waterRangePressure == lookupPressure, waterRangeDiameter].values[0] # need to find something for the materials
+         
+            
+                        kraterStraal= df_krater.loc[df_krater['range'] == rangeDiameter, rangePressure].values[0]
+                        kraterDiepte =  df_krater.loc[df_krater['range'] == rangeDiameter, kraterDiepteColumn].values[0]
                         
-                        # test = df_kr_water.loc[waterRangeDiameter,waterRangePressure]
+             
 
                         
-                        print (waterRangeDiameter, waterRangePressure)
+                        print (rangeDiameter, rangePressure, kraterStraal, kraterDiepte)
                     except Exception as e:
-                        print (e, waterRangeDiameter)
+                        print (e, rangeDiameter, rangePressure)
 
 
 
@@ -468,6 +463,8 @@ def createProfileData(profielen, profileFields):
                     'materiaal': materialValue,
                     'breedte_kruin' : crest_width,
                     'hoogte_dijk' : dike_height,
+                    'krater_straal': kraterStraal,
+                    'krater_diepte': kraterDiepte,
                     }
                 
                 isectRow_df = pd.DataFrame([isectRow])
