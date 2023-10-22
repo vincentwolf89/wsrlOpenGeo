@@ -49,6 +49,8 @@ defaultDikeHeight = 5
 faalkansenTable = r"C:\Users\vince\Mijn Drive\WSRL\kabels en leidingen ssh\aanlevering\toetsingtabellen\toetstabel_kl_deltares_03102023.xlsx"
 lfSheetWater = "lf_drinkwater"
 lfSheetGas = "lf_gas"
+krSheetWater = "kr_drinkwater"
+krSheetGas = "kr_gas"
 defaultDiameter = 100 # change this!
 defaultPressure = 0.1
 defaultMaterial = "Staal"
@@ -279,9 +281,9 @@ def createProfileData(profielen, profileFields):
     df_lf_water = pd.read_excel(faalkansenTable, sheet_name=lfSheetWater)
     df_lf_gas = pd.read_excel(faalkansenTable, sheet_name=lfSheetGas)
 
-    # Display the DataFrame
-    print(df_lf_water)
-    print (df_lf_gas)
+    df_kr_water =pd.read_excel(faalkansenTable, sheet_name=krSheetWater)
+    df_kr_gas = pd.read_excel(faalkansenTable, sheet_name=krSheetGas)
+
 
     # loop through profielen and check for 
     profielCursor = arcpy.da.SearchCursor(profielen, profileFields)
@@ -391,26 +393,61 @@ def createProfileData(profielen, profileFields):
 
                 # find kraterstraal, kraterdiepte, set defaults --> work needed
                 if diameterValue is None or diameterValue =="":
-                    diameterValue = defaultDiameter 
+                    lookupDiameter = defaultDiameter
+                else:
+                    lookupDiameter = float(defaultDiameter) 
 
                 if pressureValue is None or pressureValue =="":
-                    pressureValue = defaultPressure
+                    lookupPressure = defaultPressure
+                else:
+                    lookupPressure = float(pressureValue)
 
                 if materialValue is None or materialValue =="":
-                    materialValue = defaultMaterial
+                    lookupMaterial = defaultMaterial
 
                 # find kraterstraal, kraterdiepte, read from df
-                def check_range(header, value):
-                    if "-" in header: 
-                        lower, upper = map(int, header.split('-'))
-                        return lower <= value <= upper
+                # def check_range(header, value):
+                #     if "-" in header: 
+                #         print(lower,upper, value)
+                #         lower, upper = map(int, header.split('-'))
+                #         return lower <= value <= upper
 
                 # Find the matching columns
                 if theme =="water":
                     try:
-                        waterRangeDiameter = [col for col in df_lf_water.columns if check_range(col, int(diameterValue))][0]
-                        kraterStraalWater = df_lf_water.loc[df_lf_water[materialFieldLfTable] == "Staal", waterRangeDiameter].values[0] # need to find something for the materials
-                        print (waterRangeDiameter, kraterStraalWater,"test")
+
+                        waterRangeDiameter = None
+
+                        for val in df_kr_water[df_kr_water.columns[0]]:
+                            if "-" in val:
+                                lower, upper = map(float, val.split('-'))
+                                # print (lower,upper, lookupDiameter)
+                                if lower <=lookupDiameter <= upper:
+                                    waterRangeDiameter = val
+                                    break
+                        
+                        
+                        waterRangePressure = None
+
+                        for col in df_kr_water.columns:
+                            if "-" in col:
+                                lower, upper = map(float, col.split('-'))
+                                # print(lower, upper,lookupPressure)
+                                if lower <= lookupPressure <= upper:
+                                    waterRangePressure = col
+                                    break
+                        # if waterRangeDiameter in df_kr_water.index and waterRangePressure in df_kr_water.columns:
+                        #     lookup_value = df_kr_water.loc[waterRangePressure, waterRangePressure]
+                        #     print(f"Found value: {lookup_value}" if lookup_value is not None else "Value not found.")
+                        # else:
+                        #     print("Value not found.")
+
+                        # kraterStraalWater = df_kr_water.loc[waterRangePressure == lookupPressure, waterRangeDiameter].values[0] # need to find something for the materials
+                        
+                        # test = df_kr_water.loc[waterRangeDiameter,waterRangePressure]
+
+                        
+                        print (waterRangeDiameter, waterRangePressure)
                     except Exception as e:
                         print (e, waterRangeDiameter)
 
