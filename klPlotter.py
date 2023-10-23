@@ -9,19 +9,20 @@ arcpy.env.overwriteOutput = True
 arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\kabels en leidingen ssh\test.gdb"
 
 offsetTrajectory = 10
-newProfiles = False
-trajectlijn = "deeltraject_c"
-# profielen = "profielen_{}".format(trajectlijn)
-profielen = "profielen_deeltraject_c_testsectie_joost"
+newProfiles = True
+trajectlijn = "deeltraject_c_testsectie"
+profielen = "profielen_{}".format(trajectlijn)
+# profielen = "profielen_deeltraject_c_testsectie_joost"
 
 butlijn = "butlijn_ssh"
 buklijn = "buklijn_ssh"
 biklijn = "biklijn_ssh"
 bitlijn = "bitlijn_ssh"
+riverpoly = "temp_riverpoly"
 
 
-profiel_interval = 50
-profiel_lengte_land = 100
+profiel_interval = 500
+profiel_lengte_land = 800
 profiel_lengte_rivier = 100
 code = "deeltraject"
 stapgrootte_punten = 0.5
@@ -38,7 +39,7 @@ materialField = "label"
 isectFields = [isectNumberField,profileNumberField,subTypeField]
 isectFieldsKL = [isectNumberField,profileNumberField,subTypeField,diameterField,pressureField,materialField]
 
-isectDfColumns = ["type","afstand","hoogte","diameter","druk","materiaal","breedte_kruin","hoogte_dijk","krater_straal","krater_diepte"]
+isectDfColumns = ["type","afstand","hoogte","diameter","druk","materiaal","breedte_kruin","hoogte_dijk","krater_straal","krater_diepte","xl","x_bit","x_but"]
 elevationSourceName = "AHN3"
 fieldsProfile = ["profielnummer","afstand","z_ahn","x","y"]
 plotLocation= "C:/Users/vince/Mijn Drive/WSRL/kabels en leidingen ssh/output/xlsx_joost_19102023/"
@@ -151,21 +152,24 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write(0, 15, "Hoogte dijk", bold)
     worksheet1.write(0, 16, "Breedte berm", bold)
     worksheet1.write(0, 17, "Dikte deklaag", bold)
-    worksheet1.write(0, 18, "Binnenteen (Xbit)", bold)
-    worksheet1.write(0, 19, "Binnenteen naar berm (Xlb)", bold)
-    worksheet1.write(0, 20, "Type dijk", bold)
-    worksheet1.write(0, 21, "Kraterstraal (R)", bold)
-    worksheet1.write(0, 22, "Kraterdiepte", bold)
 
-    worksheet1.write(0, 24, "C1A", bold)
-    worksheet1.write(0, 25, "C1B", bold)
-    worksheet1.write(0, 26, "C2A", bold)
-    worksheet1.write(0, 27, "C2B", bold)
-    worksheet1.write(0, 28, "C2C", bold)
-    worksheet1.write(0, 29, "C2D", bold)
-    worksheet1.write(0, 30, "C3", bold)
-    worksheet1.write(0, 31, "C4", bold)
-    worksheet1.write(0, 32, "Afstand leiding tot dijk", bold)
+    worksheet1.write(0, 18, "xL (t.o.v. rivier)", bold)
+    worksheet1.write(0, 19, "xBut (t.o.v. rivier)", bold)
+    worksheet1.write(0, 20, "xBit (t.o.v. rivier)", bold)
+    worksheet1.write(0, 21, "Binnenteen naar berm (Xlb)", bold)
+    worksheet1.write(0, 22, "Type dijk", bold)
+    worksheet1.write(0, 23, "Kraterstraal (R)", bold)
+    worksheet1.write(0, 24, "Kraterdiepte", bold)
+
+    worksheet1.write(0, 25, "C1A", bold)
+    worksheet1.write(0, 26, "C1B", bold)
+    worksheet1.write(0, 27, "C2A", bold)
+    worksheet1.write(0, 28, "C2B", bold)
+    worksheet1.write(0, 29, "C2C", bold)
+    worksheet1.write(0, 30, "C2D", bold)
+    worksheet1.write(0, 31, "C3", bold)
+    worksheet1.write(0, 32, "C4", bold)
+    worksheet1.write(0, 33, "Afstand leiding tot dijk", bold)
     
 
 
@@ -188,11 +192,17 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write_column('M2', isectPoints['materiaal'])
 
 
-    # # calc hoogte 
+
     worksheet1.write_column('O2', isectPoints['breedte_kruin'])
     worksheet1.write_column('P2', isectPoints['hoogte_dijk'])
-    worksheet1.write_column('V2', isectPoints['krater_straal'])
-    worksheet1.write_column('W2', isectPoints['krater_diepte'])
+
+    worksheet1.write_column('S2', isectPoints['xl'])
+    worksheet1.write_column('T2', isectPoints['x_but'])
+    worksheet1.write_column('U2', isectPoints['x_bit'])
+
+
+    worksheet1.write_column('X2', isectPoints['krater_straal'])
+    worksheet1.write_column('Y2', isectPoints['krater_diepte'])
     # worksheet1.write_column('R2', isectPoints['materiaal'])
     # worksheet1.write_column('S2', isectPoints['materiaal'])
     # worksheet1.write_column('T2', isectPoints['materiaal'])
@@ -290,6 +300,7 @@ def createProfileData(profielen, profileFields):
     profielCursor = arcpy.da.SearchCursor(profielen, profileFields)
     for profile in profielCursor:
 
+
         # create array for isects
         isectDf = pd.DataFrame(columns = isectDfColumns)
 
@@ -299,8 +310,14 @@ def createProfileData(profielen, profileFields):
         temp_profile = "temp_profile"
         arcpy.Select_analysis(profielen, temp_profile, where)
         arcpy.Select_analysis(uitvoerpunten, "temp_uitvoerpunten_profile", where)
-        # check for intersects with layerForIntersects
 
+        # create dataframe for plotting 
+        profileArray = arcpy.da.FeatureClassToNumPyArray("temp_uitvoerpunten_profile", fieldsProfile, skip_nulls=True)
+        dfProfile = pd.DataFrame(profileArray)
+        dfProfileSorted = dfProfile.sort_values('afstand', ascending=True)
+        riverBorderX =  dfProfileSorted['afstand'].max()
+        
+        # check for intersects with layerForIntersects
         print (profileNumber)
     
         # first do ref part
@@ -332,6 +349,9 @@ def createProfileData(profielen, profileFields):
                 isectTheme = isect[2]
 
 
+                # calc xL
+                xL = abs(riverBorderX - distanceValue)
+
                 isectRow = {
                     'type': theme, 
                     'subtype':subType, 
@@ -344,7 +364,10 @@ def createProfileData(profielen, profileFields):
                     'hoogte_dijk' : "",
                     'krater_straal': "",
                     'krater_diepte': "",
-                    }
+                    'xl': xL,
+                    'x_bit': "",
+                    'x_but': "",
+                }
                 
                 isectRow_df = pd.DataFrame([isectRow])
                 isectDf = pd.concat([isectDf, isectRow_df], ignore_index=True)
@@ -357,6 +380,11 @@ def createProfileData(profielen, profileFields):
         z_bit = isectDf.loc[isectDf['type'] == 'binnenteen', 'hoogte'].values[0] 
         z_but = isectDf.loc[isectDf['type'] == 'buitenteen', 'hoogte'].values[0]
 
+        a_bik = isectDf.loc[isectDf['type'] == 'binnenkruin', 'afstand'].values[0] 
+        a_buk = isectDf.loc[isectDf['type'] == 'buitenkruin', 'afstand'].values[0] 
+        a_bit = isectDf.loc[isectDf['type'] == 'binnenteen', 'afstand'].values[0] 
+        a_but = isectDf.loc[isectDf['type'] == 'buitenteen', 'afstand'].values[0]
+
 
         base_elevation = calculate_absolute_difference(z_bit, z_but)
         top_elevation = calculate_absolute_difference(z_bik, z_buk)
@@ -366,7 +394,9 @@ def createProfileData(profielen, profileFields):
             dike_height = round(abs(base_elevation-top_elevation),2)
 
         crest_width = round(abs(isectDf.loc[isectDf['type'] == 'binnenkruin', 'afstand'].values[0] -isectDf.loc[isectDf['type'] == 'buitenkruin', 'afstand'].values[0]),2)
-
+        
+        
+  
 
         # after that kl part
         for theme, layer in klDict.items():
@@ -453,6 +483,14 @@ def createProfileData(profielen, profileFields):
                     zValue = isectPlotElevation
                 isectTheme = isect[2]
 
+
+                # calc xL, xBit, xBut
+                xL = abs(riverBorderX - distanceValue)
+                xBit = abs(riverBorderX - a_bit)
+                xBut = abs(riverBorderX - a_but)
+
+                print (riverBorderX, xL, "test!! geom")
+
                 isectRow = {
                     'type': theme, 
                     'subtype':subType, 
@@ -465,6 +503,9 @@ def createProfileData(profielen, profileFields):
                     'hoogte_dijk' : dike_height,
                     'krater_straal': kraterStraal,
                     'krater_diepte': kraterDiepte,
+                    'xl': xL,
+                    'x_bit': xBit,
+                    'x_but': xBut,
                     }
                 
                 isectRow_df = pd.DataFrame([isectRow])
@@ -472,27 +513,29 @@ def createProfileData(profielen, profileFields):
        
 
     
-        
-        
-        # create dataframe for plotting 
-        profileArray = arcpy.da.FeatureClassToNumPyArray("temp_uitvoerpunten_profile", fieldsProfile, skip_nulls=True)
-    
-
-        df = pd.DataFrame(profileArray)
-        dfProfile = df.sort_values('afstand', ascending=True)
 
         sheetName = "Profiel_{}".format(str(profileNumber))
-        createProfileSheet(sheetName, dfProfile, isectDf)
+        createProfileSheet(sheetName, dfProfileSorted, isectDf)
 
 
 
 
 if newProfiles is True:
-    copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
-    generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier,trajectlijn,code,profielen)
-    set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
-    extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
-    add_xy(uitvoerpunten,code,trajectlijn)
+    # copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
+    # generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier,trajectlijn,code,profielen)
+
+    # # cut profiles on riverpoly
+    # arcpy.analysis.Erase(
+    #     in_features=profielen,
+    #     erase_features=riverpoly,
+    #     out_feature_class= "temp_profiles_erased",
+    #     cluster_tolerance=None
+    # )
+    # arcpy.management.CopyFeatures("temp_profiles_erased", profielen)
+
+    # set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
+    # extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
+    # add_xy(uitvoerpunten,code,trajectlijn)
     createProfileData(profielen, profileFields)
 
     
@@ -511,8 +554,6 @@ else:
     createProfileData(profielen, profileFields)
 
 
-
-# to do: join results to profiles, add calcs... 
 
 
 
