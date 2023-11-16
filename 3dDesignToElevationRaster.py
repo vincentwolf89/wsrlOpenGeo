@@ -1,5 +1,9 @@
 import arcpy
 
+
+
+
+
 arcpy.ddd.CreateTin(
     out_tin=r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\tin_test",
     spatial_reference='PROJCS["RD_New",GEOGCS["GCS_Amersfoort",DATUM["D_Amersfoort",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Double_Stereographic"],PARAMETER["False_Easting",155000.0],PARAMETER["False_Northing",463000.0],PARAMETER["Central_Meridian",5.38763888888889],PARAMETER["Scale_Factor",0.9999079],PARAMETER["Latitude_Of_Origin",52.15616055555555],UNIT["Meter",1.0]]',
@@ -27,6 +31,20 @@ arcpy.management.Clip(
     maintain_clipping_extent="MAINTAIN_EXTENT"
 )
 
+arcpy.management.ProjectRaster(
+    in_raster="tin_te_tinra_Clip",
+    out_raster=r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb\tin_te_tinra_C_ProjectRaster",
+    out_coor_system='GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
+    resampling_type="NEAREST",
+    cell_size="0,499994345784074 0,499976055397925",
+    geographic_transform="Amersfoort_To_WGS_1984_NTv2",
+    Registration_Point=None,
+    in_coor_system='PROJCS["RD_New",GEOGCS["GCS_Amersfoort",DATUM["D_Amersfoort",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Double_Stereographic"],PARAMETER["False_Easting",155000.0],PARAMETER["False_Northing",463000.0],PARAMETER["Central_Meridian",5.38763888888889],PARAMETER["Scale_Factor",0.9999079],PARAMETER["Latitude_Of_Origin",52.15616055555555],UNIT["Meter",1.0]]',
+    vertical="NO_VERTICAL"
+)
+
+
+
 arcpy.management.ManageTileCache(
     in_cache_location=r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\cash",
     manage_mode="RECREATE_ALL_TILES",
@@ -40,3 +58,14 @@ arcpy.management.ManageTileCache(
     min_cached_scale=577790.554289,
     max_cached_scale=2256.994353
 )
+
+arcpy.management.ExportTileCache(
+    in_cache_source="test",
+    in_target_cache_folder=r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\cash",
+    in_target_cache_name="test_cash",
+    export_cache_type="TILE_PACKAGE_TPKX",
+    storage_format_type="COMPACT",
+    scales=[1155581.108577,577790.554289,288895.277144,144447.638572,72223.819286,36111.909643,18055.954822,9027.977411,4513.988705],
+    area_of_interest=r"in_memory\feature_set1"
+)
+
