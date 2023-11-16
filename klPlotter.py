@@ -1,3 +1,6 @@
+# berm komt via lijn binnen, Joost bepaalt gemiddelde.
+
+
 # generate profiles or get profile input
 from xlsxwriter.workbook import Workbook
 
