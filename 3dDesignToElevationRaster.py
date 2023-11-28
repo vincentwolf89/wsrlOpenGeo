@@ -3,16 +3,38 @@ arcpy.env.overwriteOutput = True
 arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb"
 
 temp_tin = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\tin"
-in_features = "_3D_KA1_ruimtebeslag"
+in_features = "safe_3D_KA2_ruimtebeslag"
 cash_location = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\cash"
 
 
-arcpy.ddd.CreateTin(
+# arcpy.CreateTin_3d(
+#     out_tin=temp_tin,
+#     spatial_reference='PROJCS["RD_New",GEOGCS["GCS_Amersfoort",DATUM["D_Amersfoort",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Double_Stereographic"],PARAMETER["False_Easting",155000.0],PARAMETER["False_Northing",463000.0],PARAMETER["Central_Meridian",5.38763888888889],PARAMETER["Scale_Factor",0.9999079],PARAMETER["Latitude_Of_Origin",52.15616055555555],UNIT["Meter",1.0]]',
+#     in_features="{} SHAPE.Z Mass_Points OBJECTID".format(in_features),
+#     constrained_delaunay="DELAUNAY"
+# )
+
+
+arcpy.management.RepairGeometry(
+    in_features=in_features,
+    delete_null="DELETE_NULL",
+    validation_method="ESRI"
+)
+
+
+arcpy.management.FeatureVerticesToPoints(
+    in_features=in_features,
+    out_feature_class="temp_points_fortin",
+    point_location="ALL"
+)
+
+arcpy.CreateTin_3d(
     out_tin=temp_tin,
     spatial_reference='PROJCS["RD_New",GEOGCS["GCS_Amersfoort",DATUM["D_Amersfoort",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Double_Stereographic"],PARAMETER["False_Easting",155000.0],PARAMETER["False_Northing",463000.0],PARAMETER["Central_Meridian",5.38763888888889],PARAMETER["Scale_Factor",0.9999079],PARAMETER["Latitude_Of_Origin",52.15616055555555],UNIT["Meter",1.0]]',
-    in_features="{} SHAPE.Z Soft_Clip OBJECTID".format(in_features),
+    in_features="temp_points_fortin SHAPE.Z Mass_Points OBJECTID",
     constrained_delaunay="DELAUNAY"
 )
+
 
 
 arcpy.ddd.TinRaster(
