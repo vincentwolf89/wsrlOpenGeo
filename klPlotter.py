@@ -1,4 +1,9 @@
-# berm komt via lijn binnen, Joost bepaalt gemiddelde.
+## nodig ##
+# kraterstraal riool?
+# defaultDiameter? 
+
+## settings ##
+# riool voor leidingfaalkans = gelijk aan water
 
 
 # generate profiles or get profile input
@@ -39,6 +44,10 @@ diameterField = "diameter"
 pressureField = "druk"
 materialField = "label"
 
+# columns in toetsingstabellen
+rangeColumn = "range"
+materialColumn = "Materiaal"
+
 isectFields = [isectNumberField,profileNumberField,subTypeField]
 isectFieldsKL = [isectNumberField,profileNumberField,subTypeField,diameterField,pressureField,materialField]
 
@@ -57,7 +66,7 @@ krSheetWater = "kr_drinkwater"
 krSheetGas = "kr_gas"
 defaultDiameter = 100 # change this!
 defaultPressure = 0.1
-defaultMaterial = "Staal"
+defaultMaterial = "PVC"
 materialFieldLfTable = "Materiaal"
 kraterDiepteColumn = "kraterdiepte"
 
@@ -163,16 +172,17 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write(0, 22, "Type dijk", bold)
     worksheet1.write(0, 23, "Kraterstraal (R)", bold)
     worksheet1.write(0, 24, "Kraterdiepte", bold)
+    worksheet1.write(0, 25, "Leidingfaalkans", bold)
 
-    worksheet1.write(0, 25, "C1A", bold)
-    worksheet1.write(0, 26, "C1B", bold)
-    worksheet1.write(0, 27, "C2A", bold)
-    worksheet1.write(0, 28, "C2B", bold)
-    worksheet1.write(0, 29, "C2C", bold)
-    worksheet1.write(0, 30, "C2D", bold)
-    worksheet1.write(0, 31, "C3", bold)
-    worksheet1.write(0, 32, "C4", bold)
-    worksheet1.write(0, 33, "Afstand leiding tot dijk", bold)
+    worksheet1.write(0, 26, "C1A", bold)
+    worksheet1.write(0, 27, "C1B", bold)
+    worksheet1.write(0, 28, "C2A", bold)
+    worksheet1.write(0, 29, "C2B", bold)
+    worksheet1.write(0, 30, "C2C", bold)
+    worksheet1.write(0, 31, "C2D", bold)
+    worksheet1.write(0, 32, "C3", bold)
+    worksheet1.write(0, 33, "C4", bold)
+    worksheet1.write(0, 34, "Afstand leiding tot dijk", bold)
     
 
 
@@ -206,6 +216,7 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
 
     worksheet1.write_column('X2', isectPoints['krater_straal'])
     worksheet1.write_column('Y2', isectPoints['krater_diepte'])
+    worksheet1.write_column('Z2', isectPoints['leiding_faalkans'])
     # worksheet1.write_column('R2', isectPoints['materiaal'])
     # worksheet1.write_column('S2', isectPoints['materiaal'])
     # worksheet1.write_column('T2', isectPoints['materiaal'])
@@ -367,6 +378,7 @@ def createProfileData(profielen, profileFields):
                     'hoogte_dijk' : "",
                     'krater_straal': "",
                     'krater_diepte': "",
+                    'leiding_faalkans':"",
                     'xl': xL,
                     'x_bit': "",
                     'x_but': "",
@@ -439,12 +451,10 @@ def createProfileData(profielen, profileFields):
 
                 if materialValue is None or materialValue =="":
                     lookupMaterial = defaultMaterial
-
-
-                # find kraterstraal, kraterdiepte
+                    
                 kraterStraal = ""
                 kraterDiepte = ""
-                if theme =="water" or theme == "ogc":
+                if theme =="water" or theme == "ogc": # add riool?
                     if theme == "water":
                         df_krater = df_kr_water
                     if theme == "ogc":
@@ -469,18 +479,38 @@ def createProfileData(profielen, profileFields):
                                     break
          
             
-                        kraterStraal= df_krater.loc[df_krater['range'] == rangeDiameter, rangePressure].values[0]
-                        kraterDiepte =  df_krater.loc[df_krater['range'] == rangeDiameter, kraterDiepteColumn].values[0]
+                        kraterStraal= df_krater.loc[df_krater[rangeColumn] == rangeDiameter, rangePressure].values[0]
+                        kraterDiepte =  df_krater.loc[df_krater[rangeColumn] == rangeDiameter, kraterDiepteColumn].values[0]
                         
              
 
                         
                         print (rangeDiameter, rangePressure, kraterStraal, kraterDiepte)
                     except Exception as e:
-                        print (e, rangeDiameter, rangePressure)
+                        print ("error locating krater-values", e, rangeDiameter, rangePressure)
 
+                # find leidingfaalkans
+                leidingFaalkans = ""
+                if theme =="water" or theme == "ogc" or theme =="riool":
+                    if theme == "water" or theme == "riool":
+                        df_lf = df_lf_water
+                    if theme == "ogc":
+                        df_lf = df_lf_gas
+                    try:
+                        rangePressure = None
+                        for col in df_lf.columns:
+                            if "-" in col:
+                                lower, upper = map(float, col.split('-'))
+                                if lower <= lookupPressure <= upper:
+                                    rangePressure = col
+                                    break
+                                
+                        leidingFaalkans = df_lf.loc[df_lf[materialColumn] == lookupMaterial, rangePressure].values[0]
+                        print (leidingFaalkans, "TEST LEIDINGFAALKANS")
 
-
+                    except Exception as e:
+                        print ("error locating leidingfaalkans", e, lookupMaterial, rangePressure)                
+                    
 
                 if zValue == None:
                     zValue = isectPlotElevation
@@ -492,7 +522,7 @@ def createProfileData(profielen, profileFields):
                 xBit = abs(riverBorderX - a_bit)
                 xBut = abs(riverBorderX - a_but)
 
-                print (riverBorderX, xL, "test!! geom")
+                # print (riverBorderX, xL, "test geom")
 
                 isectRow = {
                     'type': theme, 
@@ -506,6 +536,7 @@ def createProfileData(profielen, profileFields):
                     'hoogte_dijk' : dike_height,
                     'krater_straal': kraterStraal,
                     'krater_diepte': kraterDiepte,
+                    'leiding_faalkans': leidingFaalkans,
                     'xl': xL,
                     'x_bit': xBit,
                     'x_but': xBut,
