@@ -1,6 +1,8 @@
 ## nodig ##
 # kraterstraal riool?
 # defaultDiameter? 
+# default deklaag
+# check C-values
 
 ## settings ##
 # riool voor leidingfaalkans = gelijk aan water
@@ -69,6 +71,9 @@ defaultPressure = 0.1
 defaultMaterial = "PVC"
 materialFieldLfTable = "Materiaal"
 kraterDiepteColumn = "kraterdiepte"
+defaultBermWidth = 0 # default conform Joost
+defaultDeklaagHeight = 2 # default conform Vincent
+
 
 
 
@@ -204,22 +209,27 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write_column('L2', isectPoints['druk'])
     worksheet1.write_column('M2', isectPoints['materiaal'])
 
-
-
     worksheet1.write_column('O2', isectPoints['breedte_kruin'])
     worksheet1.write_column('P2', isectPoints['hoogte_dijk'])
+    worksheet1.write_column('Q2', isectPoints['breedte_berm'])
 
     worksheet1.write_column('S2', isectPoints['xl'])
     worksheet1.write_column('T2', isectPoints['x_but'])
     worksheet1.write_column('U2', isectPoints['x_bit'])
 
-
     worksheet1.write_column('X2', isectPoints['krater_straal'])
     worksheet1.write_column('Y2', isectPoints['krater_diepte'])
     worksheet1.write_column('Z2', isectPoints['leiding_faalkans'])
-    # worksheet1.write_column('R2', isectPoints['materiaal'])
-    # worksheet1.write_column('S2', isectPoints['materiaal'])
-    # worksheet1.write_column('T2', isectPoints['materiaal'])
+
+    worksheet1.write_column('AA2', isectPoints['C1A'])
+    worksheet1.write_column('AB2', isectPoints['C1B'])
+    worksheet1.write_column('AC2', isectPoints['C2A'])
+    worksheet1.write_column('AD2', isectPoints['C2B'])
+    worksheet1.write_column('AE2', isectPoints['C2C'])
+    worksheet1.write_column('AF2', isectPoints['C2D'])
+    worksheet1.write_column('AG2', isectPoints['C3'])
+    worksheet1.write_column('AH2', isectPoints['C4'])
+
 
     # definieer startrij
     startpunt = 2
@@ -375,6 +385,8 @@ def createProfileData(profielen, profileFields):
                     'druk': "",
                     'materiaal': "",
                     'breedte_kruin' : "",
+                    'breedte_berm': "",
+                    'dikte_deklaag':"",
                     'hoogte_dijk' : "",
                     'krater_straal': "",
                     'krater_diepte': "",
@@ -382,6 +394,14 @@ def createProfileData(profielen, profileFields):
                     'xl': xL,
                     'x_bit': "",
                     'x_but': "",
+                    'C1A': "",
+                    'C1B': "",
+                    'C2A': "",
+                    'C2B': "",
+                    'C2C': "",
+                    'C2D': "",
+                    'C3': "",
+                    'C4': "",
                 }
                 
                 isectRow_df = pd.DataFrame([isectRow])
@@ -522,6 +542,39 @@ def createProfileData(profielen, profileFields):
                 xBit = abs(riverBorderX - a_bit)
                 xBut = abs(riverBorderX - a_but)
 
+                # calc berm width, deklaag
+                berm_width = defaultBermWidth
+                deklaag_height = defaultDeklaagHeight
+
+                # calc C-values, check needed!
+
+
+                C1A = (crest_width+deklaag_height)*dike_height+((xL-xBut-berm_width)-0.5)
+                C1B = (crest_width+dike_height+(xL-xBut-berm_width)-0.5)
+                if kraterStraal == "":
+                    C2A = 3*1
+                    C2B = defaultDeklaagHeight+dike_height
+                    C2C = defaultDeklaagHeight*1
+                    C2D = defaultDeklaagHeight
+                else:
+                    C2A = 3*kraterStraal
+                    C2B = kraterStraal+defaultDeklaagHeight+dike_height
+                    C2C = defaultDeklaagHeight*kraterStraal
+                    C2D = kraterStraal+defaultDeklaagHeight
+                
+                if kraterDiepte == "":
+                    C3 = (xBut)/1
+                else:
+                    C3 = (xBut)/kraterDiepte #- iets?
+                
+                C4 = xL-xBit-defaultBermWidth
+
+                print (C1A,C1B, C2A, C2B, C2C, C2D, C3, C4)
+
+
+
+
+
                 # print (riverBorderX, xL, "test geom")
 
                 isectRow = {
@@ -533,6 +586,8 @@ def createProfileData(profielen, profileFields):
                     'druk': pressureValue,
                     'materiaal': materialValue,
                     'breedte_kruin' : crest_width,
+                    'breedte_berm': berm_width,
+                    'dikte_deklaag': defaultDeklaagHeight,
                     'hoogte_dijk' : dike_height,
                     'krater_straal': kraterStraal,
                     'krater_diepte': kraterDiepte,
@@ -540,6 +595,14 @@ def createProfileData(profielen, profileFields):
                     'xl': xL,
                     'x_bit': xBit,
                     'x_but': xBut,
+                    'C1A': C1A,
+                    'C1B': C1B,
+                    'C2A': C2A,
+                    'C2B': C2B,
+                    'C2C': C2C,
+                    'C2D': C2D,
+                    'C3': C3,
+                    'C4': C4,
                     }
                 
                 isectRow_df = pd.DataFrame([isectRow])
