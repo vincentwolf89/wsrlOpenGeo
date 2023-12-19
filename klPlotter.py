@@ -1,8 +1,7 @@
 ## nodig ##
-# kraterstraal riool?
-# defaultDiameter? 
 # default deklaag
 # check C-values
+
 
 ## settings ##
 # riool voor leidingfaalkans = gelijk aan water
@@ -66,8 +65,16 @@ lfSheetWater = "lf_drinkwater"
 lfSheetGas = "lf_gas"
 krSheetWater = "kr_drinkwater"
 krSheetGas = "kr_gas"
-defaultDiameter = 100 # change this!
-defaultPressure = 0.1
+defaultDiameter = {
+    "riool": 125,
+    "water": 125,
+    "ogc": 125,
+} 
+defaultPressure = {
+    "riool": 0.1,
+    "water": 4,
+    "ogc": 0.1,  
+}
 defaultMaterial = "PVC"
 materialFieldLfTable = "Materiaal"
 kraterDiepteColumn = "kraterdiepte"
@@ -460,12 +467,12 @@ def createProfileData(profielen, profileFields):
 
                 # find kraterstraal, kraterdiepte, set defaults --> work needed
                 if diameterValue is None or diameterValue =="":
-                    lookupDiameter = defaultDiameter
+                    lookupDiameter = defaultDiameter[theme]
                 else:
-                    lookupDiameter = float(defaultDiameter) 
+                    lookupDiameter = float(diameterValue) 
 
                 if pressureValue is None or pressureValue =="":
-                    lookupPressure = defaultPressure
+                    lookupPressure = defaultPressure[theme]
                 else:
                     lookupPressure = float(pressureValue)
 
@@ -474,40 +481,40 @@ def createProfileData(profielen, profileFields):
                     
                 kraterStraal = ""
                 kraterDiepte = ""
-                if theme =="water" or theme == "ogc": # add riool?
-                    if theme == "water":
-                        df_krater = df_kr_water
-                    if theme == "ogc":
-                        df_krater = df_kr_gas
+                
+                if theme == "water" or theme == "riool":
+                    df_krater = df_kr_water
+                if theme == "ogc":
+                    df_krater = df_kr_gas
+                
+                try:
+                    rangeDiameter = None
+                    for val in df_krater[df_krater.columns[0]]:
+                        if "-" in val:
+                            lower, upper = map(float, val.split('-'))
+                            # print (lower,upper, lookupDiameter)
+                            if lower <=lookupDiameter <= upper:
+                                rangeDiameter = val
+                                break
                     
-                    try:
-                        rangeDiameter = None
-                        for val in df_krater[df_krater.columns[0]]:
-                            if "-" in val:
-                                lower, upper = map(float, val.split('-'))
-                                # print (lower,upper, lookupDiameter)
-                                if lower <=lookupDiameter <= upper:
-                                    rangeDiameter = val
-                                    break
-                        
-                        rangePressure = None
-                        for col in df_krater.columns:
-                            if "-" in col:
-                                lower, upper = map(float, col.split('-'))
-                                if lower <= lookupPressure <= upper:
-                                    rangePressure = col
-                                    break
-         
+                    rangePressure = None
+                    for col in df_krater.columns:
+                        if "-" in col:
+                            lower, upper = map(float, col.split('-'))
+                            if lower <= lookupPressure <= upper:
+                                rangePressure = col
+                                break
+        
+        
+                    kraterStraal= df_krater.loc[df_krater[rangeColumn] == rangeDiameter, rangePressure].values[0]
+                    kraterDiepte =  df_krater.loc[df_krater[rangeColumn] == rangeDiameter, kraterDiepteColumn].values[0]
+                    
             
-                        kraterStraal= df_krater.loc[df_krater[rangeColumn] == rangeDiameter, rangePressure].values[0]
-                        kraterDiepte =  df_krater.loc[df_krater[rangeColumn] == rangeDiameter, kraterDiepteColumn].values[0]
-                        
-             
 
-                        
-                        print (rangeDiameter, rangePressure, kraterStraal, kraterDiepte)
-                    except Exception as e:
-                        print ("error locating krater-values", e, rangeDiameter, rangePressure)
+                    
+                    print (rangeDiameter, rangePressure, kraterStraal, kraterDiepte)
+                except Exception as e:
+                    print ("error locating krater-values", e, rangeDiameter, rangePressure)
 
                 # find leidingfaalkans
                 leidingFaalkans = ""
