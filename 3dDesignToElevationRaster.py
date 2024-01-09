@@ -1,9 +1,9 @@
 import arcpy
 arcpy.env.overwriteOutput = True
-arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb"
+arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\3d_temp.gdb"
 
 temp_tin = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\tin"
-in_features = "safe_3D_KA2_ruimtebeslag"
+in_features = "safe_3D_KA3_ruimtebeslag"
 cash_location = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\cash"
 
 

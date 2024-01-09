@@ -556,23 +556,23 @@ def createProfileData(profielen, profileFields):
                 # calc C-values, check needed!
 
 
-                C1A = (crest_width+deklaag_height)*dike_height+((xL-xBut-berm_width)-0.5)
+                C1A = (crest_width+(2*dike_height)+(xL-xBut-berm_width)-0.5)
                 C1B = (crest_width+dike_height+(xL-xBut-berm_width)-0.5)
                 if kraterStraal == "":
                     C2A = 3*1
-                    C2B = defaultDeklaagHeight+dike_height
+                    C2B = defaultDeklaagHeight+5
                     C2C = defaultDeklaagHeight*1
                     C2D = defaultDeklaagHeight
                 else:
                     C2A = 3*kraterStraal
-                    C2B = kraterStraal+defaultDeklaagHeight+dike_height
+                    C2B = kraterStraal+defaultDeklaagHeight+5
                     C2C = defaultDeklaagHeight*kraterStraal
                     C2D = kraterStraal+defaultDeklaagHeight
                 
                 if kraterDiepte == "":
-                    C3 = (xBut)/1
+                    C3 = (xL-xBit)/1
                 else:
-                    C3 = (xBut)/kraterDiepte #- iets?
+                    C3 = (xL-xBit)/kraterDiepte 
                 
                 C4 = xL-xBit-defaultBermWidth
 

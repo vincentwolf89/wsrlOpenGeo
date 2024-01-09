@@ -4,7 +4,7 @@ from arcpy.sa import *
 
 arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb"
 # safe_priovakken_2022_nieuw_rd
-dike_segments = "safe_prioriteringsvakken_07122023"
+dike_segments = "safe_prioriteringsvakken_03012024"
 dike_trajectory = "trajectlijn_safe_rd"
 dike_refpoints = "dijkpalen_safe_rd"
 route_field = "code"
