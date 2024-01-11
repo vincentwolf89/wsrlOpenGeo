@@ -1,6 +1,8 @@
 ## nodig ##
 # default deklaag
-# check C-values
+# formules ipv hardcoded vanuit script?
+# check profiel 2 joost
+
 
 
 ## settings ##
