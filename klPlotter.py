@@ -80,6 +80,7 @@ materialFieldLfTable = "Materiaal"
 kraterDiepteColumn = "kraterdiepte"
 defaultBermWidth = 0 # default conform Joost
 defaultDeklaagHeight = 2 # default conform Vincent
+defaultDikeType = "klei"
 
 
 
@@ -195,6 +196,8 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write(0, 32, "C3", bold)
     worksheet1.write(0, 33, "C4", bold)
     worksheet1.write(0, 34, "Afstand leiding tot dijk", bold)
+
+    worksheet1.write(0, 36, "Voldoet", bold)
     
 
 
@@ -236,6 +239,8 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write_column('AF2', isectPoints['C2D'])
     worksheet1.write_column('AG2', isectPoints['C3'])
     worksheet1.write_column('AH2', isectPoints['C4'])
+
+    worksheet1.write_column('AK2', isectPoints['eindoordeel'])
 
 
     # definieer startrij
@@ -409,6 +414,7 @@ def createProfileData(profielen, profileFields):
                     'C2D': "",
                     'C3': "",
                     'C4': "",
+                    'eindoordeel':"",
                 }
                 
                 isectRow_df = pd.DataFrame([isectRow])
@@ -576,11 +582,41 @@ def createProfileData(profielen, profileFields):
                 
                 C4 = xL-xBit-defaultBermWidth
 
-                print (C1A,C1B, C2A, C2B, C2C, C2D, C3, C4)
+                # calc t values
+                t1 = kraterStraal >= C1A
+                t2 = defaultDikeType == "klei"
+                t3 = (dike_height < C2C) and ((xL-xBit) <= C2D)
+                t4 = kraterStraal < C1A
+                t5 = (C2C < dike_height <= C2A) or ((C2D <(xL-xBit) <= C2B) and dike_height <= C2A)
+                t6 = deklaag_height > C3
+                t7 = (dike_height > C2A) or ((xL-xBit) > C2B)
+                t8 = kraterStraal >= C4
+                t9 = deklaag_height < C3
+                t10 = kraterStraal < C4
 
+                # p-values
+                p1 = 3e-8
+                p2 = 3e-8
+                p3 = 3e-6
+                p4 = 3e-6
+                p5 = 6e-5
 
+                if t1 and p1 > leidingFaalkans:
+                    result = "WAAR"
+                elif t3 and p2 > leidingFaalkans:
+                    result = "WAAR"
+                elif t5 and p3 > leidingFaalkans:
+                    result = "WAAR"
+                elif t6 and p4 > leidingFaalkans:
+                    result = "WAAR"
+                elif t8 and p5 > leidingFaalkans:
+                    result = "WAAR"
+                elif t10:
+                    result = "WAAR"
+                else:
+                    result = "fout"
 
-
+                print("final result: {}".format(result))
 
                 # print (riverBorderX, xL, "test geom")
 
@@ -610,6 +646,7 @@ def createProfileData(profielen, profileFields):
                     'C2D': C2D,
                     'C3': C3,
                     'C4': C4,
+                    'eindoordeel': result
                     }
                 
                 isectRow_df = pd.DataFrame([isectRow])
