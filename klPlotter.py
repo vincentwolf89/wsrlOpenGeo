@@ -224,6 +224,7 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write_column('O2', isectPoints['breedte_kruin'])
     worksheet1.write_column('P2', isectPoints['hoogte_dijk'])
     worksheet1.write_column('Q2', isectPoints['breedte_berm'])
+    worksheet1.write_column('R2', isectPoints['dikte_deklaag'])
 
     worksheet1.write_column('S2', isectPoints['xl'])
     worksheet1.write_column('T2', isectPoints['x_but'])
@@ -233,14 +234,52 @@ def createProfileSheet(sheetName, profilePoints , isectPoints):
     worksheet1.write_column('Y2', isectPoints['krater_diepte'])
     worksheet1.write_column('Z2', isectPoints['leiding_faalkans'])
 
-    worksheet1.write_column('AA2', isectPoints['C1A'])
-    worksheet1.write_column('AB2', isectPoints['C1B'])
-    worksheet1.write_column('AC2', isectPoints['C2A'])
-    worksheet1.write_column('AD2', isectPoints['C2B'])
-    worksheet1.write_column('AE2', isectPoints['C2C'])
-    worksheet1.write_column('AF2', isectPoints['C2D'])
-    worksheet1.write_column('AG2', isectPoints['C3'])
-    worksheet1.write_column('AH2', isectPoints['C4'])
+    # worksheet1.write_column('AA2', isectPoints['C1A'])
+    # worksheet1.write_column('AB2', isectPoints['C1B'])
+    # worksheet1.write_column('AC2', isectPoints['C2A'])
+    # worksheet1.write_column('AD2', isectPoints['C2B'])
+    # worksheet1.write_column('AE2', isectPoints['C2C'])
+    # worksheet1.write_column('AF2', isectPoints['C2D'])
+    # worksheet1.write_column('AG2', isectPoints['C3'])
+    # worksheet1.write_column('AH2', isectPoints['C4'])
+
+    # write formulas for c-values
+    for i, row in isectPoints.iterrows():
+        if row['rowtype'] == 'segment':
+            i = i+2
+            C1A = f'=O{i}+(2*P{i})+(S{i}-T{i}-Q{i})-0.5'
+            C1B = f'=O{i}+P{i}+(S{i}-T{i}-Q{i})-0.5'
+
+            if row['krater_straal'] == "":
+                C2A = f'=3*1'
+                C2B = f'=R{i}+5'
+                C2C = f'=R{i}*1'
+                C2D = f'=R{i}'
+            else:
+                C2A = f'=3*X{i}'
+                C2B = f'=X{i}+R{i}+5'  
+                C2C = f'=R{i}*X{i}'
+                C2D = f'=X{i}+R{i}'
+            
+            if row['krater_diepte']  == "":
+                C3 = f'=(S{i}-U{i})/1'
+            else:
+                C3 =  f'=(S{i}-U{i})/Y{i}'
+            
+            C4 = f'=S{i}-U{i}-Q{i}' 
+
+            worksheet1.write_formula(f'AA{i}', C1A)
+            worksheet1.write_formula(f'AB{i}', C1B)
+            worksheet1.write_formula(f'AC{i}', C2A)
+            worksheet1.write_formula(f'AD{i}', C2B)
+            worksheet1.write_formula(f'AE{i}', C2C)
+            worksheet1.write_formula(f'AF{i}', C2D)
+            worksheet1.write_formula(f'AG{i}', C3)
+            worksheet1.write_formula(f'AH{i}', C4)
+
+
+
+
 
     worksheet1.write_column('AK2', isectPoints['eindoordeel'])
 
@@ -400,7 +439,7 @@ def createProfileData(profielen, profileFields):
                     'materiaal': "",
                     'breedte_kruin' : "",
                     'breedte_berm': "",
-                    'dikte_deklaag':"",
+                    'dikte_deklaag':defaultDeklaagHeight,
                     'hoogte_dijk' : "",
                     'krater_straal': "",
                     'krater_diepte': "",
@@ -417,6 +456,7 @@ def createProfileData(profielen, profileFields):
                     'C3': "",
                     'C4': "",
                     'eindoordeel':"",
+                    'rowtype':"refpoint"
                 }
                 
                 isectRow_df = pd.DataFrame([isectRow])
@@ -648,8 +688,12 @@ def createProfileData(profielen, profileFields):
                     'C2D': C2D,
                     'C3': C3,
                     'C4': C4,
-                    'eindoordeel': result
+                    'eindoordeel': result,
+                    'rowtype': "segment"
                     }
+                
+
+       
                 
                 isectRow_df = pd.DataFrame([isectRow])
                 isectDf = pd.concat([isectDf, isectRow_df], ignore_index=True)
