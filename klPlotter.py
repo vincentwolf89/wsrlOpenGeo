@@ -21,7 +21,7 @@ arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\kabels en leidingen ssh\t
 
 offsetTrajectory = 10
 newProfiles = True
-trajectlijn = "deeltraject_c_testsectie"
+trajectlijn = "testsectie_12022024"
 profielen = "profielen_{}".format(trajectlijn)
 # profielen = "profielen_deeltraject_c_testsectie_joost"
 
@@ -32,7 +32,7 @@ bitlijn = "bitlijn_ssh"
 riverpoly = "temp_riverpoly"
 
 
-profiel_interval = 500
+profiel_interval = 80
 profiel_lengte_land = 800
 profiel_lengte_rivier = 100
 code = "deeltraject"
@@ -708,21 +708,21 @@ def createProfileData(profielen, profileFields):
 
 
 if newProfiles is True:
-    # copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
-    # generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier,trajectlijn,code,profielen)
+    copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
+    generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier,trajectlijn,code,profielen)
 
-    # # cut profiles on riverpoly
-    # arcpy.analysis.Erase(
-    #     in_features=profielen,
-    #     erase_features=riverpoly,
-    #     out_feature_class= "temp_profiles_erased",
-    #     cluster_tolerance=None
-    # )
-    # arcpy.management.CopyFeatures("temp_profiles_erased", profielen)
+    # cut profiles on riverpoly
+    arcpy.analysis.Erase(
+        in_features=profielen,
+        erase_features=riverpoly,
+        out_feature_class= "temp_profiles_erased",
+        cluster_tolerance=None
+    )
+    arcpy.management.CopyFeatures("temp_profiles_erased", profielen)
 
-    # set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
-    # extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
-    # add_xy(uitvoerpunten,code,trajectlijn)
+    set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
+    extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
+    add_xy(uitvoerpunten,code,trajectlijn)
     createProfileData(profielen, profileFields)
 
     
