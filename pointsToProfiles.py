@@ -4,8 +4,8 @@ from base import *
 arcpy.env.overwriteOutput = True
 arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb"
 
-traject_punten = "belendingen_centroid_points"
+traject_punten = "leo_go_2002024_locs"
 trajectlijn = "trajectlijn_safe_rd"
-profielen = "puflocs_nietprio_profiles_21082023"
+profielen = "profielen_leo_go_2002024"
 code = "code"
 generate_profiles_onpoints(traject_punten,trajectlijn,profielen,code)

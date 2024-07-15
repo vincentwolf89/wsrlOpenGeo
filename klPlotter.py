@@ -20,10 +20,11 @@ arcpy.env.overwriteOutput = True
 arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\kabels en leidingen ssh\test.gdb"
 
 offsetTrajectory = 10
-newProfiles = True
-trajectlijn = "testsectie_12022024"
-profielen = "profielen_{}".format(trajectlijn)
-# profielen = "profielen_deeltraject_c_testsectie_joost"
+newProfiles = False
+trajectlijn = "Deeltrajecten_SSH_B"
+# trajectlijn = "Deeltrajecten_SSH"
+# profielen = "profielen_{}".format(trajectlijn)
+profielen = "profielen_sectie_13062024"
 
 butlijn = "butlijn_ssh"
 buklijn = "buklijn_ssh"
@@ -33,8 +34,8 @@ riverpoly = "temp_riverpoly"
 
 
 profiel_interval = 80
-profiel_lengte_land = 800
-profiel_lengte_rivier = 100
+profiel_lengte_rivier = 800
+profiel_lengte_land = 200
 code = "deeltraject"
 stapgrootte_punten = 0.5
 raster = r"C:\Users\vince\Desktop\werk\Projecten\WSRL\sterreschans_heteren\GIS\waterlopen300m.gdb\ahn3clipsh1"
@@ -709,7 +710,7 @@ def createProfileData(profielen, profileFields):
 
 if newProfiles is True:
     copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
-    generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier,trajectlijn,code,profielen)
+    generate_profiles(profiel_interval,profiel_lengte_rivier,profiel_lengte_land,trajectlijn,code,profielen)
 
     # cut profiles on riverpoly
     arcpy.analysis.Erase(
@@ -734,11 +735,21 @@ if newProfiles is True:
 
 
 else:
-    # copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
-    # set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
-    # extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
-    # add_xy(uitvoerpunten,code,trajectlijn)
+    copy_trajectory_lr(trajectlijn,code,offsetTrajectory)
+    # cut profiles on riverpoly
+    arcpy.analysis.Erase(
+        in_features=profielen,
+        erase_features=riverpoly,
+        out_feature_class= "temp_profiles_erased",
+        cluster_tolerance=None
+    )
+    arcpy.management.CopyFeatures("temp_profiles_erased", profielen)
+
+    set_measurements_trajectory(profielen,trajectlijn,code,stapgrootte_punten)
+    extract_z_arcpy(invoerpunten, uitvoerpunten, raster)
+    add_xy(uitvoerpunten,code,trajectlijn)
     createProfileData(profielen, profileFields)
+
 
 
 
