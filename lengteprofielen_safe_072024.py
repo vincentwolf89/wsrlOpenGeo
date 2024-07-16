@@ -173,7 +173,8 @@ for index, row in merged_df.iterrows():
     if pd.notna(row[dp_loc_field]):
         ax1.annotate(row[dijkpaal_field], (row[dp_loc_field], 2), fontsize=20)
     
-# ax1.plot(merged_df[dp_loc_field], 2, color='grey', label="Dijkpalen", marker = 'o')
+# ax1.plot(merged_df[dp_loc_field], [2] * len(merged_df[dp_loc_field]), color='grey', label="Dijkpalen", marker = 'o')
+ax1.scatter(merged_df[dp_loc_field], [2] * len(merged_df[dp_loc_field]), color='grey', label="Dijkpalen", marker='o')
 # ax1.axhline(hoogte, color='blue', linestyle='-',linewidth=5,label=f"Leggerhoogte ({round(hoogte,1)} m NAP)")
 
 ax1.set_title(f'Lengteprofiel {"test"}', fontsize=30, x=0.5, y=0.95)
