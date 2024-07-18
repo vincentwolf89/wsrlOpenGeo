@@ -12,7 +12,7 @@ arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\safe_lengteprof
 input_trajects = "testvak"
 input_dijkpalen = "dijkpalen_safe_rd"
 ahn4_raster = "https://tiles.arcgis.com/tiles/nSZVuSZjHpEZZbRo/arcgis/rest/services/Elevation_3D_RD/ImageServer"
-raster_1 = r"C:\Users\vince\Documents\ArcGIS\Projects\safe ahn\safe ahn.gdb\safe_ahn4_200mbuffer"
+raster_1 = "temp_tin_raster"
 dijkvak_field = "Vaknaam"
 dijkpaal_field = "rftident"
 point_loc_field = "point_loc"
@@ -22,6 +22,11 @@ plotdir = "C:/Users/vince/Documents/ArcGIS/Projects/safe_lengteprofielen_072024/
 # fields
 ahn4_field = "ahn4"
 raster_1_field = "raster1"
+
+# names
+ahn4_name = "AHN4-DTM 0.50m"
+raster_1_name = "Testraster"
+
 
 point_distance = 1 # m 
 
@@ -47,12 +52,13 @@ def part1(input_traject):
     print ("points generated")
 
 
-    # extract values for points
+    # extract values for points for all rasters
     arcpy.sa.ExtractMultiValuesToPoints(
         in_point_features=point_layer,
-        in_rasters=f"{ahn4_raster} {ahn4_field};{ahn4_raster} {raster_1_field}",
+        in_rasters=f"{ahn4_raster} {ahn4_field};{raster_1} {raster_1_field}",
         bilinear_interpolate_values="NONE"
     )
+
 
     print ("values extracted")
 
@@ -165,6 +171,7 @@ def part2(name):
     df_point = pd.DataFrame(point_array)
     df_dijkpaal = pd.DataFrame(dijkpaal_array)
     merged_df = pd.concat([df_point, df_dijkpaal], ignore_index=True)
+    merged_df = merged_df.sort_values([point_loc_field], ascending=[True])
 
     # set min and max based on df
     min_ahn_value = merged_df[ahn4_field].min()
@@ -176,7 +183,10 @@ def part2(name):
     ax1 = fig.add_subplot(111, label ="1")
     ax1.grid(visible=True, which='major', color='grey', linewidth=1.0, alpha=0.2)
 
-    ax1.plot(merged_df[point_loc_field], merged_df[ahn4_field], color='grey', label="AHN4-DTM 0.50m", linewidth=3)
+    # plot all rasters
+    ax1.plot(merged_df[point_loc_field], merged_df[ahn4_field], color='red', label=ahn4_name, linewidth=3)
+    ax1.plot(merged_df[point_loc_field], merged_df[raster_1_field], color='blue', label=raster_1_name, linewidth=3)
+    
     for index, row in merged_df.iterrows():
         if pd.notna(row[dp_loc_field]):
             ax1.annotate(row[dijkpaal_field], (row[dp_loc_field], min_ahn_value -1), fontsize=20)
