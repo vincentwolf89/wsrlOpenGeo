@@ -29,10 +29,13 @@ point_distance = 1 # m
 point_layer = "temp_pointlayer"
 dijkpaal_layer = "temp_dijkpalen_traject"
 
-def part1():
+
+
+
+def part1(input_traject):
     # generate points over lines
     arcpy.management.GeneratePointsAlongLines(
-        Input_Features=input_trajects,
+        Input_Features=input_traject,
         Output_Feature_Class=point_layer,
         Point_Placement="DISTANCE",
         Distance=f"{point_distance} Meters",
@@ -56,13 +59,13 @@ def part1():
     # locate dijkpalen along points
 
     arcpy.management.AddFields(
-        in_table=input_trajects,
+        in_table=input_traject,
         field_description="van DOUBLE # # # #;tot DOUBLE # # # #",
         template=None
     )
 
     arcpy.management.CalculateFields(
-        in_table=input_trajects,
+        in_table=input_traject,
         expression_type="PYTHON3",
         fields="van 0 #;tot round(!Shape_Length!) #",
         code_block="",
@@ -70,7 +73,7 @@ def part1():
     )
 
     arcpy.lr.CreateRoutes(
-        in_line_features=input_trajects,
+        in_line_features=input_traject,
         route_id_field=dijkvak_field,
         out_feature_class="temp_routes",
         measure_source="TWO_FIELDS",
@@ -87,7 +90,7 @@ def part1():
     # join dijkpalen to trajectlijn
     arcpy.analysis.SpatialJoin(
         target_features=input_dijkpalen,
-        join_features=input_trajects,
+        join_features=input_traject,
         out_feature_class=dijkpaal_layer,
         join_operation="JOIN_ONE_TO_ONE",
         join_type="KEEP_ALL",
@@ -153,64 +156,81 @@ def part1():
     )
 
 
-# part1()
-
-point_array = arcpy.da.FeatureClassToNumPyArray(point_layer, [point_loc_field,ahn4_field,raster_1_field])
-dijkpaal_array = arcpy.da.FeatureClassToNumPyArray(dijkpaal_layer, [dp_loc_field, dijkpaal_field])
-df_point = pd.DataFrame(point_array)
-df_dijkpaal = pd.DataFrame(dijkpaal_array)
-merged_df = pd.concat([df_point, df_dijkpaal], ignore_index=True)
-
-# print (merged_df)
-
-
-fig = plt.figure(figsize=(50, 15))
-ax1 = fig.add_subplot(111, label ="1")
-ax1.grid(visible=True, which='major', color='grey', linewidth=1.0, alpha=0.2)
-
-ax1.plot(merged_df[point_loc_field], merged_df[ahn4_field], color='grey', label="AHN4-DTM 0.50m", linewidth=3)
-for index, row in merged_df.iterrows():
-    if pd.notna(row[dp_loc_field]):
-        ax1.annotate(row[dijkpaal_field], (row[dp_loc_field], 2), fontsize=20)
-    
-# ax1.plot(merged_df[dp_loc_field], [2] * len(merged_df[dp_loc_field]), color='grey', label="Dijkpalen", marker = 'o')
-ax1.scatter(merged_df[dp_loc_field], [2] * len(merged_df[dp_loc_field]), color='grey', label="Dijkpalen", marker='o')
-# ax1.axhline(hoogte, color='blue', linestyle='-',linewidth=5,label=f"Leggerhoogte ({round(hoogte,1)} m NAP)")
-
-ax1.set_title(f'Lengteprofiel {"test"}', fontsize=30, x=0.5, y=0.95)
-
-ax1.tick_params(axis='both', which='major', labelsize=16)
-ax1.tick_params(axis='both', which='minor', labelsize=16)
-
-plt.tight_layout(pad=2)
-
-ax1.set_xlabel('Afstand [m]' ,fontsize=30)
-ax1.xaxis.set_label_coords(0.5, 0.03) 
-ax1.set_ylabel('Hoogte [m NAP]', fontsize=30)
-ax1.yaxis.set_label_coords(0.01, 0.5)
-
-handles, labels = plt.gca().get_legend_handles_labels()
-
-label_dict = OrderedDict() 
-for handle, label in zip(handles, labels):
-    if label not in label_dict:
-        label_dict[label] = handle
-
-legend = plt.legend(label_dict.values(), label_dict.keys(),loc='lower right',prop={'size': 20}, fancybox=True, framealpha=0.9)
-
-legend._legend_box.align = "left"
-
-plt.ylim(0, 10)
-
-plt.savefig(plotdir + f"profile_{'test'}.png")
-fig.clf()
-plt.close(fig)
-gc.collect()
 
 
 
+def part2(name):
+    point_array = arcpy.da.FeatureClassToNumPyArray(point_layer, [point_loc_field,ahn4_field,raster_1_field])
+    dijkpaal_array = arcpy.da.FeatureClassToNumPyArray(dijkpaal_layer, [dp_loc_field, dijkpaal_field])
+    df_point = pd.DataFrame(point_array)
+    df_dijkpaal = pd.DataFrame(dijkpaal_array)
+    merged_df = pd.concat([df_point, df_dijkpaal], ignore_index=True)
+
+    # set min and max based on df
+    min_ahn_value = merged_df[ahn4_field].min()
+    max_ahn_value = merged_df[ahn4_field].max()
+    plt.ylim(min_ahn_value-2, max_ahn_value+2)
 
 
+    fig = plt.figure(figsize=(50, 15))
+    ax1 = fig.add_subplot(111, label ="1")
+    ax1.grid(visible=True, which='major', color='grey', linewidth=1.0, alpha=0.2)
+
+    ax1.plot(merged_df[point_loc_field], merged_df[ahn4_field], color='grey', label="AHN4-DTM 0.50m", linewidth=3)
+    for index, row in merged_df.iterrows():
+        if pd.notna(row[dp_loc_field]):
+            ax1.annotate(row[dijkpaal_field], (row[dp_loc_field], min_ahn_value -1), fontsize=20)
+        
+    # ax1.plot(merged_df[dp_loc_field], [2] * len(merged_df[dp_loc_field]), color='grey', label="Dijkpalen", marker = 'o')
+    ax1.scatter(merged_df[dp_loc_field], [min_ahn_value -1] * len(merged_df[dp_loc_field]), color='grey', label="Dijkpalen", marker='o')
+    # ax1.axhline(hoogte, color='blue', linestyle='-',linewidth=5,label=f"Leggerhoogte ({round(hoogte,1)} m NAP)")
+
+    ax1.set_title(f'Lengteprofiel {name}', fontsize=30, x=0.5, y=0.95)
+
+    ax1.tick_params(axis='both', which='major', labelsize=16)
+    ax1.tick_params(axis='both', which='minor', labelsize=16)
+
+    plt.tight_layout(pad=2)
+
+    ax1.set_xlabel('Afstand [m]' ,fontsize=30)
+    ax1.xaxis.set_label_coords(0.5, 0.03) 
+    ax1.set_ylabel('Hoogte [m NAP]', fontsize=30)
+    ax1.yaxis.set_label_coords(0.01, 0.5)
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+
+    label_dict = OrderedDict() 
+    for handle, label in zip(handles, labels):
+        if label not in label_dict:
+            label_dict[label] = handle
+
+    legend = plt.legend(label_dict.values(), label_dict.keys(),loc='lower right',prop={'size': 20}, fancybox=True, framealpha=0.9)
+
+    legend._legend_box.align = "left"
+
+
+    plt.savefig(plotdir + f"profile_{name}.png")
+    fig.clf()
+    plt.close(fig)
+    gc.collect()
+    print (f"plot saved for dijkvak: {name}")
+
+
+
+with arcpy.da.SearchCursor(input_trajects, [dijkvak_field]) as cursor:
+    for row in cursor:
+        name = row[0]
+
+        input_traject = arcpy.MakeFeatureLayer_management(input_trajects, "flayer") 
+        arcpy.management.SelectLayerByAttribute(
+            in_layer_or_view="flayer",
+            selection_type="NEW_SELECTION",
+            where_clause=f"{dijkvak_field} = '{name}'",
+            invert_where_clause=None
+        )
+
+        part1(input_traject)
+        part2(name)
 
 
 
