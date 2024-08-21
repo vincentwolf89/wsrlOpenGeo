@@ -6,26 +6,29 @@ import matplotlib.pyplot as plt
 import gc
 from collections import OrderedDict
 
-arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\safe_lengteprofielen_072024\safe_lengteprofielen_072024.gdb"
+arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_lengteprofielen_072024\safe_lengteprofielen_072024.gdb"
 
 # inputs
 input_trajects = "testvak"
 input_dijkpalen = "dijkpalen_safe_rd"
-ahn4_raster = "https://tiles.arcgis.com/tiles/nSZVuSZjHpEZZbRo/arcgis/rest/services/Elevation_3D_RD/ImageServer"
-raster_1 = "temp_tin_raster"
+input_houses = "drempelhoogtes_temp"
+ahn4_raster = "safe_ahn4_buffer_200m"
+raster_1 = "temp_tin_raster_clip"
 dijkvak_field = "Vaknaam"
 dijkpaal_field = "rftident"
 point_loc_field = "point_loc"
 dp_loc_field = "dp_loc"
-plotdir = "C:/Users/vince/Documents/ArcGIS/Projects/safe_lengteprofielen_072024/outputs/"
+houses_loc_field = "house_loc"
+plotdir = "C:/Users/vince/Mijn Drive/WSRL/safe_lengteprofielen_072024/outputs/"
 
 # fields
 ahn4_field = "ahn4"
 raster_1_field = "raster1"
+houses_field = "drempelhoogte"
 
 # names
 ahn4_name = "AHN4-DTM 0.50m"
-raster_1_name = "Testraster"
+raster_1_name = "VKA 08-2024"
 
 
 point_distance = 1 # m 
@@ -33,6 +36,7 @@ point_distance = 1 # m
 # werkdata
 point_layer = "temp_pointlayer"
 dijkpaal_layer = "temp_dijkpalen_traject"
+houses_layer = "temp_drempelhoogtes_temp"
 
 
 
@@ -134,6 +138,46 @@ def part1(input_traject):
 
     print ("dijkpalen joined and located")
 
+    # join drempelhoogtes to trajectlijn
+    arcpy.analysis.SpatialJoin(
+        target_features=input_houses,
+        join_features=input_traject,
+        out_feature_class=houses_layer,
+        join_operation="JOIN_ONE_TO_ONE",
+        join_type="KEEP_ALL",
+        match_option="CLOSEST",
+        search_radius=None,
+        distance_field_name="",
+        match_fields=None
+    )
+
+    arcpy.lr.LocateFeaturesAlongRoutes(
+        in_features=houses_layer,
+        in_routes="temp_routes",
+        route_id_field=dijkvak_field,
+        radius_or_tolerance="50 Meters",
+        out_table="temp_houses_table",
+        out_event_properties="RID; POINT; house_loc",
+        route_locations="FIRST",
+        distance_field="DISTANCE",
+        zero_length_events="ZERO",
+        in_fields="FIELDS",
+        m_direction_offsetting="M_DIRECTON"
+    )
+
+    arcpy.management.JoinField(
+        in_data=houses_layer,
+        in_field=houses_field,
+        join_table="temp_houses_table",
+        join_field=houses_field,
+        fields=houses_loc_field,
+        fm_option="NOT_USE_FM",
+        field_mapping=None,
+        index_join_fields="NO_INDEXES"
+    )
+
+    print ("houses joined and located")
+
     arcpy.lr.LocateFeaturesAlongRoutes(
         in_features=point_layer,
         in_routes="temp_routes",
@@ -168,9 +212,11 @@ def part1(input_traject):
 def part2(name):
     point_array = arcpy.da.FeatureClassToNumPyArray(point_layer, [point_loc_field,ahn4_field,raster_1_field])
     dijkpaal_array = arcpy.da.FeatureClassToNumPyArray(dijkpaal_layer, [dp_loc_field, dijkpaal_field])
+    houses_array = arcpy.da.FeatureClassToNumPyArray(houses_layer, [houses_loc_field, houses_field])
     df_point = pd.DataFrame(point_array)
     df_dijkpaal = pd.DataFrame(dijkpaal_array)
-    merged_df = pd.concat([df_point, df_dijkpaal], ignore_index=True)
+    df_houses = pd.DataFrame(houses_array)
+    merged_df = pd.concat([df_point, df_dijkpaal, df_houses], ignore_index=True)
     merged_df = merged_df.sort_values([point_loc_field], ascending=[True])
 
     # set min and max based on df
@@ -193,6 +239,8 @@ def part2(name):
         
     # ax1.plot(merged_df[dp_loc_field], [2] * len(merged_df[dp_loc_field]), color='grey', label="Dijkpalen", marker = 'o')
     ax1.scatter(merged_df[dp_loc_field], [min_ahn_value -1] * len(merged_df[dp_loc_field]), color='grey', label="Dijkpalen", marker='o')
+    ax1.scatter(merged_df[houses_loc_field], merged_df[houses_field], color='red', label="Drempelhoogtes", marker='o', s=200)
+    print (merged_df)
     # ax1.axhline(hoogte, color='blue', linestyle='-',linewidth=5,label=f"Leggerhoogte ({round(hoogte,1)} m NAP)")
 
     ax1.set_title(f'Lengteprofiel {name}', fontsize=30, x=0.5, y=0.95)
