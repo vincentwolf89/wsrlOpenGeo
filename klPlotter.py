@@ -21,10 +21,10 @@ arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\kabels en leidingen ssh\t
 
 offsetTrajectory = 10
 newProfiles = False
-trajectlijn = "Deeltrajecten_SSH_B"
+trajectlijn = "Deeltrajecten_SSH_A"
 # trajectlijn = "Deeltrajecten_SSH"
 # profielen = "profielen_{}".format(trajectlijn)
-profielen = "profielen_sectie_13062024"
+profielen = "profielen_sectie_26082024"
 
 butlijn = "butlijn_ssh"
 buklijn = "buklijn_ssh"
@@ -38,7 +38,7 @@ profiel_lengte_rivier = 800
 profiel_lengte_land = 200
 code = "deeltraject"
 stapgrootte_punten = 0.5
-raster = r"C:\Users\vince\Desktop\werk\Projecten\WSRL\sterreschans_heteren\GIS\waterlopen300m.gdb\ahn3clipsh1"
+raster = r"C:\Users\vince\Mijn Drive\WSRL\kabels en leidingen ssh\kabels en leidingen ssh.gdb\ahn4_ssh_200m"
 profileNumberField = "profielnummer"
 isectNumberField = "OBJECTID"
 profileFields = ["profielnummer"]

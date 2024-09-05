@@ -9,9 +9,9 @@ from collections import OrderedDict
 arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_lengteprofielen_072024\safe_lengteprofielen_072024.gdb"
 
 # inputs
-input_trajects = "testvak"
+input_trajects = "testvakken_dz11"
 input_dijkpalen = "dijkpalen_safe_rd"
-input_houses = "drempelhoogtes_temp"
+input_houses = "drempelhoogtes_05092024"
 ahn4_raster = "safe_ahn4_buffer_200m"
 raster_1 = "temp_tin_raster_clip"
 dijkvak_field = "Vaknaam"
@@ -239,7 +239,7 @@ def part2(name):
         
     # ax1.plot(merged_df[dp_loc_field], [2] * len(merged_df[dp_loc_field]), color='grey', label="Dijkpalen", marker = 'o')
     ax1.scatter(merged_df[dp_loc_field], [min_ahn_value -1] * len(merged_df[dp_loc_field]), color='grey', label="Dijkpalen", marker='o')
-    ax1.scatter(merged_df[houses_loc_field], merged_df[houses_field], color='red', label="Drempelhoogtes", marker='o', s=200)
+    ax1.scatter(merged_df[houses_loc_field], merged_df[houses_field], color='orange', label="Drempelhoogtes", marker='v', s=200)
     print (merged_df)
     # ax1.axhline(hoogte, color='blue', linestyle='-',linewidth=5,label=f"Leggerhoogte ({round(hoogte,1)} m NAP)")
 
