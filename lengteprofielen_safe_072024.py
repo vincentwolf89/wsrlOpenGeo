@@ -9,7 +9,7 @@ from collections import OrderedDict
 arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_lengteprofielen_072024\safe_lengteprofielen_072024.gdb"
 
 # inputs
-input_trajects = "testvakken_dz11"
+input_trajects = "hartlijn_menno_18092024_nozm" #"testvakken_dz11"
 input_dijkpalen = "dijkpalen_safe_rd"
 input_houses = "drempelhoogtes_05092024"
 ahn4_raster = "safe_ahn4_buffer_200m"
