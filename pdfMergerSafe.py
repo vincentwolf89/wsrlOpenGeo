@@ -54,6 +54,12 @@ def merge_pdfs(main_pdf_path, folder1_path, folder2_path, output_dir):
             for page in main_pdf.pages:
                 writer.addPage(page)
 
+
+            # Add the current file from folder1 at the start of the new PDF
+            file1_pdf = PdfFileReader(file1_path)
+            for page in file1_pdf.pages:
+                writer.addPage(page)
+
             # Add PDFs from folder2 that match the current address
             added_pages_from_folder2 = False  # Flag to check if pages from folder2 are added
             for file2 in os.listdir(folder2_path):
@@ -78,10 +84,7 @@ def merge_pdfs(main_pdf_path, folder1_path, folder2_path, output_dir):
                 # print(f"No matching files from folder2 for address '{address}'.")
                 unmerged_files.append(file1)  # Add to the list of unmerged files
 
-            # Add the current file from folder1 at the end of the new PDF
-            file1_pdf = PdfFileReader(file1_path)
-            for page in file1_pdf.pages:
-                writer.addPage(page)
+
 
             # Save the new PDF to the output directory
             output_path = os.path.join(output_dir, f"{address}_rapportage.pdf")
@@ -97,11 +100,7 @@ def merge_pdfs(main_pdf_path, folder1_path, folder2_path, output_dir):
     duplicates = [item for item, count in counter.items() if count > 1]
 
     print("Duplicates:", duplicates)  # Output will be [1, 5, 3]
-    # After processing, print out the list of unmerged files
-    # if unmerged_files:
-    #     print("\nThe following files could not be merged due to missing matches in folder2:")
-    #     for unmerged_file in unmerged_files:
-    #         print(unmerged_file)
+
 
 # Define paths
 main_pdf_path = r"C:\Users\vince\Desktop\pdfmerger_laura\Rapport belendingen informatie.pdf"        
