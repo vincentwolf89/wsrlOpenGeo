@@ -2,29 +2,29 @@ import arcpy
 arcpy.env.overwriteOutput = True
 from arcpy.sa import *
 
-arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb"
-tempData =  "C:/Users/vince/Mijn Drive/WSRL/safe_data/safe_data/tempdata.gdb/"
+arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\Weurt-Deest\Weurt-Deest.gdb"
+tempData =  "C:/Users/vince/Documents/ArcGIS/Projects/Weurt-Deest/tempdata.gdb/"
 
 input1 = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stbi\input_stbi_maart_2023.xlsx"
 sheetInput1 = "invoer_gis"
 
-inTable = "OverzichtSTBI2023163en164_15082023"
-nameField = "Dijkvak_____"
+inTable = "testtabel"
+nameField = "stph_val"
 tableFields = ["dp_van","dp_tot","offset_van","offset_tot",nameField]
 startIdField = "dp_van"
 startOffsetField = "offset_van"
 endIdField = "dp_tot"
 endOffsetField = "offset_tot"
-eindOordeelLijn = "dijkvakken_safe_15082023"
+eindOordeelLijn = "stph_testvakken"
 
 
 
-dikeTrajectory = "trajectlijn_safe_rd"
-dikeRefpoints = "dijkpalen_safe_rd"
-route_field = "code"
-route_tolerance = 15
+dikeTrajectory = "trajectlijn_wd"
+dikeRefpoints = "dp_wd"
+route_field = "code" # add this to table!!
+route_tolerance = 30
 id_field ="dijkvak"
-dp_field = "rftident"
+dp_field = "dp_van"
 
 from_field ="dp_van"
 till_field = "dp_tot"
@@ -53,11 +53,11 @@ def createDpRoutes():
     arcpy.analysis.SpatialJoin("temp_endpoints", dikeRefpoints, "temp_endpoints_ref", "JOIN_ONE_TO_ONE", "KEEP_ALL", "", "CLOSEST", None, '')
 
     # join id fields from refpoints to routes
-    arcpy.management.JoinField("temp_routes_trajectory", "ORIG_SEQ", "temp_startpoints_ref", "ORIG_SEQ", "rftident", "NOT_USE_FM", None)
-    arcpy.management.JoinField("temp_routes_trajectory", "ORIG_SEQ", "temp_endpoints_ref", "ORIG_SEQ", "rftident", "NOT_USE_FM", None)
+    arcpy.management.JoinField("temp_routes_trajectory", "ORIG_SEQ", "temp_startpoints_ref", "ORIG_SEQ", dp_field, "NOT_USE_FM", None)
+    arcpy.management.JoinField("temp_routes_trajectory", "ORIG_SEQ", "temp_endpoints_ref", "ORIG_SEQ", dp_field, "NOT_USE_FM", None)
 
-    arcpy.management.AlterField("temp_routes_trajectory", "rftident", "start_id",clear_field_alias="CLEAR_ALIAS")
-    arcpy.management.AlterField("temp_routes_trajectory", "rftident_1", "end_id",clear_field_alias="CLEAR_ALIAS")
+    arcpy.management.AlterField("temp_routes_trajectory", dp_field, "start_id",clear_field_alias="CLEAR_ALIAS")
+    arcpy.management.AlterField("temp_routes_trajectory", "{}_1".format(dp_field), "end_id",clear_field_alias="CLEAR_ALIAS")
 
 
 def calcBase():   
@@ -70,8 +70,10 @@ def calcBase():
         # create templayer
         rowIdStart = tableRow[0]
         rowOffsetStart = tableRow[2]
+        where = "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart)
+        print (where)
 
-        arcpy.conversion.ExportTable(inTable, "temp_tablerow", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
+        arcpy.conversion.ExportTable(inTable, "temp_tablerow", where)
 
         arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(startIdField, startOffsetField), "temp_startpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
         arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(endIdField, endOffsetField), "temp_endpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
@@ -100,14 +102,17 @@ def calcBase():
         arcpy.CopyFeatures_management("templayer", "test_segment")
         # join attributes from tablerow
         arcpy.management.MakeFeatureLayer("test_segment", "templayer")
-        arcpy.management.AddJoin("templayer", "code", "temp_tablerow", "OBJECTID", "KEEP_ALL", "NO_INDEX_JOIN_FIELDS")
+        arcpy.management.AddJoin("templayer", route_field, "temp_tablerow", "OBJECTID", "KEEP_ALL", "NO_INDEX_JOIN_FIELDS")
         segment = "{}tablerow_{}".format(tempData,count)
+
+        print (segment)
         arcpy.CopyFeatures_management("templayer", segment)
         # add to segments
         segments.append(segment)
         count += 1
 
         print (startOffsetPlus, count)
+        # break
 
 
 
