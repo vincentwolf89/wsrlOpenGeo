@@ -40,7 +40,7 @@ def merge_pdfs(main_pdf_path, folder1_path, folder2_path, output_dir):
         if file1.endswith(".pdf"):
             # Extract the address from the filename
             address = extract_address(file1, "folder1")
-
+            city_name = ""
             unique_list.append(address)
             # print(f"Extracted address from folder1: {address}")
             if not address:
@@ -64,15 +64,29 @@ def merge_pdfs(main_pdf_path, folder1_path, folder2_path, output_dir):
             added_pages_from_folder2 = False  # Flag to check if pages from folder2 are added
             for file2 in os.listdir(folder2_path):
                 if file2.endswith(".pdf"):
+
+
+                   
                     # Extract address from each file2 filename
                     file2_address = extract_address(file2, "folder2")
                     # print(f"Checking file2 '{file2}' with extracted address '{file2_address}'")
 
                     # Check if addresses match
                     if file2_address == address:
+
+                        test_name = re.search(r'\d+\s+\D+\s+\d+(?:\s+[A-Z]|\s+\d+)*\s+(.+?)\.pdf$', file2)
+
+                        # Check if a match is found
+                        if test_name:
+                            city_name = test_name.group(1)
+                            print("City name:", city_name)
+                        else:
+                            # print("City name not found.")
+                            pass
+
                         file2_path = os.path.join(folder2_path, file2)
                         file2_pdf = PdfFileReader(file2_path)
-                        print(f"Adding pages from {file2_path}...")
+                        # print(f"Adding pages from {file2_path}...")
 
                         # Append each page from this matching file in folder2
                         for page in file2_pdf.pages:
@@ -87,7 +101,9 @@ def merge_pdfs(main_pdf_path, folder1_path, folder2_path, output_dir):
 
 
             # Save the new PDF to the output directory
-            output_path = os.path.join(output_dir, f"{address}_rapportage.pdf")
+            output_path= os.path.join(output_dir, f"Rapport_belendingen_informatie_{address}_{city_name}.pdf")
+            output_path = output_path.replace(" ", "_")
+
             with open(output_path, "wb") as output_file:
                 written_files.append(output_path)
                 writer.write(output_file)
