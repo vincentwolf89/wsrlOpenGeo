@@ -6,15 +6,15 @@ arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh
 tempData =  "C:/Users/vince/Documents/ArcGIS/Projects/beoordeling ssh/tempData.gdb/"
 
 
-dikeTrajectory = "ssh_spst_traject" #"ssh_spst_traject"
+dikeTrajectory = "deeltraject_d_ssh_test" #"ssh_spst_traject"
 pointInterval = 20 # meters 
 pointSearchRadius = 1 # meters
 codeField = "code"
-oidField = "OBJECTID"
-failureMechanisms = ["Oordeel_STPH_juni_23", "Oordeel_STBI_juni_23","Oordeel_KL_juni_23"] # array with all fm as line input
-scorefield = "eindoordeel_final"
+oidField = "OBJECTID_1"
+failureMechanisms = ["STPH"] # array with all fm as line input
+scorefield = "eindoordeel"
 insufficientValue = "onvoldoende"
-endCalcName = "eindoordeel_gecombineerd_19062023"
+endCalcName = "eindoordeel_gecombineerd_27112024"
 
 endScorefield = "eindoordeel_totaal"
 
@@ -27,7 +27,7 @@ arcpy.management.SplitLineAtPoint(dikeTrajectory, "temp_trajectory_points", "tem
 
 arcpy.AddField_management("temp_trajectory_splitted", endScorefield, "TEXT", 2)
 # iterate over midpoints, select all lines and iterate lines
-segmentCursor = arcpy.da.UpdateCursor("temp_trajectory_splitted", ["OBJECTID", endScorefield])
+segmentCursor = arcpy.da.UpdateCursor("temp_trajectory_splitted", [oidField, endScorefield])
 for segmentRow in segmentCursor:
 
     # create templayer
@@ -47,6 +47,7 @@ for segmentRow in segmentCursor:
         arcpy.analysis.SpatialJoin(temp_section, fm, "temp_spatial_oordeel", "JOIN_ONE_TO_ONE", "KEEP_ALL", "", "CLOSEST", None, '')
         
         score = [cur[0] for cur in arcpy.da.SearchCursor("temp_spatial_oordeel", scorefield)][0]
+        print (score, fm)	
         scores.append(score)
 
 

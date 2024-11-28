@@ -1,6 +1,6 @@
 import re
 
-filename = "98_0707100000378704 Lekdijk 1 B 76 Lek.pdf"
+filename = "98_0707100000378704 Lekdijk B 76 Lek.pdf"
 
 # Regular expression to match the city name at the end, capturing all words before `.pdf`
 match = re.search(r'\d+\s+\D+\s+\d+\s*(?:[A-Z]?\s+)?(.+?)\.pdf$', filename)

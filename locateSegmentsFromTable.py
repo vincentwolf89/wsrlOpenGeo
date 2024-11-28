@@ -8,7 +8,7 @@ tempData =  "C:/Users/vince/Documents/ArcGIS/Projects/Weurt-Deest/tempdata.gdb/"
 input1 = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stbi\input_stbi_maart_2023.xlsx"
 sheetInput1 = "invoer_gis"
 
-inTable = "testtabel"
+inTable = "wede_stph"
 nameField = "stph_val"
 tableFields = ["dp_van","dp_tot","offset_van","offset_tot",nameField]
 startIdField = "dp_van"
@@ -28,6 +28,8 @@ dp_field = "dp_van"
 
 from_field ="dp_van"
 till_field = "dp_tot"
+
+prefixes_to_remove = ["temp_tablerow_", "test_segment_"]
 
 def createDpRoutes():
     # split trajectory on dp
@@ -106,7 +108,7 @@ def calcBase():
         segment = "{}tablerow_{}".format(tempData,count)
 
         print (segment)
-        arcpy.CopyFeatures_management("templayer", segment)
+        arcpy.management.CopyFeatures("templayer", segment)
         # add to segments
         segments.append(segment)
         count += 1
@@ -119,10 +121,38 @@ def calcBase():
     # merge segments
     arcpy.management.Merge(segments, eindOordeelLijn)
 
+    
+def removePrefix():
+    # remove prefix from fields
+    # Get the fields of the layer
+    fields = arcpy.ListFields(eindOordeelLijn)
 
+    # Iterate over each field, rename it without the first word if applicable
+    for field in fields:
+        original_name = field.name
+        
+        # Check if the field name starts with any of the specified prefixes
+        new_name = original_name
+        for prefix in prefixes_to_remove:
+            if original_name.startswith(prefix):
+                # Remove the prefix by slicing it out
+                new_name = original_name[len(prefix):]
+                break  # Exit the loop once a prefix is removed
+        
+        # Rename the field if a prefix was removed
+        if new_name != original_name:
+            try:
+                arcpy.AlterField_management(eindOordeelLijn, original_name, new_name)
+                print(f"Renamed '{original_name}' to '{new_name}'")
+            except Exception as e:
+                print(f"Could not rename '{original_name}': {e}")
+                arcpy.DeleteField_management(eindOordeelLijn, original_name)
+        else:
+            print(f"Skipping '{original_name}' (no matching prefix found)")
 
 # createDpRoutes()
-calcBase()
+# calcBase()
+removePrefix()
 
 
 
