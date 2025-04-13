@@ -2,30 +2,34 @@ import arcpy
 arcpy.env.overwriteOutput = True
 from arcpy.sa import *
 
-arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\beoordeling ssh.gdb"
-tempData =  "C:/Users/vince/Documents/ArcGIS/Projects/beoordeling ssh/tempData.gdb/"
+arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\Weurt-Deest\Weurt-Deest.gdb"
+tempData =  "C:/Users/vince/Documents/ArcGIS/Projects/Weurt-Deest/tempdata.gdb/"
 
 input1 = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stbi\input_stbi_maart_2023.xlsx"
 sheetInput1 = "invoer_gis"
-oordeelField = "cat_oordeel_2075"
-tableFields = ["dp_van","dp_tot","offset_van","offset_tot",oordeelField,"dijkvak"]
+
+inTable = "wede_stph"
+nameField = "stph_val"
+tableFields = ["dp_van","dp_tot","offset_van","offset_tot",nameField]
 startIdField = "dp_van"
 startOffsetField = "offset_van"
 endIdField = "dp_tot"
 endOffsetField = "offset_tot"
-eindOordeelLijn = "oordeel_stbi_maart_2023"
-categoriesInSufficient = ["IV","V","VI"]
+eindOordeelLijn = "stph_testvakken"
 
 
-dikeTrajectory = "ssh_spst_trajectlijn"
-dikeRefpoints = "merge_dp_ssh_spst"
-route_field = "code"
-route_tolerance = 15
+
+dikeTrajectory = "trajectlijn_wd"
+dikeRefpoints = "dp_wd"
+route_field = "code" # add this to table!!
+route_tolerance = 30
 id_field ="dijkvak"
-dp_field = "rftident"
+dp_field = "dp_van"
 
 from_field ="dp_van"
 till_field = "dp_tot"
+
+prefixes_to_remove = ["temp_tablerow_", "test_segment_"]
 
 def createDpRoutes():
     # split trajectory on dp
@@ -51,17 +55,15 @@ def createDpRoutes():
     arcpy.analysis.SpatialJoin("temp_endpoints", dikeRefpoints, "temp_endpoints_ref", "JOIN_ONE_TO_ONE", "KEEP_ALL", "", "CLOSEST", None, '')
 
     # join id fields from refpoints to routes
-    arcpy.management.JoinField("temp_routes_trajectory", "ORIG_SEQ", "temp_startpoints_ref", "ORIG_SEQ", "rftident", "NOT_USE_FM", None)
-    arcpy.management.JoinField("temp_routes_trajectory", "ORIG_SEQ", "temp_endpoints_ref", "ORIG_SEQ", "rftident", "NOT_USE_FM", None)
+    arcpy.management.JoinField("temp_routes_trajectory", "ORIG_SEQ", "temp_startpoints_ref", "ORIG_SEQ", dp_field, "NOT_USE_FM", None)
+    arcpy.management.JoinField("temp_routes_trajectory", "ORIG_SEQ", "temp_endpoints_ref", "ORIG_SEQ", dp_field, "NOT_USE_FM", None)
 
-    arcpy.management.AlterField("temp_routes_trajectory", "rftident", "start_id",clear_field_alias="CLEAR_ALIAS")
-    arcpy.management.AlterField("temp_routes_trajectory", "rftident_1", "end_id",clear_field_alias="CLEAR_ALIAS")
+    arcpy.management.AlterField("temp_routes_trajectory", dp_field, "start_id",clear_field_alias="CLEAR_ALIAS")
+    arcpy.management.AlterField("temp_routes_trajectory", "{}_1".format(dp_field), "end_id",clear_field_alias="CLEAR_ALIAS")
 
 
 def calcBase():   
-    # get input excel and loop through
-    arcpy.conversion.ExcelToTable(input1, "tableInput1", sheetInput1, 1, '')
-    tableCursor = arcpy.da.SearchCursor("tableInput1",tableFields)
+    tableCursor = arcpy.da.SearchCursor(inTable,tableFields)
 
     segments = []
     count = 0
@@ -70,9 +72,10 @@ def calcBase():
         # create templayer
         rowIdStart = tableRow[0]
         rowOffsetStart = tableRow[2]
+        where = "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart)
+        print (where)
 
-
-        arcpy.conversion.ExportTable("tableInput1", "temp_tablerow", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
+        arcpy.conversion.ExportTable(inTable, "temp_tablerow", where)
 
         arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(startIdField, startOffsetField), "temp_startpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
         arcpy.lr.MakeRouteEventLayer("temp_routes_trajectory", "start_id", "temp_tablerow", "{}; Point; {}".format(endIdField, endOffsetField), "temp_endpoint", None, "NO_ERROR_FIELD", "NO_ANGLE_FIELD", "NORMAL", "ANGLE", "LEFT", "POINT")
@@ -85,8 +88,7 @@ def calcBase():
         arcpy.management.SplitLineAtPoint(dikeTrajectory, "temp_table_row_points", "temp_table_row_line_total", "0.5 Meters")
         
         # copy row and create offset point for isect locating
-        # arcpy.conversion.ExportTable("tableInput1", "temp_tablerow_offset_locator", "{} = '{}'".format(startIdField,rowIdStart))
-        arcpy.conversion.ExportTable("tableInput1", "temp_tablerow_offset_locator", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
+        arcpy.conversion.ExportTable(inTable, "temp_tablerow_offset_locator", "{} = '{}' And {} = {}".format(startIdField,rowIdStart,startOffsetField,rowOffsetStart))
         tempCursor = arcpy.da.UpdateCursor("temp_tablerow_offset_locator", [startOffsetField])
         for tempRow in tempCursor:
             startOffsetPlus = tempRow[0]+1
@@ -102,40 +104,56 @@ def calcBase():
         arcpy.CopyFeatures_management("templayer", "test_segment")
         # join attributes from tablerow
         arcpy.management.MakeFeatureLayer("test_segment", "templayer")
-        arcpy.management.AddJoin("templayer", "code", "temp_tablerow", "OBJECTID", "KEEP_ALL", "NO_INDEX_JOIN_FIELDS")
+        arcpy.management.AddJoin("templayer", route_field, "temp_tablerow", "OBJECTID", "KEEP_ALL", "NO_INDEX_JOIN_FIELDS")
         segment = "{}tablerow_{}".format(tempData,count)
-        arcpy.CopyFeatures_management("templayer", segment)
+
+        print (segment)
+        arcpy.management.CopyFeatures("templayer", segment)
         # add to segments
         segments.append(segment)
         count += 1
 
+        print (startOffsetPlus, count)
+        # break
+
+
+
     # merge segments
     arcpy.management.Merge(segments, eindOordeelLijn)
-    arcpy.management.AlterField(eindOordeelLijn, "temp_tablerow_{}".format(oordeelField), oordeelField)
 
-def calcFinal():
-    existingFields = arcpy.ListFields(eindOordeelLijn)
-    for field in existingFields:
-        if field.name == "eindoordeel_final":
-            pass
+    
+def removePrefix():
+    # remove prefix from fields
+    # Get the fields of the layer
+    fields = arcpy.ListFields(eindOordeelLijn)
+
+    # Iterate over each field, rename it without the first word if applicable
+    for field in fields:
+        original_name = field.name
+        
+        # Check if the field name starts with any of the specified prefixes
+        new_name = original_name
+        for prefix in prefixes_to_remove:
+            if original_name.startswith(prefix):
+                # Remove the prefix by slicing it out
+                new_name = original_name[len(prefix):]
+                break  # Exit the loop once a prefix is removed
+        
+        # Rename the field if a prefix was removed
+        if new_name != original_name:
+            try:
+                arcpy.AlterField_management(eindOordeelLijn, original_name, new_name)
+                print(f"Renamed '{original_name}' to '{new_name}'")
+            except Exception as e:
+                print(f"Could not rename '{original_name}': {e}")
+                arcpy.DeleteField_management(eindOordeelLijn, original_name)
         else:
-             arcpy.AddField_management(eindOordeelLijn, "eindoordeel_final", "TEXT", 2)
-
-    oordeelCursor = arcpy.da.UpdateCursor(eindOordeelLijn,[oordeelField,"eindoordeel_final"])
-    for oordeelRow in oordeelCursor:
-        finalOordeel = "voldoende"
-        for oordeel in categoriesInSufficient:
-            
-            if oordeelRow[0].startswith(oordeel):
-                finalOordeel = "onvoldoende"
-                break
-
-        oordeelRow[1] = finalOordeel
-        oordeelCursor.updateRow(oordeelRow)
+            print(f"Skipping '{original_name}' (no matching prefix found)")
 
 # createDpRoutes()
-calcBase()
-# calcFinal()
+# calcBase()
+removePrefix()
+
 
 
 

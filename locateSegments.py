@@ -2,14 +2,14 @@ import arcpy
 arcpy.env.overwriteOutput = True
 from arcpy.sa import *
 
-arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\safe aanpassingen scope lijnen\repaired.gdb"
+arcpy.env.workspace = r"C:\Users\vince\Mijn Drive\WSRL\safe_data\safe_data\safe_data.gdb"
 # safe_priovakken_2022_nieuw_rd
-dike_segments = "scope_april_2023_input"
+dike_segments = "safe_prioriteringsvakken_03012024"
 dike_trajectory = "trajectlijn_safe_rd"
 dike_refpoints = "dijkpalen_safe_rd"
 route_field = "code"
-route_tolerance = 15
-id_field ="dijkvak"
+route_tolerance = 15 # normal 15
+id_field ="OBJECTID"
 dp_field = "RFTIDENT"
 
 from_field ="dp_van"
@@ -79,4 +79,8 @@ arcpy.AddField_management("temp_ouput_segments", till_field, "TEXT", 2)
 
 arcpy.management.CalculateField("temp_ouput_segments", from_field, "$feature.start_id + '+'+ Text(Round($feature.start_distance,0))", "ARCADE")
 arcpy.management.CalculateField("temp_ouput_segments", till_field, "$feature.end_id + '+'+ Text(Round($feature.end_distance,0))", "ARCADE")
+
+
+# join fields to original featureclass
+arcpy.management.JoinField(dike_segments, id_field, "temp_ouput_segments", id_field, "dp_van;dp_tot", "NOT_USE_FM", None)
 print ("done")

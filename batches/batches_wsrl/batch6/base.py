@@ -51,7 +51,7 @@ def excelWriterTraject(uitvoerpunten,excel, veldnamen):
 
 def copy_trajectory_lr(trajectlijn,code,afstand):
     existing_fields = arcpy.ListFields(trajectlijn)
-    needed_fields = ['OBJECTID','OBJECTID_1','Shape','Shape_Length','SHAPE', 'SHAPE_Length','thema',code]
+    needed_fields = ['OBJECTID','OBJECTID_1','Shape','Shape_Length','SHAPE', 'SHAPE_Length',code]
     for field in existing_fields:
         if field.name not in needed_fields:
             arcpy.DeleteField_management(trajectlijn, field.name)
@@ -92,7 +92,7 @@ def generate_profiles(profiel_interval,profiel_lengte_land,profiel_lengte_rivier
     # arcpy.CreateRoutes_lr(trajectlijn, code, "route_traject", "LENGTH", "", "", "UPPER_LEFT", "1", "0", "IGNORE", "INDEX")
 
     existing_fields = arcpy.ListFields(trajectlijn)
-    needed_fields = ['OBJECTID','OBJECTID_1', 'SHAPE', 'SHAPE_Length','Shape','Shape_Length','thema',code]
+    needed_fields = ['OBJECTID','OBJECTID_1', 'SHAPE', 'SHAPE_Length','Shape','Shape_Length',code]
     for field in existing_fields:
         if field.name not in needed_fields:
             arcpy.DeleteField_management(trajectlijn, field.name)
@@ -485,7 +485,7 @@ def excel_writer_factsheets_main(uitvoerpunten,code,excel,id,trajecten,toetspeil
             count +=1
         # opvolgende profielen
         else:
-            if count != 0 and name != 9999:
+            if count is not 0 and name is not 9999:
                 line_chart1.add_series({
                     'name': 'profiel '+profielnaam,
 
@@ -814,15 +814,3 @@ def excel_writer_factsheets_main(uitvoerpunten,code,excel,id,trajecten,toetspeil
 
 
     # print *'.xlsx-bestand gemaakt voor factsheet'
-
-
-
-def calculate_absolute_difference(a, b):
-    if a is not None and b is not None:
-        return (a+b)/2
-    elif a is not None:
-        return a
-    elif b is not None:
-        return b
-    else:
-        return None

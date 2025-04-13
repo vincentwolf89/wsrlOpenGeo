@@ -5,22 +5,22 @@ arcpy.env.overwriteOutput = True
 arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\beoordeling ssh.gdb"
 
 trajectlijnTotaal = "ssh_spst_traject"
-vakindelingStph = "vakindeling_stph"
-uittredePunten = "temp_uittredepunten_stph"
+vakindelingStph = "Vakindeling_STPH_v20230904"
+uittredePunten = "stph_tabel_30102023_punten"
 lijnInterval = 10
 filterInterval = 5
 lengteProfielen = 300
 profielBuffer = 10
 profielCode = "OBJECTID"
-veldenPunten = ["Beta_prob","Categorie_prob"]
+veldenPunten = ["Categorie_prob"]
 profielen_selectie = "profielen_selectie"
-invoer_tabel = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stph\invoer_stph_22032023.xlsx"
+invoer_tabel = r"C:\Users\vince\Documents\ArcGIS\Projects\beoordeling ssh\input\stph\invoer_stph_08062023.xlsx"
 xField = "X_uittrede"
 yField = "Y_uittrede"
 betaField = "Beta_prob"
 catField = "Categorie_prob"
-eindOordeelLijn = "eindoordeel_stph_22032023"
-categoriesInSufficient = ["IV","V","VI"]
+eindOordeelLijn = "eindoordeel_stph_30102023"
+categoriesInsufficient = ["IVv","Vv","V","onvoldoende"]
 
 def importeer_tabel():
     arcpy.conversion.ExcelToTable(invoer_tabel, "temp_stph_table", "Sheet1")
@@ -80,15 +80,34 @@ def deel_2():
         # selecteer laagte beta en koppel kleur terug aan profiel
         npArray = arcpy.da.FeatureClassToNumPyArray("temp_selectie_punten",veldenPunten)
         profiel_df = pd.DataFrame(npArray)
-        print (profiel_df)
+        print (profiel_df, profielCode)
         try:
-            minBeta = profiel_df[profiel_df[betaField] == profiel_df[betaField].min()].iloc[0][betaField]
-            minCat = profiel_df[profiel_df[betaField] == profiel_df[betaField].min()].iloc[0][catField]
-            row[2] = minCat
+
+            contains_item = any(category in categoriesInsufficient for category in profiel_df[catField].values)
+
+            if contains_item == True:
+                minCat = "onvoldoende"
+            else: 
+                minCat = "voldoende"
+
             profielCursor.updateRow(row)
-            print (minBeta)
-        except Exception:
-            print (Exception)
+            row[2] = minCat
+            print (minCat, "no error")
+
+
+            # profiel_df[catField].values
+            # minBeta = profiel_df[profiel_df[betaField] == profiel_df[betaField].min()].iloc[0][betaField]
+            # minCat = profiel_df[profiel_df[betaField] == profiel_df[betaField].min()].iloc[0][catField]
+            # row[2] = minCat
+
+
+            profielCursor.updateRow(row)
+
+ 
+        except Exception as error:
+            row[2] = None
+            profielCursor.updateRow(row)
+            print (error, "error")
         
         # break
     del profielCursor
@@ -135,7 +154,7 @@ def deel_3():
     oordeelCursor = arcpy.da.UpdateCursor(eindOordeelLijn,["eindoordeel","eindoordeel_final"])
     for oordeelRow in oordeelCursor:
         finalOordeel = "voldoende"
-        for oordeel in categoriesInSufficient:
+        for oordeel in categoriesInsufficient:
             
             if oordeelRow[0].startswith(oordeel):
                 finalOordeel = "onvoldoende"

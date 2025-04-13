@@ -8,23 +8,22 @@ arcpy.env.overwriteOutput = True
 from arcpy.sa import *
 arcpy.env.parallelProcessingFactor = "100%"
 
-
 # params
 grid_size = 5 #m
 
-input_rasters = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\rasters_los_06_09_2023"
+input_rasters = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\rasters_los_2023_c"
 temp_gdb = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\temp.gdb"#database
 input_gdb = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\input_rasters.gdb"#database
-output_gdb =  r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\uitvoer_06092023.gdb"#database
-trajectory = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_rasters.gdb\deeltraject_c"
-raster_waterlevel = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_rasters.gdb\waterlevel_01082023"
-merged_result_data = "merged_results_wl"
+
+output_gdb =  r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\batchdbs\output_rasters_4.gdb"#database
+trajectory = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\batchdbs\output_rasters_4.gdb\deeltraject_c"
+raster_waterlevel = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\batchdbs\output_rasters_4.gdb\waterlevel_01082023"
 
 code = "code"
 default_code = 1
 fieldnames =['profielnummer', 'afstand', 'z_ahn', 'x', 'y']
 xls_outputloc = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\output_xlsx"
-raster_prefix = "HEAD"
+raster_prefix = "KD2CR1"
 
 profile_length_river = 100 #m
 profile_length_land = 100 #m
@@ -32,12 +31,9 @@ profile_interval = 100 #m
 point_interval = 5 #m
 extension_river = 30 #m
 max_search_distance = 400 #m
-join_field = "profielnummer"
-
-arcpy.env.workspace = output_gdb
 
 def project_rasters():
-    arcpy.env.workspace = input_gdb
+    arcpy.env.workspace = temp_gdb
     arcpy.env.overwriteOutput = True
 
     # set environment to input
@@ -47,20 +43,8 @@ def project_rasters():
         raster = input_rasters+"\{}".format(raster_name)
         output_raster = raster_name.split("_")[3][0:11]
         print (output_raster)
-
     
-        arcpy.management.ProjectRaster(raster, 
-        output_raster, 
-            'PROJCS["RD_New",GEOGCS["GCS_Amersfoort",DATUM["D_Amersfoort",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Double_Stereographic"],PARAMETER["False_Easting",155000.0],PARAMETER["False_Northing",463000.0],PARAMETER["Central_Meridian",5.38763888888889],PARAMETER["Scale_Factor",0.9999079],PARAMETER["Latitude_Of_Origin",52.15616055555555],UNIT["Meter",1.0]]',
-            "BILINEAR", 
-            "5 5", 
-            None, 
-            None,                 
-            'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]', 
-            "NO_VERTICAL"
-        )
-
-
+        arcpy.management.ProjectRaster(raster, output_raster, 'PROJCS["RD_New",GEOGCS["GCS_Amersfoort",DATUM["D_Amersfoort",SPHEROID["Bessel_1841",6377397.155,299.1528128]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Double_Stereographic"],PARAMETER["False_Easting",155000.0],PARAMETER["False_Northing",463000.0],PARAMETER["Central_Meridian",5.38763888888889],PARAMETER["Scale_Factor",0.9999079],PARAMETER["Latitude_Of_Origin",52.15616055555555],UNIT["Meter",1.0]]', "NEAREST", "5 5", None, None, 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]', "NO_VERTICAL")
 
 def rewrite_rasters():
 
@@ -96,13 +80,13 @@ def profiles_part1():
             # profielen trekken
             generate_profiles(profile_interval, profile_length_land, profile_length_river, trajectory, code, profiles)
 
-            # copy_trajectory_lr(trajectory,code,10)
+            copy_trajectory_lr(trajectory,code,10)
 
-            # set_measurements_trajectory(profiles, trajectory, code, point_interval)
+            set_measurements_trajectory(profiles, trajectory, code, point_interval)
 
-            # extract_z_arcpy(input_points,output_points,raster)
+            extract_z_arcpy(input_points,output_points,raster)
 
-            # add_xy(output_points, code,trajectory)
+            add_xy(output_points, code,trajectory)
 
             # excelWriterTraject(output_points, excel, fieldnames)
 
@@ -114,9 +98,6 @@ def profiles_part1():
 
             print (raster)
            
-
-
-
 def find_steepest_profile():
     arcpy.env.workspace = output_gdb
     arcpy.env.overwriteOutput = True
@@ -271,10 +252,7 @@ def find_steepest_profile():
                 
                 del bearing_profile_cursor
                 max_slope_insert_cursor.insertRow(insertRow)
-                
-
-                   
-
+                              
 def find_wl_steepest_profile():
     arcpy.env.workspace = output_gdb
     arcpy.env.overwriteOutput = True
@@ -378,8 +356,10 @@ def find_wl_steepest_profile():
                    
             for profile_number, group in groupby(fx_cursor_wl, lambda x: x[0]):
                 for wl_row in group:
+
                     try:
                         isect =  df[idx].iloc[int(profile_number)-1]['afstand']
+        
                         if wl_row[1] < isect:
                             fx_cursor_wl.deleteRow()
 
@@ -394,68 +374,13 @@ def find_wl_steepest_profile():
             # add attributes (slope,bearing_dike,....)
             arcpy.JoinField_management("max_slope_profiles_wl_{}".format(raster), 'profielnummer', max_slope_profiles, 'profielnummer', 'slope')
             arcpy.JoinField_management("max_slope_profiles_wl_{}".format(raster), 'profielnummer', max_slope_profiles, 'profielnummer', 'bearing_dike')
-
-           
-def mergeResultDataSets():
-    arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\rasters willem oktober\uitvoer_01092023_copy.gdb"
-
-    # iterate over rest of featureclasses
-    feature_classes = arcpy.ListFeatureClasses(wild_card="max_slope_profiles_wl*")
-    feature_classes.sort()
-
-    # create base featureclass
-    arcpy.management.CopyFeatures(feature_classes[0], "temp")   
-    fields = arcpy.ListFields("temp")
-    field_exists = False
-    for field in fields:
-        if field.name != join_field:
-            try:
-                arcpy.DeleteField_management("temp", field.name)
-            except:
-                pass
-
-    arcpy.management.FeatureVerticesToPoints(
-        in_features="temp",
-        out_feature_class=merged_result_data,
-        point_location="END"
-    )
-
-    # iterate through the list of relevant feature classes
-    for feature_class in feature_classes:
-        result_field_name = "l_{}".format(feature_class)
-        fields = arcpy.ListFields(feature_class)
-    
-        field_exists = False
-        for field in fields:
-            if field.name == result_field_name:
-                field_exists = True
-                break
-        if field_exists:
-            arcpy.DeleteField_management(feature_class, result_field_name,)
-        arcpy.AddField_management(feature_class, result_field_name, "DOUBLE", 2, field_is_nullable="NULLABLE")
-
-        # calc field with line length
-        arcpy.CalculateField_management(feature_class, result_field_name, "round(!shape.length!,2)", "PYTHON3")
-
-        # join field to base featureclass
-        arcpy.management.JoinField(
-            merged_result_data,
-            join_field, 
-            feature_class, 
-            join_field, 
-            result_field_name
-        )
-        print (feature_class)
-
-
-    
+          
                    
 # project_rasters()       
-# rewrite_rasters() # old, dont use
+# rewrite_rasters()
 # profiles_part1()
 
-find_steepest_profile()
+# find_steepest_profile()
 find_wl_steepest_profile()
-# mergeResultDataSets()
 
 

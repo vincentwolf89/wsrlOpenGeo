@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOAP Request Example</title>
+</head>
+<body>
+    <h1>SOAP Request Example</h1>
+    <button id="sendRequest">Send SOAP Request</button>
+    <pre id="response"></pre>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.getElementById('sendRequest').addEventListener('click', () => {
+            const soapEnvelope = `
+                                <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+                        <SOAP-ENV:Body>
+                            <GetResult xmlns="http://www.relatics.com/">
+                                <Operation>TestToegangPictoKlanteisID</Operation>
+                                <Identification>
+                                    <Identification>
+                                        <!-- Workspace ID SAFE -->
+                                        <Workspace>060b559f-f6c0-4fcb-8990-aa02a7a0f44f</Workspace>
+                                    </Identification>
+                                </Identification>
+                                <Parameters> 
+                                    <Parameters>
+                                        <Parameter Name="KlanteisID" Value="KE_00543"/>
+                                    </Parameters>
+                                </Parameters> 
+                                <!-- skip the Parameters part, in case there are no parameters. NB: avoid <Parameters/>  -->
+                                <Authentication>
+                                    <Authentication>
+                                        <Entrycode>69EE84714414EFC07A0E8525CACAA599</Entrycode>
+                                    </Authentication>
+                                </Authentication>
+                            </GetResult>
+                        </SOAP-ENV:Body>
+                    </SOAP-ENV:Envelope>
+
+            `;
+
+            const url = 'https://rivierenland.relaticsonline.com/DataExchange.asmx?'; // Replace with the actual SOAP endpoint URL
+
+            const headers = {
+                'Content-Type': 'application/soap+xml',
+            };
+
+            axios.post(url, soapEnvelope, { headers })
+                .then(response => {
+                    document.getElementById('response').textContent = JSON.stringify(response.data, null, 2);
+                })
+                .catch(error => {
+                    document.getElementById('response').textContent = JSON.stringify(error, null, 2);
+                });
+        });
+    </script>
+</body>
+</html>
