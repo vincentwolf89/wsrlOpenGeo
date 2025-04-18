@@ -14,38 +14,55 @@ import {
     // importModel,
 } from "@vertigis/web/models";
 
-import {  Features } from "@vertigis/web/messaging";
-import Graphic from "@arcgis/core/Graphic";
-import SpatialReference from "@arcgis/core/geometry/SpatialReference";
-import Polyline from "@arcgis/core/geometry/Polyline";
-import * as projection from "@arcgis/core/geometry/projection";
-import FeatureSet from "@arcgis/core/rest/support/FeatureSet"
-import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
-import SketchViewModel from "@arcgis/core/widgets/Sketch/SketchViewModel";
+import * as XLSX from "xlsx";
 
-import * as GeoJSONInterfaces from "./GeoJSONInterfaces"
+import { Features } from "@vertigis/web/messaging";
+import GraphicsLayer from "esri/layers/GraphicsLayer";
+import GeoJSONLayer from "esri/layers/GeoJSONLayer";
+import ElevationLayer from "esri/layers/ElevationLayer";
+import FeatureLayer from "esri/layers/FeatureLayer";
+
+import Graphic from "esri/Graphic";
+
+import Polyline from "esri/geometry/Polyline";
+import Polygon from "esri/geometry/Polygon";
+import Point from "esri/geometry/Point";
+import Multipoint from "esri/geometry/Multipoint";
+import Mesh from "esri/geometry/Mesh";
+
+import SpatialReference from "esri/geometry/SpatialReference";
+import * as geometryEngine from "esri/geometry/geometryEngine";
+import * as webMercatorUtils from "esri/geometry/support/webMercatorUtils";
+import * as projection from "esri/geometry/projection";
+import * as meshUtils from "esri/geometry/support/meshUtils";
+
+import SketchViewModel from "esri/widgets/Sketch";
+
+import * as GeoJSONInterfaces from "./GeoJSONInterfaces";
 
 export interface DikeDesignerModelProperties extends ComponentModelProperties {
-    selectedTheme?: string;
-    netwerkLayer?: string;
+    elevationLayerUrl?: string;
 }
 @serializable
 export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerModelProperties> {
-    selectedTheme: DikeDesignerModelProperties["selectedTheme"];
-    netwerkLayer: DikeDesignerModelProperties["netwerkLayer"];
-    graphicsLayerLine = new GraphicsLayer({
-        title: "Temporary Layer",
-        elevationInfo: {
-            mode: "on-the-ground",
-            offset: 0
-        },
-        listMode: "hide",
-    });
+    elevationLayerUrl: DikeDesignerModelProperties["elevationLayerUrl"];
+
+    graphicsLayerLine: GraphicsLayer;
+    graphicsLayerTemp: GraphicsLayer;
+    elevationLayer: ElevationLayer;
+
 
     map: any;
     view: any;
     sketchViewModel: SketchViewModel;
     drawnLine: any;
+
+    chartData: any[] = null
+    excelData: any[] = null
+
+    chartRoot: any = null
+    chart: any = null
+    chartSeries: any = null
 
     // New method to handle GeoJSON upload
     handleGeoJSONUpload(file: File): void {
@@ -175,18 +192,51 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     selectLineFromMap(){
     }
 
+    handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const fileInput = event.target; // Reference to the file input
+        const file = fileInput.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: "array" });
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                // Set Excel data for the table
+                this.excelData = jsonData;
+                
+
+                // Prepare and sort chart data
+                if (jsonData.length > 1) {
+                    const sortedData = jsonData
+                        .slice(1) // Skip the header row
+                        .map((row: any[]) => ({
+                            locatie: row[0], // Location name
+                            afstand: row[1], // X-axis value
+                            hoogte: row[2],  // Y-axis value
+                        }))
+                        .sort((a, b) => a.afstand - b.afstand); // Sort by afstand (X-axis)
+
+                    this.chartData = sortedData; // Update chartData to trigger UI update
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Reset the file input value to allow reuploading the same file
+        fileInput.value = "";
+    };
+
     protected override _getSerializableProperties(): PropertyDefs<DikeDesignerModelProperties> {
         const props = super._getSerializableProperties();
         return {
             ...props,
-            selectedTheme: {
+            elevationLayerUrl: {
                 serializeModes: ["initial"],
-                default: "Topo donker",
-            },
-            netwerkLayer: {
-                serializeModes: ["initial"],
-                default: "LSSS Netwerk Vieww",
-            },
+                default: "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer",
+            }
         };
     }
 
@@ -199,7 +249,32 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
             console.log("Map initialized:", map);
             this.map = map.maps.map;
             this.view = map.maps["view"];
+
+            this.graphicsLayerLine = new GraphicsLayer({
+                title: "Temporary Layer",
+                elevationInfo: {
+                    mode: "on-the-ground",
+                    offset: 0
+                },
+                listMode: "hide",
+            });
+            this.graphicsLayerTemp = new GraphicsLayer({
+                title: "Temporary Layer",
+                elevationInfo: {
+                    mode: "absolute-height",
+                    offset: 0
+                }
+            });
+        
+            this.elevationLayer = new ElevationLayer({
+                url: this.elevationLayerUrl,
+            });
             this.map.add(this.graphicsLayerLine);
+            this.map.add(this.graphicsLayerTemp);
+            console.log(this.elevationLayer, "testing")
+
+
+            
 
             // Initialize the SketchViewModel
 

@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 /* eslint-disable import/order */
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react"; // <== Added useRef
 import type { ReactElement } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
@@ -22,103 +22,182 @@ import {
     AccordionSummary,
     AccordionDetails,
     Typography,
+    Paper,
+    IconButton,
+    Tabs,
+    Tab,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
-    Paper,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    IconButton,
+    TextField,
 } from "@mui/material";
 import { LayoutElement } from "@vertigis/web/components";
 import type { LayoutElementProperties } from "@vertigis/web/components";
 import { useWatchAndRerender } from "@vertigis/web/ui";
 import * as XLSX from "xlsx";
-import { Line } from "react-chartjs-2";
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-} from "chart.js";
+import * as am5 from "@amcharts/amcharts5";
+import * as am5xy from "@amcharts/amcharts5/xy";
+import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 import type DikeDesignerModel from "./DikeDesignerModel";
-
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const DikeDesigner = (
     props: LayoutElementProperties<DikeDesignerModel>
 ): ReactElement => {
     const { model } = props;
 
-    const [excelData, setExcelData] = useState<any[]>([]);
-    const [chartData, setChartData] = useState<any>(null);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [previousChartData, setPreviousChartData] = useState<any>(null);
+    useWatchAndRerender(model, "chartData");
 
-    const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const fileInput = event.target; // Reference to the file input
-        const file = fileInput.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const data = new Uint8Array(e.target?.result as ArrayBuffer);
-                const workbook = XLSX.read(data, { type: "array" });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    const [mapLeftBorder, setMapLeftBorder] = useState(0);
+    const [mapRightBorder, setMapRightBorder] = useState(window.innerWidth);
+    const [activeTab, setActiveTab] = useState(0);
 
-                // Set Excel data for the table
-                setExcelData(jsonData);
+    // NEW: Add Refs to store chart root + series
+    const chartRootRef = useRef<am5.Root | null>(null);
+    const seriesRef = useRef<am5xy.LineSeries | null>(null);
 
-                // Prepare chart data
-                if (jsonData.length > 1) {
-                    const labels = jsonData.slice(1).map((row: any[]) => row[0]); // "naam" column for labels
-                    const afstand = jsonData.slice(1).map((row: any[]) => row[1]); // "afstand" column for X-axis
-                    const hoogte = jsonData.slice(1).map((row: any[]) => row[2]); // "hoogte" column for Y-axis
-
-                    const newChartData = {
-                        labels: afstand, // Use "afstand" for the X-axis
-                        datasets: [
-                            {
-                                label: "Hoogte vs Afstand",
-                                data: hoogte, // Use "hoogte" for the Y-axis
-                                borderColor: "rgba(75, 192, 192, 1)",
-                                backgroundColor: "rgba(75, 192, 192, 0.2)",
-                                tension: 0.0, // Straight lines
-                            },
-                        ],
-                    };
-
-                    setChartData(newChartData); // Update chartData to trigger UI update
-                    setPreviousChartData(newChartData); // Update previousChartData for reopening
+    const observeMapLeftBorder = () => {
+        const mapElement = document.querySelector(".gcx-map");
+        if (mapElement) {
+            const observer = new ResizeObserver((entries) => {
+                for (const item of entries) {
+                    if (item.contentRect) {
+                        const positionLeft = mapElement.getBoundingClientRect().left;
+                        const positionRight = mapElement.getBoundingClientRect().right;
+                        setMapLeftBorder(positionLeft);
+                        setMapRightBorder(positionRight);
+                    }
                 }
-            };
-            reader.readAsArrayBuffer(file);
+            });
+            observer.observe(mapElement);
+            return () => observer.disconnect();
         }
-
-        // Reset the file input value to allow reuploading the same file
-        fileInput.value = "";
     };
+
+    useEffect(() => {
+        const disconnectObserver = observeMapLeftBorder();
+        return () => {
+            if (disconnectObserver) disconnectObserver();
+        };
+    }, []);
 
     const handleClearExcel = () => {
-        setExcelData([]);
-        setChartData(null); // Clear chartData to hide the Paper
-        setPreviousChartData(null); // Clear previousChartData to avoid reopening stale data
+        model.chartData = null;
     };
 
-    const handleCloseDialog = () => {
-        setIsDialogOpen(false);
+    const closeOverview = () => {
+        model.chartData = null;
     };
+
+    useEffect(() => {
+        if (activeTab === 0 && model.chartData) {
+            const root = am5.Root.new("chartdiv");
+    
+            root.setThemes([am5themes_Animated.new(root)]);
+    
+            const chart = root.container.children.push(
+                am5xy.XYChart.new(root, {
+                    panX: true,
+                    panY: true,
+                    wheelX: "panX",
+                    wheelY: "zoomX",
+                    pinchZoomX: true,
+                })
+            );
+    
+            const xAxis = chart.xAxes.push(
+                am5xy.ValueAxis.new(root, {
+                    renderer: am5xy.AxisRendererX.new(root, {}),
+                    tooltip: am5.Tooltip.new(root, {}),
+                })
+            );
+    
+            const yAxis = chart.yAxes.push(
+                am5xy.ValueAxis.new(root, {
+                    renderer: am5xy.AxisRendererY.new(root, {}),
+                    tooltip: am5.Tooltip.new(root, {}),
+                })
+            );
+    
+            const series = chart.series.push(
+                am5xy.LineSeries.new(root, {
+                    name: "Hoogte vs Afstand",
+                    xAxis: xAxis as any,
+                    yAxis: yAxis as any,
+                    valueYField: "hoogte",
+                    valueXField: "afstand",
+                    tooltip: am5.Tooltip.new(root, {
+                        labelText: "{valueY}",
+                    }),
+                })
+            );
+    
+            series.data.setAll(model.chartData);
+    
+            series.strokes.template.setAll({
+                strokeWidth: 2,
+            });
+    
+            // Add draggable bullets with snapping logic
+            series.bullets.push((root, series, dataItem) => {
+                const circle = am5.Circle.new(root, {
+                    radius: 5,
+                    fill: root.interfaceColors.get("background"),
+                    stroke: series.get("fill"),
+                    strokeWidth: 2,
+                    draggable: true,
+                    interactive: true,
+                    cursorOverStyle: "pointer",
+                });
+    
+                // Snap the coordinates to the nearest 0.5 meter
+                const snapToGrid = (value: number, gridSize: number) => Math.round(value / gridSize) * gridSize;
+    
+                circle.events.on("dragstop", () => {
+                    // Calculate new positions
+                    const newY = yAxis.positionToValue(
+                        yAxis.coordinateToPosition(circle.y())
+                    );
+                    const newX = xAxis.positionToValue(
+                        xAxis.coordinateToPosition(circle.x())
+                    );
+    
+                    // Snap to nearest 0.5 meter grid
+                    const snappedX = snapToGrid(newX, 0.5);
+                    const snappedY = snapToGrid(newY, 0.5);
+    
+                    // Update chart
+                    dataItem.set("valueY", snappedY);
+                    dataItem.set("valueX", snappedX);
+    
+                    // Update model.chartData
+                    const index = model.chartData.findIndex(
+                        (d) => d.afstand === dataItem.dataContext["afstand"]
+                    );
+    
+                    if (index !== -1) {
+                        model.chartData[index].hoogte = snappedY;
+                        model.chartData[index].afstand = snappedX;
+                        model.chartData = [...model.chartData]; // Force reactivity
+                    }
+                });
+    
+                return am5.Bullet.new(root, {
+                    sprite: circle,
+                });
+            });
+    
+            chart.set("cursor", am5xy.XYCursor.new(root, {}));
+    
+            return () => {
+                root.dispose();
+            };
+        }
+    }, [activeTab, model.chartData, model]);
+    
 
     const handleDrawLine = () => {
         model.startDrawingLine();
@@ -135,14 +214,34 @@ const DikeDesigner = (
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            model.handleGeoJSONUpload(file); // Call the model's method
+            model.handleGeoJSONUpload(file);
         }
     };
 
     const handleClearGraphics = () => {
-        model.graphicsLayerLine.removeAll(); // Call the model's method to clear the graphics layer
+        model.graphicsLayerLine.removeAll();
     };
 
+    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setActiveTab(newValue);
+    };
+
+    const handleCellChange = (rowIndex: number, colKey: string, value: string) => {
+        const updatedData = [...model.chartData];
+        const parsedValue = ["afstand", "hoogte"].includes(colKey)
+            ? parseFloat(value)
+            : value;
+
+        updatedData[rowIndex] = {
+            ...updatedData[rowIndex],
+            [colKey]: parsedValue,
+        };
+
+        model.chartData = updatedData;
+
+        // 🔁 Update chart with new data
+        seriesRef.current?.data.setAll(updatedData);
+    };
 
     useWatchAndRerender(model, "selectedTheme");
     useWatchAndRerender(model, "msRouteOn");
@@ -211,7 +310,7 @@ const DikeDesigner = (
                                 hidden
                                 onChange={handleFileChange}
                             />
-                             <Button
+                            <Button
                                 variant="contained"
                                 component="label"
                                 color="primary"
@@ -222,7 +321,7 @@ const DikeDesigner = (
                                     type="file"
                                     accept=".xlsx, .xls"
                                     hidden
-                                    onChange={handleExcelUpload}
+                                    onChange={model.handleExcelUpload}
                                 />
                             </Button>
                             <Button
@@ -232,24 +331,24 @@ const DikeDesigner = (
                                 onClick={handleClearExcel}
                                 fullWidth
                             >
-                                Clear Excel Data
+                                Verwijder Excel
                             </Button>
                         </Stack>
                     </AccordionDetails>
                 </Accordion>
 
-                {/* Paper for Chart */}
-                {chartData && (
+                {/* Paper for Chart and Table */}
+                {model.chartData && (
                     <Paper
                         elevation={3}
                         sx={{
                             position: "fixed",
                             bottom: 0,
-                            right: 0,
+                            left: mapLeftBorder, // Dynamically set left position
+                            width: mapRightBorder - mapLeftBorder, // Dynamically set width
+                            height: "50%", // Consume half of the map's height
                             zIndex: 10,
                             padding: 0,
-                            width: "600px",
-                            height: "50%", // Consume half of the map's height
                             borderRadius: "5px",
                             backgroundColor: "#ffffff",
                             boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.15)",
@@ -270,71 +369,77 @@ const DikeDesigner = (
                                 alignItems: "center",
                             }}
                         >
-                            Design Data Plot
+                            Design overzicht
                             <IconButton
                                 aria-label="close"
-                                onClick={handleClearExcel} // Close the Paper when clearing Excel data
+                                onClick={closeOverview} // Close the Paper when clearing Excel data
                                 size="medium"
                                 sx={{ color: "#ffffff" }}
                             >
                                 <CloseIcon />
                             </IconButton>
                         </Typography>
-                        <div
-                            style={{
-                                height: "calc(100% - 40px)", // Adjust height to fit within the Paper
-                                overflow: "hidden",
-                            }}
+                        <Tabs
+                            value={activeTab}
+                            onChange={handleTabChange}
+                            indicatorColor="primary"
+                            textColor="primary"
+                            variant="fullWidth"
                         >
-                            <Line
-                                data={chartData}
-                                options={{
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        legend: {
-                                            position: "top",
-                                        },
-                                        title: {
-                                            display: true,
-                                            text: "Hoogte vs Afstand",
-                                        },
-                                    },
-                                    scales: {
-                                        x: {
-                                            title: {
-                                                display: true,
-                                                text: "Afstand",
-                                            },
-                                        },
-                                        y: {
-                                            title: {
-                                                display: true,
-                                                text: "Hoogte",
-                                            },
-                                        },
-                                    },
+                            <Tab label="Dwarsprofiel" />
+                            <Tab label="Invoerdata" />
+                        </Tabs>
+                        {activeTab === 0 && (
+                            <div
+                                id="chartdiv"
+                                style={{
+                                    width: "100%",
+                                    height: "calc(100% - 40px)", // Adjust height to fit within the Paper
                                 }}
-                            />
-                        </div>
+                            ></div>
+                        )}
+                        {activeTab === 1 && (
+                            <TableContainer
+                                sx={{
+                                    height: "calc(100% - 40px)", // Adjust height to fit within the Paper
+                                    overflow: "auto",
+                                }}
+                            >
+                                <Table stickyHeader>
+                                    <TableHead>
+                                        <TableRow>
+                                            {/* Render table headers based on the keys of the first object in sortedData */}
+                                            {model.chartData?.length > 0 &&
+                                                Object.keys(model.chartData[0]).map((header) => (
+                                                    <TableCell key={header} align="center">
+                                                        {header.charAt(0).toUpperCase() + header.slice(1)}
+                                                    </TableCell>
+                                                ))}
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {model.chartData?.map((row, rowIndex) => {
+                                            const rowKey = `afstand-${row.afstand ?? rowIndex}`; // Fallback to index if needed
+                                            return (
+                                                <TableRow key={rowKey}>
+                                                    {Object.entries(row).map(([key, cell]) => (
+                                                        <TableCell key={`${rowKey}-${key}`} align="center">
+                                                            <TextField
+                                                                value={cell}
+                                                                onChange={(e) => handleCellChange(rowIndex, key, e.target.value)} // Pass `key` instead of `colIndex`
+                                                                variant="outlined"
+                                                                size="small"
+                                                            />
+                                                        </TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        )}
                     </Paper>
-                )}
-
-                {/* Open Button for Paper */}
-                {!chartData && (
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => setChartData(previousChartData)} // Restore the chart data to reopen the Paper
-                        sx={{
-                            position: "fixed",
-                            bottom: 25,
-                            right: 25,
-                            zIndex: 10,
-                        }}
-                    >
-                        Open Chart
-                    </Button>
                 )}
 
                 <Accordion sx={{ width: "100%" }}>

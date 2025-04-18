@@ -18,20 +18,20 @@ import type { DikeDesignerModelProperties } from "./DikeDesignerModel";
 import type DikeDesignerModel from "./DikeDesignerModel";
 
 export interface DikeDesignerSettings extends ComponentModelDesignerSettings {
-    netwerkLayer?: string;
+    elevationLayerUrl?: string;
 }
 
 export type SettingsMap = DesignerSettings<DikeDesignerSettings>;
 
 export const applySettings: ApplyDesignerSettingsCallback<DikeDesignerModel, SettingsMap> = async (args) => {
     const { model, settings } = args;
-    const { netwerkLayer, ...otherSettings } = settings;
+    const { elevationLayerUrl, ...otherSettings } = settings;
     await applyComponentModelDesignerSettings(args);
 
     const applySettings: Partial<DikeDesignerModelProperties> = otherSettings;
 
-    if (netwerkLayer !== undefined) {    
-        applySettings.netwerkLayer = netwerkLayer;
+    if (elevationLayerUrl !== undefined) {    
+        applySettings.elevationLayerUrl = elevationLayerUrl;
     }
 
     model.assignProperties(applySettings);
@@ -39,10 +39,10 @@ export const applySettings: ApplyDesignerSettingsCallback<DikeDesignerModel, Set
 
 export const getSettings: GetDesignerSettingsCallback<DikeDesignerModel, SettingsMap> = async (args) => {
     const { model } = args;
-    const { netwerkLayer } = model;
+    const { elevationLayerUrl } = model;
     return {
         ...await getComponentModelDesignerSettings(args),
-        netwerkLayer
+        elevationLayerUrl
     };
 };
 
@@ -53,10 +53,10 @@ export const getSettingsSchema: GetDesignerSettingsSchemaCallback<DikeDesignerMo
     ).concat([
 
         {
-            id: "netwerkLayer",
+            id: "elevationLayerUrl",
             type: "text",            
-            description: "The name of the layer that contains the netwerk.",
-            displayName: "Netwerk Layer",
+            description: "The url for the elevation layer.",
+            displayName: "Elevation Layer URL",
         },
     ]);
 
