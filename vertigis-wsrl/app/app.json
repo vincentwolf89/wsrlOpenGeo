@@ -9,9 +9,8 @@
         },
         {
             "$type": "map-extension",
-            "id": "map-1",
-            "onClick": "points-of-interest.create",
-            "webMap": "https://www.arcgis.com/home/item.html?id=97e38e28b80444b38fde3a5c6c8f8360"
+            "id": "map-config-1",
+            "webScene": "https://portal.wsrl.nl/portal/home/item.html?id=8b59b2f6073242a395899082aa245c12"
         },
         {
             "id": "text-1",
@@ -24,6 +23,20 @@
             "id": "default",
             "title": "Default",
             "url": "./layout.xml"
+        },
+        {
+            "id": "tabs-config-1",
+            "$type": "tabs"
+        },
+        {
+            "id": "stack-config-1",
+            "title": "3D ontwerper",
+            "$type": "stack"
+        },
+        {
+            "id": "stack-config-2",
+            "title": "Lagen",
+            "$type": "stack"
         }
     ]
 }
