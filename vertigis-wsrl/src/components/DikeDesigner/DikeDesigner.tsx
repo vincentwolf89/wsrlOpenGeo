@@ -13,6 +13,9 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import MapIcon from "@mui/icons-material/Map";
 import CloseIcon from "@mui/icons-material/Close";
 import ClearIcon from "@mui/icons-material/Clear";
+import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
+import TableRowsIcon from '@mui/icons-material/TableRows';
+import FilterIcon from '@mui/icons-material/Filter';
 import Draggable from "react-draggable";
 import {
     Button,
@@ -43,6 +46,7 @@ import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 import type DikeDesignerModel from "./DikeDesignerModel";
+import { createDesign } from "./Functions/DesignFunctions";
 
 const DikeDesigner = (
     props: LayoutElementProperties<DikeDesignerModel>
@@ -54,6 +58,7 @@ const DikeDesigner = (
     const [mapLeftBorder, setMapLeftBorder] = useState(0);
     const [mapRightBorder, setMapRightBorder] = useState(window.innerWidth);
     const [activeTab, setActiveTab] = useState(0);
+    const [isOverviewVisible, setIsOverviewVisible] = useState(false);
 
     // NEW: Add Refs to store chart root + series
     const chartRootRef = useRef<am5.Root | null>(null);
@@ -87,9 +92,16 @@ const DikeDesigner = (
     const handleClearExcel = () => {
         model.chartData = null;
     };
+    const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
 
-    const closeOverview = () => {
-        model.chartData = null;
+        setIsOverviewVisible(true); // Close the overview when uploading a new Excel file
+        model.handleExcelUpload(event);
+    }
+    const handleCreateDesign = async () => {
+        await createDesign(model);
+    };
+    const handleClearDesign = () => {
+        model.graphicsLayerTemp.removeAll();
     };
 
     useEffect(() => {
@@ -243,9 +255,14 @@ const DikeDesigner = (
         seriesRef.current?.data.setAll(updatedData);
     };
 
-    useWatchAndRerender(model, "selectedTheme");
-    useWatchAndRerender(model, "msRouteOn");
-    useWatchAndRerender(model, "ovGroepOn");
+    const handleOpenOverview = () => {
+        setIsOverviewVisible(true);
+        const updatedData = [...model.chartData];
+        model.chartData = updatedData
+        seriesRef.current?.data.setAll(model.chartData);
+    };
+
+
 
     return (
         <LayoutElement {...props}>
@@ -269,12 +286,15 @@ const DikeDesigner = (
                         </Typography>
                     </AccordionSummary>
                     <AccordionDetails>
-                        <Stack spacing={2}>
-                            <ButtonGroup fullWidth>
+                        <Stack spacing={1}>
+
+                                <Stack spacing={1} sx={{ outline: 1, padding: 1, borderRadius: 1, outlineColor: "#D3D3D3" }}>
+                                                               <ButtonGroup fullWidth>
                                 <Button
                                     color="primary"
                                     onClick={handleDrawLine}
                                     startIcon={<EditIcon />}
+                                    variant="contained"
                                 >
                                     Teken lijn
                                 </Button>
@@ -282,6 +302,7 @@ const DikeDesigner = (
                                     color="primary"
                                     onClick={handleUploadGeoJSON}
                                     startIcon={<UploadFileIcon />}
+                                    variant="contained"
                                 >
                                     Upload GeoJSON
                                 </Button>
@@ -289,19 +310,24 @@ const DikeDesigner = (
                                     color="primary"
                                     onClick={handleSelectFromMap}
                                     startIcon={<MapIcon />}
+                                    variant="contained"
                                     disabled
                                 >
                                     Selecteer uit de kaart
                                 </Button>
                             </ButtonGroup>
                             <Button
-                                variant="contained"
+                                variant="outlined"
                                 color="primary"
                                 onClick={handleClearGraphics}
+                                startIcon={<ClearIcon />}
                                 fullWidth
                             >
                                 Verwijder lijn
-                            </Button>
+                            </Button> 
+                                </Stack>
+
+                                <Stack spacing={1} sx={{ outline: 1, padding: 1, borderRadius: 1, outlineColor: "#D3D3D3" }}>
                             {/* Hidden input for GeoJSON upload */}
                             <input
                                 id="geojson-upload"
@@ -313,6 +339,7 @@ const DikeDesigner = (
                             <Button
                                 variant="contained"
                                 component="label"
+                                startIcon={<TableRowsIcon />}
                                 color="primary"
                                 fullWidth
                             >
@@ -321,7 +348,7 @@ const DikeDesigner = (
                                     type="file"
                                     accept=".xlsx, .xls"
                                     hidden
-                                    onChange={model.handleExcelUpload}
+                                    onChange={handleExcelUpload}
                                 />
                             </Button>
                             <Button
@@ -333,12 +360,45 @@ const DikeDesigner = (
                             >
                                 Verwijder Excel
                             </Button>
+                            </Stack>
+                             <Stack spacing={1} sx={{ outline: 1, padding: 1, borderRadius: 1, outlineColor: "#D3D3D3" }}>
+                             <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<FilterIcon />}
+                                onClick={handleOpenOverview}
+                                fullWidth
+                                disabled={!model.chartData}
+                            >
+                                Toon ontwerp-paneel
+                            </Button>
+                             
+                             <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<PlayCircleFilledWhiteIcon />}
+                                onClick={handleCreateDesign}
+                                fullWidth
+                            >
+                                Uitrollen in 3D
+                            </Button>
+
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                startIcon={<ClearIcon />}
+                                onClick={handleClearDesign}
+                                fullWidth
+                            >
+                                Verwijder uitrol
+                            </Button>
+                                </Stack>
                         </Stack>
                     </AccordionDetails>
                 </Accordion>
 
                 {/* Paper for Chart and Table */}
-                {model.chartData && (
+                {isOverviewVisible && model.chartData && (
                     <Paper
                         elevation={3}
                         sx={{
@@ -372,7 +432,7 @@ const DikeDesigner = (
                             Design overzicht
                             <IconButton
                                 aria-label="close"
-                                onClick={closeOverview} // Close the Paper when clearing Excel data
+                                onClick={() => setIsOverviewVisible(false) } // Close the Paper when clearing Excel data
                                 size="medium"
                                 sx={{ color: "#ffffff" }}
                             >

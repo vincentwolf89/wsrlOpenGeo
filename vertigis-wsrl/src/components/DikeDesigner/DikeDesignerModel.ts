@@ -54,8 +54,11 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
     map: any;
     view: any;
-    sketchViewModel: SketchViewModel;
+    sketchViewModel: SketchViewModel | undefined;
     drawnLine: any;
+    offsetGeometries: any[] = [];
+    meshes: Mesh[] = [];
+    mergedMesh: Mesh | null = null;
 
     chartData: any[] = null
     excelData: any[] = null
@@ -177,13 +180,17 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
         this.sketchViewModel.create("polyline");
 
         // Listen for the create event to get the geometry
-        this.sketchViewModel.on("create", (event) => {
+        this.sketchViewModel.on("create", async (event) => {
             if (event.state === "complete") {
                 const drawnLine = event.graphic.geometry;
                 // console.log("Polygon geometry:", poylgonGeometry);
 
                 // publish event to show dialog
                 this.drawnLine = drawnLine;
+                console.log(this.sketchViewModel)
+                this.sketchViewModel.set("state", "update");
+
+                this.sketchViewModel.update(event.graphic) // Update the graphic with the new geometry
 ;
             }
         });
@@ -278,16 +285,21 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
             // Initialize the SketchViewModel
 
+            // this.sketchViewModel = new SketchViewModel({
+            //     view: this.view,
+            //     layer: this.graphicsLayerLine,
+            // });
+            await reactiveUtils
+            .whenOnce(() => this.view)
+            .then(() => {
+                
+                console.log("Graphics layer added to the map.");
+                
             this.sketchViewModel = new SketchViewModel({
                 view: this.view,
                 layer: this.graphicsLayerLine,
             });
-            // await reactiveUtils
-            // .whenOnce(() => this.map?.view)
-            // .then(() => {
-                
-            //     console.log("Graphics layer added to the map.");
-            // });
+            });
         });
     }
 }
