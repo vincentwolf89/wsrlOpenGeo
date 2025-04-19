@@ -59,6 +59,7 @@ const DikeDesigner = (
     const [mapRightBorder, setMapRightBorder] = useState(window.innerWidth);
     const [activeTab, setActiveTab] = useState(0);
     const [isOverviewVisible, setIsOverviewVisible] = useState(false);
+    const [gridSize, setGridSize] = useState(1); // Default grid size
 
     // NEW: Add Refs to store chart root + series
     const chartRootRef = useRef<am5.Root | null>(null);
@@ -107,9 +108,9 @@ const DikeDesigner = (
     useEffect(() => {
         if (activeTab === 0 && model.chartData) {
             const root = am5.Root.new("chartdiv");
-    
+
             root.setThemes([am5themes_Animated.new(root)]);
-    
+
             const chart = root.container.children.push(
                 am5xy.XYChart.new(root, {
                     panX: true,
@@ -119,21 +120,21 @@ const DikeDesigner = (
                     pinchZoomX: true,
                 })
             );
-    
+
             const xAxis = chart.xAxes.push(
                 am5xy.ValueAxis.new(root, {
                     renderer: am5xy.AxisRendererX.new(root, {}),
                     tooltip: am5.Tooltip.new(root, {}),
                 })
             );
-    
+
             const yAxis = chart.yAxes.push(
                 am5xy.ValueAxis.new(root, {
                     renderer: am5xy.AxisRendererY.new(root, {}),
                     tooltip: am5.Tooltip.new(root, {}),
                 })
             );
-    
+
             const series = chart.series.push(
                 am5xy.LineSeries.new(root, {
                     name: "Hoogte vs Afstand",
@@ -146,13 +147,13 @@ const DikeDesigner = (
                     }),
                 })
             );
-    
+
             series.data.setAll(model.chartData);
-    
+
             series.strokes.template.setAll({
                 strokeWidth: 2,
             });
-    
+
             // Add draggable bullets with snapping logic
             series.bullets.push((root, series, dataItem) => {
                 const circle = am5.Circle.new(root, {
@@ -164,10 +165,10 @@ const DikeDesigner = (
                     interactive: true,
                     cursorOverStyle: "pointer",
                 });
-    
+
                 // Snap the coordinates to the nearest 0.5 meter
                 const snapToGrid = (value: number, gridSize: number) => Math.round(value / gridSize) * gridSize;
-    
+
                 circle.events.on("dragstop", () => {
                     // Calculate new positions
                     const newY = yAxis.positionToValue(
@@ -176,40 +177,40 @@ const DikeDesigner = (
                     const newX = xAxis.positionToValue(
                         xAxis.coordinateToPosition(circle.x())
                     );
-    
+
                     // Snap to nearest 0.5 meter grid
                     const snappedX = snapToGrid(newX, 0.5);
                     const snappedY = snapToGrid(newY, 0.5);
-    
+
                     // Update chart
                     dataItem.set("valueY", snappedY);
                     dataItem.set("valueX", snappedX);
-    
+
                     // Update model.chartData
                     const index = model.chartData.findIndex(
                         (d) => d.afstand === dataItem.dataContext["afstand"]
                     );
-    
+
                     if (index !== -1) {
                         model.chartData[index].hoogte = snappedY;
                         model.chartData[index].afstand = snappedX;
                         model.chartData = [...model.chartData]; // Force reactivity
                     }
                 });
-    
+
                 return am5.Bullet.new(root, {
                     sprite: circle,
                 });
             });
-    
+
             chart.set("cursor", am5xy.XYCursor.new(root, {}));
-    
+
             return () => {
                 root.dispose();
             };
         }
     }, [activeTab, model.chartData, model]);
-    
+
 
     const handleDrawLine = () => {
         model.startDrawingLine();
@@ -233,6 +234,11 @@ const DikeDesigner = (
     const handleClearGraphics = () => {
         model.graphicsLayerLine.removeAll();
     };
+
+    const handleGridChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setGridSize(parseFloat(event.target.value));
+        model.gridSize = parseFloat(event.target.value);
+    }
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setActiveTab(newValue);
@@ -288,111 +294,151 @@ const DikeDesigner = (
                     <AccordionDetails>
                         <Stack spacing={1}>
 
-                                <Stack spacing={1} sx={{ outline: 1, padding: 1, borderRadius: 1, outlineColor: "#D3D3D3" }}>
-                                                               <ButtonGroup fullWidth>
+                            <Stack spacing={1} sx={{ outline: 1, padding: 1, borderRadius: 1, outlineColor: "#D3D3D3" }}>
+                                <ButtonGroup fullWidth>
+                                    <Button
+                                        color="primary"
+                                        onClick={handleDrawLine}
+                                        startIcon={<EditIcon />}
+                                        variant="contained"
+                                    >
+                                        Teken lijn
+                                    </Button>
+                                    <Button
+                                        color="primary"
+                                        onClick={handleUploadGeoJSON}
+                                        startIcon={<UploadFileIcon />}
+                                        variant="contained"
+                                    >
+                                        Upload GeoJSON
+                                    </Button>
+                                    <Button
+                                        color="primary"
+                                        onClick={handleSelectFromMap}
+                                        startIcon={<MapIcon />}
+                                        variant="contained"
+                                        disabled
+                                    >
+                                        Selecteer uit de kaart
+                                    </Button>
+                                </ButtonGroup>
                                 <Button
+                                    variant="outlined"
                                     color="primary"
-                                    onClick={handleDrawLine}
-                                    startIcon={<EditIcon />}
-                                    variant="contained"
+                                    onClick={handleClearGraphics}
+                                    startIcon={<ClearIcon />}
+                                    fullWidth
                                 >
-                                    Teken lijn
+                                    Verwijder lijn
                                 </Button>
-                                <Button
-                                    color="primary"
-                                    onClick={handleUploadGeoJSON}
-                                    startIcon={<UploadFileIcon />}
-                                    variant="contained"
-                                >
-                                    Upload GeoJSON
-                                </Button>
-                                <Button
-                                    color="primary"
-                                    onClick={handleSelectFromMap}
-                                    startIcon={<MapIcon />}
-                                    variant="contained"
-                                    disabled
-                                >
-                                    Selecteer uit de kaart
-                                </Button>
-                            </ButtonGroup>
-                            <Button
-                                variant="outlined"
-                                color="primary"
-                                onClick={handleClearGraphics}
-                                startIcon={<ClearIcon />}
-                                fullWidth
-                            >
-                                Verwijder lijn
-                            </Button> 
-                                </Stack>
-
-                                <Stack spacing={1} sx={{ outline: 1, padding: 1, borderRadius: 1, outlineColor: "#D3D3D3" }}>
-                            {/* Hidden input for GeoJSON upload */}
-                            <input
-                                id="geojson-upload"
-                                type="file"
-                                accept=".geojson"
-                                hidden
-                                onChange={handleFileChange}
-                            />
-                            <Button
-                                variant="contained"
-                                component="label"
-                                startIcon={<TableRowsIcon />}
-                                color="primary"
-                                fullWidth
-                            >
-                                Upload Excel
-                                <input
-                                    type="file"
-                                    accept=".xlsx, .xls"
-                                    hidden
-                                    onChange={handleExcelUpload}
-                                />
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                color="secondary"
-                                startIcon={<ClearIcon />}
-                                onClick={handleClearExcel}
-                                fullWidth
-                            >
-                                Verwijder Excel
-                            </Button>
                             </Stack>
-                             <Stack spacing={1} sx={{ outline: 1, padding: 1, borderRadius: 1, outlineColor: "#D3D3D3" }}>
-                             <Button
-                                variant="contained"
-                                color="primary"
-                                startIcon={<FilterIcon />}
-                                onClick={handleOpenOverview}
-                                fullWidth
-                                disabled={!model.chartData}
-                            >
-                                Toon ontwerp-paneel
-                            </Button>
-                             
-                             <Button
-                                variant="contained"
-                                color="primary"
-                                startIcon={<PlayCircleFilledWhiteIcon />}
-                                onClick={handleCreateDesign}
-                                fullWidth
-                            >
-                                Uitrollen in 3D
-                            </Button>
 
-                            <Button
-                                variant="outlined"
-                                color="primary"
-                                startIcon={<ClearIcon />}
-                                onClick={handleClearDesign}
-                                fullWidth
-                            >
-                                Verwijder uitrol
-                            </Button>
-                                </Stack>
+                            <Stack spacing={1} sx={{ outline: 1, padding: 1, borderRadius: 1, outlineColor: "#D3D3D3" }}>
+                                {/* Hidden input for GeoJSON upload */}
+                                <input
+                                    id="geojson-upload"
+                                    type="file"
+                                    accept=".geojson"
+                                    hidden
+                                    onChange={handleFileChange}
+                                />
+                                <Button
+                                    variant="contained"
+                                    component="label"
+                                    startIcon={<TableRowsIcon />}
+                                    color="primary"
+                                    fullWidth
+                                >
+                                    Upload Excel
+                                    <input
+                                        type="file"
+                                        accept=".xlsx, .xls"
+                                        hidden
+                                        onChange={handleExcelUpload}
+                                    />
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    color="secondary"
+                                    startIcon={<ClearIcon />}
+                                    onClick={handleClearExcel}
+                                    fullWidth
+                                >
+                                    Verwijder Excel
+                                </Button>
+                            </Stack>
+                            <Stack spacing={1.5} sx={{ outline: 1, padding: 1, borderRadius: 1, outlineColor: "#D3D3D3" }}>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    startIcon={<FilterIcon />}
+                                    onClick={handleOpenOverview}
+                                    fullWidth
+                                    disabled={!model.chartData}
+                                >
+                                    Toon ontwerp-paneel
+                                </Button>
+
+    
+                                {/* Grid-size input */}
+                                <TextField
+                                    value={gridSize}
+                                    label="Gridgrootte [m]"
+                                    type="number"
+                                    variant="outlined"
+                                    size="medium"
+                                    onChange={handleGridChange}
+                                    sx={{marginTop: 4}}
+                                    InputProps={{
+                                        sx: { fontSize: '12px', lineHeight: '2' },
+                                    }}
+                                    InputLabelProps={{
+                                        sx: { fontSize: '12px' }
+                                    }}
+                                />
+
+
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    startIcon={<PlayCircleFilledWhiteIcon />}
+                                    onClick={handleCreateDesign}
+                                    fullWidth
+                                >
+                                    Uitrollen in 3D
+                                </Button>
+
+                                <Button
+                                    variant="outlined"
+                                    color="primary"
+                                    startIcon={<ClearIcon />}
+                                    onClick={handleClearDesign}
+                                    fullWidth
+                                >
+                                    Verwijder uitrol
+                                </Button>
+                                
+                                {/* Volume table */}
+                                <TableContainer sx={{ marginTop: 2 }}>
+                                    <Table>
+                                        <TableBody>
+                                            <TableRow>
+                                                <TableCell align="left">Totaal volume verschil [m3]</TableCell>
+                                                <TableCell align="right">{model.totalVolumeDifference ?? "-"}</TableCell>
+                                            </TableRow>
+                                            <TableRow>
+                                                <TableCell align="left">Uitgravingsvolume [m3]</TableCell>
+                                                <TableCell align="right">{model.excavationVolume ?? "-"}</TableCell>
+                                            </TableRow>
+                                            <TableRow>
+                                                <TableCell align="left">Opvolume [m3]</TableCell>
+                                                <TableCell align="right">{model.fillVolume ?? "-"}</TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+
+                            </Stack>
                         </Stack>
                     </AccordionDetails>
                 </Accordion>
@@ -432,7 +478,7 @@ const DikeDesigner = (
                             Design overzicht
                             <IconButton
                                 aria-label="close"
-                                onClick={() => setIsOverviewVisible(false) } // Close the Paper when clearing Excel data
+                                onClick={() => setIsOverviewVisible(false)} // Close the Paper when clearing Excel data
                                 size="medium"
                                 sx={{ color: "#ffffff" }}
                             >

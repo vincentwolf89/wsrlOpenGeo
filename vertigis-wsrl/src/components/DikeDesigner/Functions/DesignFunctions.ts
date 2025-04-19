@@ -115,6 +115,104 @@ export  async function createDesign (model) {
     // }
 }
 
+// export async function calculateVolume(model){
+//     const gridSize = model.gridSize; 
+
+//         try {
+//             const gridSize = parseFloat(document.getElementById('gridSizeInput').value) || 1; // Default to 1 meter if not provided
+//             console.log("Grid size:", gridSize);
+
+//             const latSpacingForVolume = gridSize;
+//             const lonSpacingForVolume = gridSize;
+
+//             const meshGraphic = graphicsLayerTemp.graphics.items.find(graphic => graphic.geometry.type === "mesh");
+//             if (!meshGraphic) {
+//                 console.error("No mesh geometry found in graphicsLayerTemp.");
+//                 return;
+//             }
+//             console.log(graphicsLayerTemp, "graphicsLayerTemp", meshGraphic, "meshGraphic");
+
+//             // Create an elevation sampler for the mesh geometry
+//             const elevationSampler = await meshUtils.createElevationSampler(mergedMesh, mergedMesh.extent);
+//             console.log("Elevation sampler created:", elevationSampler);
+
+//             const extent = meshGraphic.geometry.extent;
+//             console.log("Extent of the mesh geometry:", extent);
+
+//             const pointCoordsForVolume = [];
+//             const groundPoints = [];
+
+//             for (let x = extent.xmin; x <= extent.xmax; x += lonSpacingForVolume) {
+//                 for (let y = extent.ymin; y <= extent.ymax; y += latSpacingForVolume) {
+//                     const point = new Point({
+//                         x: x,
+//                         y: y,
+//                         spatialReference: { wkid: 3857 }
+//                     });
+
+//                     // Query the elevation at the point
+//                     const elevation = elevationSampler.elevationAt(point.x, point.y);
+//                     if (elevation) {
+//                         point.z = elevation;
+
+//                         // Add the point to the volume calculation
+//                         pointCoordsForVolume.push([point.x, point.y, point.z]);
+
+//                         // Add the point to the ground elevation query
+//                         groundPoints.push(point);
+//                     }
+//                 }
+//             }
+
+//             console.log("All points processed:", pointCoordsForVolume);
+
+//             if (pointCoordsForVolume.length === 0) {
+//                 console.warn("No points were processed. Ensure the mesh geometries and grid size are correct.");
+//                 return;
+//             }
+
+//             // Query ground elevations for all points
+//             const multipointForGround = new Multipoint({
+//                 points: groundPoints.map(p => [p.x, p.y]),
+//                 spatialReference: { wkid: 3857 }
+//             });
+
+//             const groundResult = await elevationLayer.queryElevation(multipointForGround, { returnSampleInfo: true });
+//             console.log("Ground elevation query result:", groundResult);
+
+//             let totalVolumeDifference = 0;
+//             let cutVolume = 0;
+//             let fillVolume = 0;
+
+//             groundResult.geometry.points.forEach(([x, y, zGround], index) => {
+//                 const z3D = pointCoordsForVolume[index][2]; // Z value from the mesh geometry
+//                 const volumeDifference = (z3D - zGround) * latSpacingForVolume * lonSpacingForVolume; // Volume difference for this point
+
+//                 if (volumeDifference > 0) {
+//                     fillVolume += volumeDifference; // Fill volume (material to be added)
+//                 } else {
+//                     cutVolume += Math.abs(volumeDifference); // Cut volume (material to be removed)
+//                 }
+
+//                 totalVolumeDifference += volumeDifference;
+//             });
+
+//             console.log("Total volume difference:", totalVolumeDifference, "m³");
+//             console.log("Total cut volume:", cutVolume, "m³");
+//             console.log("Total fill volume:", fillVolume, "m³");
+
+//             // Update the UI with the results
+//             document.getElementById('volumeValue').innerHTML = `
+//                     <strong>Totaal volume verschil:</strong> ${(totalVolumeDifference).toFixed(2)} m³<br>
+//                     <strong>Uitgravingsvolume:</strong> ${cutVolume.toFixed(2)} m³<br>
+//                     <strong>Opvulvolume:</strong> ${fillVolume.toFixed(2)} m³
+//                 `;
+//         } catch (error) {
+//             console.error("Error during volume calculation:", error);
+//         }
+   
+// }
+
 function createMeshFromPolygon(model, polygon, textureUrl = null) {
 
     const mesh = Mesh.createFromPolygon(polygon, {

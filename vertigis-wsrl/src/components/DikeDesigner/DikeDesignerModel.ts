@@ -59,6 +59,10 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     offsetGeometries: any[] = [];
     meshes: Mesh[] = [];
     mergedMesh: Mesh | null = null;
+    gridSize: number = 1
+    totalVolumeDifference: number = 0
+    excavationVolume: number = 0
+    fillVolume: number = 0
 
     chartData: any[] = null
     excelData: any[] = null
