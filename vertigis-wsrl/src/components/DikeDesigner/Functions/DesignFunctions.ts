@@ -24,7 +24,7 @@ import * as geometryEngine from "esri/geometry/geometryEngine";
 import * as webMercatorUtils from "esri/geometry/support/webMercatorUtils";
 import * as projection from "esri/geometry/projection";
 import * as meshUtils from "esri/geometry/support/meshUtils";
-export  async function createDesign (model) {
+export async function createDesign(model) {
     // if (model.graphicsLayerLine.graphics.length === 0) {
     //     alert("Please sketch a line before uploading an Excel file.");
     //     return;
@@ -34,76 +34,76 @@ export  async function createDesign (model) {
     console.log(basePath, "Base path geometry");
 
 
-            // if (!basePath || !basePath.paths || basePath.paths.length === 0) {
-            //     alert("No valid line found for offset calculations.");
-            //     return;
-            // }
+    // if (!basePath || !basePath.paths || basePath.paths.length === 0) {
+    //     alert("No valid line found for offset calculations.");
+    //     return;
+    // }
 
-            await model.chartData.forEach(row => {
-                const offsetDistance = (row.afstand || 0);
-                const offsetLine = geometryEngine.offset(basePath, offsetDistance) as Polyline;
+    await model.chartData.forEach(row => {
+        const offsetDistance = (row.afstand || 0);
+        const offsetLine = geometryEngine.offset(basePath, offsetDistance) as Polyline;
 
-                if (offsetLine) {
-                    const elevation = row.hoogte || 0;
-                    const updatedPaths = offsetLine.paths.map(path =>
-                        path.map(coord => [coord[0], coord[1], elevation])
-                    );
+        if (offsetLine) {
+            const elevation = row.hoogte || 0;
+            const updatedPaths = offsetLine.paths.map(path =>
+                path.map(coord => [coord[0], coord[1], elevation])
+            );
 
-                    const offsetGraphic = new Graphic({
-                        geometry: new Polyline({
-                            paths: updatedPaths,
-                            spatialReference: SpatialReference.WebMercator
-                        }),
-                        symbol: {
-                            type: "simple-line", // SimpleLineSymbol type
-                            style: "solid",
-                            color: "grey",
-                            width: 1
-                        } as __esri.SimpleLineSymbolProperties
-                    });
-
-                    model.graphicsLayerTemp.add(offsetGraphic);
-
-
-
-                    if (row.locatie) {
-                        model.offsetGeometries[row.locatie] = offsetGraphic.geometry;
-                    } else {
-                        console.log("Row name is missing in the data.", row);
-                    }
-                }
-            });
-
-            console.log(model.offsetGeometries, "Offset geometries");
-
-            createPolygonBetween(model, "buitenkruin", "binnenkruin", [128, 0, 0, 0.9]);
-
-            let containsBerm = model.chartData.some(row => row.locatie && row.locatie.toLowerCase().includes("berm"));
-
-            if (containsBerm) {
-                createPolygonBetween(model, "buitenkruin", "bovenkant_buitenberm", [50, 205, 50, 0.9]);
-                createPolygonBetween(model, "binnenkruin", "bovenkant_binnenberm", [50, 205, 50, 0.9]);
-                createPolygonBetween(model, "bovenkant_buitenberm", "onderkant_buitenberm", [50, 205, 50, 0.9]);
-                createPolygonBetween(model, "onderkant_buitenberm", "buitenteen", [50, 205, 50, 0.9]);
-                createPolygonBetween(model, "bovenkant_binnenberm", "onderkant_binnenberm", [50, 205, 50, 0.9]);
-                createPolygonBetween(model, "onderkant_binnenberm", "binnenteen", [50, 205, 50, 0.9]);
-            } else {
-                createPolygonBetween(model, "buitenkruin", "binnenkruin", [128, 0, 0, 0.9]);
-                createPolygonBetween(model, "buitenkruin", "buitenteen", [50, 205, 50, 0.9]);
-                createPolygonBetween(model, "binnenkruin", "binnenteen", [50, 205, 50, 0.9]);
-            }
-
-            const merged = await meshUtils.merge(model.meshes)
-            console.log(merged, "Merged mesh geometry");
-            const mergedGraphic = new Graphic({
-                geometry: merged,
+            const offsetGraphic = new Graphic({
+                geometry: new Polyline({
+                    paths: updatedPaths,
+                    spatialReference: SpatialReference.WebMercator
+                }),
                 symbol: {
-                    type: "mesh-3d",
-                    symbolLayers: [{ type: "fill" }]
-                } as __esri.Symbol3DLayerProperties,
+                    type: "simple-line", // SimpleLineSymbol type
+                    style: "solid",
+                    color: "grey",
+                    width: 1
+                } as __esri.SimpleLineSymbolProperties
             });
-            model.graphicsLayerTemp.add(mergedGraphic);
-            model.mergedMesh = merged
+
+            model.graphicsLayerTemp.add(offsetGraphic);
+
+
+
+            if (row.locatie) {
+                model.offsetGeometries[row.locatie] = offsetGraphic.geometry;
+            } else {
+                console.log("Row name is missing in the data.", row);
+            }
+        }
+    });
+
+    console.log(model.offsetGeometries, "Offset geometries");
+
+    createPolygonBetween(model, "buitenkruin", "binnenkruin", [128, 0, 0, 0.9]);
+
+    let containsBerm = model.chartData.some(row => row.locatie?.toLowerCase().includes("berm"));
+
+    if (containsBerm) {
+        createPolygonBetween(model, "buitenkruin", "bovenkant_buitenberm", [50, 205, 50, 0.9]);
+        createPolygonBetween(model, "binnenkruin", "bovenkant_binnenberm", [50, 205, 50, 0.9]);
+        createPolygonBetween(model, "bovenkant_buitenberm", "onderkant_buitenberm", [50, 205, 50, 0.9]);
+        createPolygonBetween(model, "onderkant_buitenberm", "buitenteen", [50, 205, 50, 0.9]);
+        createPolygonBetween(model, "bovenkant_binnenberm", "onderkant_binnenberm", [50, 205, 50, 0.9]);
+        createPolygonBetween(model, "onderkant_binnenberm", "binnenteen", [50, 205, 50, 0.9]);
+    } else {
+        createPolygonBetween(model, "buitenkruin", "binnenkruin", [128, 0, 0, 0.9]);
+        createPolygonBetween(model, "buitenkruin", "buitenteen", [50, 205, 50, 0.9]);
+        createPolygonBetween(model, "binnenkruin", "binnenteen", [50, 205, 50, 0.9]);
+    }
+
+    const merged = meshUtils.merge(model.meshes)
+    const mergedGraphic = new Graphic({
+        geometry: merged,
+        symbol: {
+            type: "mesh-3d",
+            symbolLayers: [{ type: "fill" }]
+        } as __esri.Symbol3DLayerProperties,
+    });
+    model.graphicsLayerTemp.add(mergedGraphic);
+    model.mergedMesh = merged
+    model.meshGraphic = mergedGraphic;
 
 
 
@@ -111,112 +111,88 @@ export  async function createDesign (model) {
 
 
     //     };
-       
+
     // }
 }
 
-// export async function calculateVolume(model){
-//     const gridSize = model.gridSize; 
+export async function calculateVolume(model) {
+    const gridSize = model.gridSize;
 
-//         try {
-//             const gridSize = parseFloat(document.getElementById('gridSizeInput').value) || 1; // Default to 1 meter if not provided
-//             console.log("Grid size:", gridSize);
+    const elevationSampler = await meshUtils.createElevationSampler(model.mergedMesh, model.mergedMesh.extent);
+    const extent = model.meshGraphic.geometry.extent;
 
-//             const latSpacingForVolume = gridSize;
-//             const lonSpacingForVolume = gridSize;
+    const pointCoordsForVolume = [];
+    const groundPoints = [];
 
-//             const meshGraphic = graphicsLayerTemp.graphics.items.find(graphic => graphic.geometry.type === "mesh");
-//             if (!meshGraphic) {
-//                 console.error("No mesh geometry found in graphicsLayerTemp.");
-//                 return;
-//             }
-//             console.log(graphicsLayerTemp, "graphicsLayerTemp", meshGraphic, "meshGraphic");
+    for (let x = extent.xmin; x <= extent.xmax; x += gridSize) {
+        for (let y = extent.ymin; y <= extent.ymax; y += gridSize) {
+            const point = new Point({
+                x: x as number,
+                y: y as number,
+                spatialReference: { wkid: 3857 }
+            });
 
-//             // Create an elevation sampler for the mesh geometry
-//             const elevationSampler = await meshUtils.createElevationSampler(mergedMesh, mergedMesh.extent);
-//             console.log("Elevation sampler created:", elevationSampler);
+            // Query the elevation at the point
+            const elevation = elevationSampler.elevationAt(point.x, point.y);
+            if (elevation) {
+                point.z = elevation;
 
-//             const extent = meshGraphic.geometry.extent;
-//             console.log("Extent of the mesh geometry:", extent);
+                // Add the point to the volume calculation
+                pointCoordsForVolume.push([point.x, point.y, point.z]);
 
-//             const pointCoordsForVolume = [];
-//             const groundPoints = [];
+                // Add the point to the ground elevation query
+                groundPoints.push(point);
+            }
+        }
+    }
 
-//             for (let x = extent.xmin; x <= extent.xmax; x += lonSpacingForVolume) {
-//                 for (let y = extent.ymin; y <= extent.ymax; y += latSpacingForVolume) {
-//                     const point = new Point({
-//                         x: x,
-//                         y: y,
-//                         spatialReference: { wkid: 3857 }
-//                     });
+    console.log("All points processed:", pointCoordsForVolume);
+    if (pointCoordsForVolume.length === 0) {
+        console.warn("No points were processed. Ensure the mesh geometries and grid size are correct.");
+        return;
+    }
 
-//                     // Query the elevation at the point
-//                     const elevation = elevationSampler.elevationAt(point.x, point.y);
-//                     if (elevation) {
-//                         point.z = elevation;
+    // Query ground elevations for all points
+    const multipointForGround = new Multipoint({
+        points: groundPoints.map(p => [p.x, p.y]),
+        spatialReference: { wkid: 3857 }
+    });
 
-//                         // Add the point to the volume calculation
-//                         pointCoordsForVolume.push([point.x, point.y, point.z]);
+    const groundResult = await model.elevationLayer.queryElevation(multipointForGround, { returnSampleInfo: true });
+    console.log("Ground elevation query result:", groundResult);
 
-//                         // Add the point to the ground elevation query
-//                         groundPoints.push(point);
-//                     }
-//                 }
-//             }
+    let totalVolumeDifference = 0;
+    let excavationVolume= 0;
+    let fillVolume = 0;
 
-//             console.log("All points processed:", pointCoordsForVolume);
+    groundResult.geometry.points.forEach(([x, y, zGround], index) => {
+        const z3D = pointCoordsForVolume[index][2]; // Z value from the mesh geometry
+        const volumeDifference = (z3D - zGround) * model.gridSize * model.gridSize; // Volume difference for this point
 
-//             if (pointCoordsForVolume.length === 0) {
-//                 console.warn("No points were processed. Ensure the mesh geometries and grid size are correct.");
-//                 return;
-//             }
+        if (volumeDifference > 0) {
+            fillVolume += volumeDifference; // Fill volume (material to be added)
+        } else {
+            excavationVolume += Math.abs(volumeDifference); // Cut volume (material to be removed)
+        }
 
-//             // Query ground elevations for all points
-//             const multipointForGround = new Multipoint({
-//                 points: groundPoints.map(p => [p.x, p.y]),
-//                 spatialReference: { wkid: 3857 }
-//             });
+        totalVolumeDifference += volumeDifference;
+    });
 
-//             const groundResult = await elevationLayer.queryElevation(multipointForGround, { returnSampleInfo: true });
-//             console.log("Ground elevation query result:", groundResult);
+    model.excavationVolume = excavationVolume.toFixed(2);
+    model.fillVolume = fillVolume.toFixed(2);
+    model.totalVolumeDifference = totalVolumeDifference.toFixed(2);
 
-//             let totalVolumeDifference = 0;
-//             let cutVolume = 0;
-//             let fillVolume = 0;
+    console.log("Total volume difference:", totalVolumeDifference, "m³");
+    console.log("Total cut volume:", excavationVolume, "m³");
+    console.log("Total fill volume:", fillVolume, "m³");
 
-//             groundResult.geometry.points.forEach(([x, y, zGround], index) => {
-//                 const z3D = pointCoordsForVolume[index][2]; // Z value from the mesh geometry
-//                 const volumeDifference = (z3D - zGround) * latSpacingForVolume * lonSpacingForVolume; // Volume difference for this point
 
-//                 if (volumeDifference > 0) {
-//                     fillVolume += volumeDifference; // Fill volume (material to be added)
-//                 } else {
-//                     cutVolume += Math.abs(volumeDifference); // Cut volume (material to be removed)
-//                 }
-
-//                 totalVolumeDifference += volumeDifference;
-//             });
-
-//             console.log("Total volume difference:", totalVolumeDifference, "m³");
-//             console.log("Total cut volume:", cutVolume, "m³");
-//             console.log("Total fill volume:", fillVolume, "m³");
-
-//             // Update the UI with the results
-//             document.getElementById('volumeValue').innerHTML = `
-//                     <strong>Totaal volume verschil:</strong> ${(totalVolumeDifference).toFixed(2)} m³<br>
-//                     <strong>Uitgravingsvolume:</strong> ${cutVolume.toFixed(2)} m³<br>
-//                     <strong>Opvulvolume:</strong> ${fillVolume.toFixed(2)} m³
-//                 `;
-//         } catch (error) {
-//             console.error("Error during volume calculation:", error);
-//         }
-   
-// }
+}
 
 function createMeshFromPolygon(model, polygon, textureUrl = null) {
 
     const mesh = Mesh.createFromPolygon(polygon, {
-        
+
     });
     mesh.spatialReference = polygon.spatialReference
 

@@ -16,6 +16,10 @@ import ClearIcon from "@mui/icons-material/Clear";
 import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
 import TableRowsIcon from '@mui/icons-material/TableRows';
 import FilterIcon from '@mui/icons-material/Filter';
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import SelectAllIcon from "@mui/icons-material/SelectAll";
+import ShowChartIcon from "@mui/icons-material/ShowChart";
 import Draggable from "react-draggable";
 import {
     Button,
@@ -46,7 +50,7 @@ import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 import type DikeDesignerModel from "./DikeDesignerModel";
-import { createDesign } from "./Functions/DesignFunctions";
+import { calculateVolume, createDesign } from "./Functions/DesignFunctions";
 
 const DikeDesigner = (
     props: LayoutElementProperties<DikeDesignerModel>
@@ -61,8 +65,8 @@ const DikeDesigner = (
     const [isOverviewVisible, setIsOverviewVisible] = useState(false);
     const [gridSize, setGridSize] = useState(1); // Default grid size
 
-    // NEW: Add Refs to store chart root + series
-    const chartRootRef = useRef<am5.Root | null>(null);
+  
+    // const chartRootRef = useRef<am5.Root | null>(null);
     const seriesRef = useRef<am5xy.LineSeries | null>(null);
 
     const observeMapLeftBorder = () => {
@@ -89,21 +93,6 @@ const DikeDesigner = (
             if (disconnectObserver) disconnectObserver();
         };
     }, []);
-
-    const handleClearExcel = () => {
-        model.chartData = null;
-    };
-    const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-
-        setIsOverviewVisible(true); // Close the overview when uploading a new Excel file
-        model.handleExcelUpload(event);
-    }
-    const handleCreateDesign = async () => {
-        await createDesign(model);
-    };
-    const handleClearDesign = () => {
-        model.graphicsLayerTemp.removeAll();
-    };
 
     useEffect(() => {
         if (activeTab === 0 && model.chartData) {
@@ -268,13 +257,36 @@ const DikeDesigner = (
         seriesRef.current?.data.setAll(model.chartData);
     };
 
+    const handleClearExcel = () => {
+        model.chartData = null;
+    };
+    const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+
+        setIsOverviewVisible(true); // Close the overview when uploading a new Excel file
+        model.handleExcelUpload(event);
+    }
+    const handleCreateDesign = async () => {
+        await createDesign(model);
+        await calculateVolume(model);
+    };
+    const handleClearDesign = () => {
+        model.graphicsLayerTemp.removeAll();
+        model.totalVolumeDifference = null;
+        model.excavationVolume = null;
+        model.fillVolume = null;
+    };
+
+    useWatchAndRerender(model, "excavationVolume");
+    useWatchAndRerender(model, "fillVolume)");
+    useWatchAndRerender(model, "totalVolumeDifference");
+
 
 
     return (
         <LayoutElement {...props}>
             <Stack
                 direction="column"
-                spacing={2}
+                spacing={0}
                 justifyContent="flex-start"
                 alignContent="stretch"
                 sx={{ width: "100%" }}
@@ -286,9 +298,11 @@ const DikeDesigner = (
                                 fontSize: 14,
                                 fontWeight: "",
                                 fontFamily: "var(--defaultFont)",
+                                display: "flex",
+                                alignItems: "center",
                             }}
                         >
-                            Dimensioneren
+                            <ShowChartIcon sx={{ marginRight: 1 }} /> Dimensioneren
                         </Typography>
                     </AccordionSummary>
                     <AccordionDetails>
@@ -297,6 +311,7 @@ const DikeDesigner = (
                             <Stack spacing={1} sx={{ outline: 1, padding: 1, borderRadius: 1, outlineColor: "#D3D3D3" }}>
                                 <ButtonGroup fullWidth>
                                     <Button
+                                        disabled={!model.sketchViewModel}
                                         color="primary"
                                         onClick={handleDrawLine}
                                         startIcon={<EditIcon />}
@@ -374,7 +389,7 @@ const DikeDesigner = (
                                     startIcon={<FilterIcon />}
                                     onClick={handleOpenOverview}
                                     fullWidth
-                                    disabled={!model.chartData}
+                                    disabled={!model.chartData?.length || isOverviewVisible}
                                 >
                                     Toon ontwerp-paneel
                                 </Button>
@@ -423,16 +438,16 @@ const DikeDesigner = (
                                     <Table>
                                         <TableBody>
                                             <TableRow>
-                                                <TableCell align="left">Totaal volume verschil [m3]</TableCell>
-                                                <TableCell align="right">{model.totalVolumeDifference ?? "-"}</TableCell>
+                                                <TableCell sx={{fontSize:11}} align="left">Totaal volume verschil [m³]</TableCell>
+                                                <TableCell sx={{fontSize:11}} align="right">{model.totalVolumeDifference ?? "-"}</TableCell>
                                             </TableRow>
                                             <TableRow>
-                                                <TableCell align="left">Uitgravingsvolume [m3]</TableCell>
-                                                <TableCell align="right">{model.excavationVolume ?? "-"}</TableCell>
+                                                <TableCell sx={{fontSize:11}} align="left">Uitgravingsvolume [m³]</TableCell>
+                                                <TableCell sx={{fontSize:11}} align="right">{model.excavationVolume ?? "-"}</TableCell>
                                             </TableRow>
                                             <TableRow>
-                                                <TableCell align="left">Opvolume [m3]</TableCell>
-                                                <TableCell align="right">{model.fillVolume ?? "-"}</TableCell>
+                                                <TableCell sx={{fontSize:11}} align="left">Opvolume [m³]</TableCell>
+                                                <TableCell sx={{fontSize:11}} align="right">{model.fillVolume ?? "-"}</TableCell>
                                             </TableRow>
                                         </TableBody>
                                     </Table>
@@ -555,9 +570,11 @@ const DikeDesigner = (
                                 fontSize: 14,
                                 fontWeight: "",
                                 fontFamily: "var(--defaultFont)",
+                                display: "flex",
+                                alignItems: "center",
                             }}
                         >
-                            Effecten
+                            <AssessmentIcon sx={{ marginRight: 1 }} /> Effecten
                         </Typography>
                     </AccordionSummary>
                     <AccordionDetails>
@@ -574,9 +591,11 @@ const DikeDesigner = (
                                 fontSize: 14,
                                 fontWeight: "",
                                 fontFamily: "var(--defaultFont)",
+                                display: "flex",
+                                alignItems: "center",
                             }}
                         >
-                            Kosten
+                            <AttachMoneyIcon sx={{ marginRight: 1 }} /> Kosten
                         </Typography>
                     </AccordionSummary>
                     <AccordionDetails>
@@ -593,9 +612,11 @@ const DikeDesigner = (
                                 fontSize: 14,
                                 fontWeight: "",
                                 fontFamily: "var(--defaultFont)",
+                                display: "flex",
+                                alignItems: "center",
                             }}
                         >
-                            Selecteren
+                            <SelectAllIcon sx={{ marginRight: 1 }} /> Selecteren
                         </Typography>
                     </AccordionSummary>
                     <AccordionDetails>
