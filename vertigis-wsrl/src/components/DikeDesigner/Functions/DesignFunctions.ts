@@ -24,7 +24,7 @@ import * as geometryEngine from "esri/geometry/geometryEngine";
 import * as webMercatorUtils from "esri/geometry/support/webMercatorUtils";
 import * as projection from "esri/geometry/projection";
 import * as meshUtils from "esri/geometry/support/meshUtils";
-export async function createDesign(model) {
+export async function createDesign(model): Promise<void> {
     // if (model.graphicsLayerLine.graphics.length === 0) {
     //     alert("Please sketch a line before uploading an Excel file.");
     //     return;
@@ -115,10 +115,19 @@ export async function createDesign(model) {
     // }
 }
 
-export async function calculateVolume(model) {
+export async function calculateVolume(model): Promise<void> {
+
     const gridSize = model.gridSize;
 
-    const elevationSampler = await meshUtils.createElevationSampler(model.mergedMesh, model.mergedMesh.extent);
+    let elevationSampler = await meshUtils.createElevationSampler(
+        model.mergedMesh
+    );
+
+    // elevationSampler.demResolution.max = 5; // Set the maximum resolution for the DEM
+    // elevationSampler.demResolution.min = 5; // Set the minimum resolution for the DEM
+
+    console.log("Elevation sampler created:", elevationSampler);
+        
     const extent = model.meshGraphic.geometry.extent;
 
     const pointCoordsForVolume = [];
@@ -126,25 +135,30 @@ export async function calculateVolume(model) {
 
     for (let x = extent.xmin; x <= extent.xmax; x += gridSize) {
         for (let y = extent.ymin; y <= extent.ymax; y += gridSize) {
-            const point = new Point({
-                x: x as number,
-                y: y as number,
-                spatialReference: { wkid: 3857 }
-            });
+            // const point = new Point({
+            //     x: x as number,
+            //     y: y as number,
+            //     spatialReference: SpatialReference.WebMercator
+            // });
 
-            // Query the elevation at the point
-            const elevation = elevationSampler.elevationAt(point.x, point.y);
+            
+            
+
+            // Query the elevation at the point, maybe batch this?
+            const elevation = elevationSampler.elevationAt(x, y);
             if (elevation) {
-                point.z = elevation;
 
                 // Add the point to the volume calculation
-                pointCoordsForVolume.push([point.x, point.y, point.z]);
+                pointCoordsForVolume.push([x, y, elevation]);
 
                 // Add the point to the ground elevation query
-                groundPoints.push(point);
+                groundPoints.push([x, y]);
+                
             }
         }
     }
+
+    
 
     console.log("All points processed:", pointCoordsForVolume);
     if (pointCoordsForVolume.length === 0) {
@@ -154,10 +168,32 @@ export async function calculateVolume(model) {
 
     // Query ground elevations for all points
     const multipointForGround = new Multipoint({
-        points: groundPoints.map(p => [p.x, p.y]),
-        spatialReference: { wkid: 3857 }
+        points: groundPoints,
+        spatialReference: SpatialReference.WebMercator
     });
 
+
+
+
+    // this can be used to visualize the points on the map, as validation
+    // const graphics = multipointForGround.points.map((point) => {
+    //     const graphic = new Graphic({
+    //       geometry: new Point({
+    //         x: point[0], 
+    //         y: point[1],
+    //         spatialReference: SpatialReference.WebMercator
+    //       }),
+    //       symbol: {
+    //         type: "simple-marker",  // Or your custom symbol for the icon
+    //         color: "blue",
+    //         size: "10px"
+    //       } as __esri.SimpleMarkerSymbolProperties,
+    //     });
+    //     return graphic;
+    //   });
+    // model.graphicsLayerLine.addMany(graphics);
+
+    
     const groundResult = await model.elevationLayer.queryElevation(multipointForGround, { returnSampleInfo: true });
     console.log("Ground elevation query result:", groundResult);
 
@@ -188,6 +224,8 @@ export async function calculateVolume(model) {
 
 
 }
+
+
 
 function createMeshFromPolygon(model, polygon, textureUrl = null) {
 

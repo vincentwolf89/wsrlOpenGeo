@@ -40,6 +40,7 @@ import {
     TableHead,
     TableRow,
     TextField,
+    LinearProgress,
 } from "@mui/material";
 import { LayoutElement } from "@vertigis/web/components";
 import type { LayoutElementProperties } from "@vertigis/web/components";
@@ -51,11 +52,31 @@ import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 import type DikeDesignerModel from "./DikeDesignerModel";
 import { calculateVolume, createDesign } from "./Functions/DesignFunctions";
+// import { SimpleWorker } from "./Workers/SimpleWorker"; // adjust path as needed
 
 const DikeDesigner = (
     props: LayoutElementProperties<DikeDesignerModel>
 ): ReactElement => {
     const { model } = props;
+
+    const workerRef = useRef<Worker | null>(null);
+
+    // useEffect(() => {
+    //     const blob = new Blob([simpleWorkerCode], { type: "application/javascript" });
+    //     const worker = new Worker(URL.createObjectURL(blob));
+    //     workerRef.current = worker;
+    
+    //     worker.onmessage = (e) => {
+    //       console.log("Received from worker:", e.data);
+    //     };
+    
+    //     // Send test data
+    //     worker.postMessage(5);
+    
+    //     return () => {
+    //       worker.terminate();
+    //     };
+    //   }, []);
 
     useWatchAndRerender(model, "chartData");
 
@@ -64,9 +85,8 @@ const DikeDesigner = (
     const [activeTab, setActiveTab] = useState(0);
     const [isOverviewVisible, setIsOverviewVisible] = useState(false);
     const [gridSize, setGridSize] = useState(1); // Default grid size
+    const [loading, setLoading] = useState(false); // State to track loading status
 
-  
-    // const chartRootRef = useRef<am5.Root | null>(null);
     const seriesRef = useRef<am5xy.LineSeries | null>(null);
 
     const observeMapLeftBorder = () => {
@@ -264,10 +284,21 @@ const DikeDesigner = (
 
         setIsOverviewVisible(true); // Close the overview when uploading a new Excel file
         model.handleExcelUpload(event);
+        
     }
+
     const handleCreateDesign = async () => {
-        await createDesign(model);
-        await calculateVolume(model);
+
+        setLoading(true); // Show loader
+        try {
+            await createDesign(model);
+            await calculateVolume(model);
+            console.log("All done...");
+        } catch (error) {
+            console.error("Error during design creation or volume calculation:", error);
+        } finally {
+            setLoading(false); // Hide loader
+        }
     };
     const handleClearDesign = () => {
         model.graphicsLayerTemp.removeAll();
@@ -433,26 +464,50 @@ const DikeDesigner = (
                                     Verwijder uitrol
                                 </Button>
                                 
-                                {/* Volume table */}
-                                <TableContainer sx={{ marginTop: 2 }}>
-                                    <Table>
-                                        <TableBody>
-                                            <TableRow>
-                                                <TableCell sx={{fontSize:11}} align="left">Totaal volume verschil [m³]</TableCell>
-                                                <TableCell sx={{fontSize:11}} align="right">{model.totalVolumeDifference ?? "-"}</TableCell>
-                                            </TableRow>
-                                            <TableRow>
-                                                <TableCell sx={{fontSize:11}} align="left">Uitgravingsvolume [m³]</TableCell>
-                                                <TableCell sx={{fontSize:11}} align="right">{model.excavationVolume ?? "-"}</TableCell>
-                                            </TableRow>
-                                            <TableRow>
-                                                <TableCell sx={{fontSize:11}} align="left">Opvolume [m³]</TableCell>
-                                                <TableCell sx={{fontSize:11}} align="right">{model.fillVolume ?? "-"}</TableCell>
-                                            </TableRow>
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-
+                                {/* Volume table with loader */}
+                                <div style={{ position: "relative" }}>
+                                    {loading && (
+                                        <LinearProgress
+                                            sx={{
+                                                position: "absolute",
+                                                top: 0,
+                                                left: 0,
+                                                width: "100%",
+                                                zIndex: 1,
+                                            }}
+                                        />
+                                    )}
+                                    <TableContainer sx={{ marginTop: 2, opacity: loading ? 0.5 : 1 }}>
+                                        <Table>
+                                            <TableBody>
+                                                <TableRow>
+                                                    <TableCell sx={{ fontSize: 11 }} align="left">
+                                                        Totaal volume verschil [m³]
+                                                    </TableCell>
+                                                    <TableCell sx={{ fontSize: 11 }} align="right">
+                                                        {model.totalVolumeDifference ?? "-"}
+                                                    </TableCell>
+                                                </TableRow>
+                                                <TableRow>
+                                                    <TableCell sx={{ fontSize: 11 }} align="left">
+                                                        Uitgravingsvolume [m³]
+                                                    </TableCell>
+                                                    <TableCell sx={{ fontSize: 11 }} align="right">
+                                                        {model.excavationVolume ?? "-"}
+                                                    </TableCell>
+                                                </TableRow>
+                                                <TableRow>
+                                                    <TableCell sx={{ fontSize: 11 }} align="left">
+                                                        Opvolume [m³]
+                                                    </TableCell>
+                                                    <TableCell sx={{ fontSize: 11 }} align="right">
+                                                        {model.fillVolume ?? "-"}
+                                                    </TableCell>
+                                                </TableRow>
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </div>
                             </Stack>
                         </Stack>
                     </AccordionDetails>
