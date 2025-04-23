@@ -267,9 +267,67 @@ function createPolygonBetween(model, nameA, nameB, fillColor) {
         attributes: { name: `${nameA}-${nameB}` }
     });
 
+    model.graphicsLayerTemp.add(graphic);
+
     // featureLayerDesign.applyEdits({
     //     addFeatures: [graphic]
     // });
 
     createMeshFromPolygon(model, polygon, null);
+}
+
+export function exportGraphicsLayerAsGeoJSON(model): void {
+    const geojson = {
+        type: "FeatureCollection",
+        crs: {
+            type: "name",
+            properties: { name: "EPSG:4326" }, // Set CRS to WGS84
+        },
+        features: [],
+    };
+
+    // Ensure the projection module is loaded
+    projection.load().then(() => {
+        model.graphicsLayerTemp.graphics.forEach((graphic) => {
+            const geometry = graphic.geometry;
+
+            if (geometry) {
+                // Project the geometry to WGS84 (EPSG:4326)
+                const projectedGeometry = projection.project(
+                    geometry,
+                    new SpatialReference({ wkid: 4326 })
+                );
+
+                if (projectedGeometry) {
+                    let feature: any = {
+                        type: "Feature",
+                        geometry: null,
+                        properties: graphic.attributes || {}, // Include graphic attributes as properties
+                    };
+
+                    // Handle different geometry types
+                    if (!Array.isArray(projectedGeometry) && projectedGeometry.type === "polygon") {
+                        feature.geometry = {
+                            type: "Polygon",
+                            coordinates: (projectedGeometry as __esri.Polygon).rings,
+                        };
+                        geojson.features.push(feature);
+                    } 
+
+                    // geojson.features.push(feature);
+                }
+            }
+        });
+
+        // Create and download the GeoJSON file
+        const blob = new Blob([JSON.stringify(geojson, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "graphicsLayerTemp_export.geojson";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
 }

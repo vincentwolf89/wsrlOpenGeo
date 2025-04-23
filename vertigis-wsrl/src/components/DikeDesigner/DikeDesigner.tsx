@@ -20,6 +20,7 @@ import AssessmentIcon from "@mui/icons-material/Assessment";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import SelectAllIcon from "@mui/icons-material/SelectAll";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import Draggable from "react-draggable";
 import {
     Button,
@@ -51,7 +52,7 @@ import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 import type DikeDesignerModel from "./DikeDesignerModel";
-import { calculateVolume, createDesign } from "./Functions/DesignFunctions";
+import { calculateVolume, createDesign, exportGraphicsLayerAsGeoJSON } from "./Functions/DesignFunctions";
 // import { SimpleWorker } from "./Workers/SimpleWorker"; // adjust path as needed
 
 const DikeDesigner = (
@@ -307,6 +308,10 @@ const DikeDesigner = (
         model.fillVolume = null;
     };
 
+    const handleExportGraphics = ()=> {
+        exportGraphicsLayerAsGeoJSON(model)
+    };
+
     useWatchAndRerender(model, "excavationVolume");
     useWatchAndRerender(model, "fillVolume)");
     useWatchAndRerender(model, "totalVolumeDifference");
@@ -452,6 +457,15 @@ const DikeDesigner = (
                                     fullWidth
                                 >
                                     Uitrollen in 3D
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    color="secondary"
+                                    startIcon={<CloudDownloadIcon />}
+                                    onClick={handleExportGraphics}
+                                    fullWidth
+                                >
+                                    Download ontwerpdata (GeoJSON)
                                 </Button>
 
                                 <Button

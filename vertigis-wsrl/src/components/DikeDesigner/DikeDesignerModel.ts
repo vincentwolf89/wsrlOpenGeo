@@ -275,7 +275,8 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                 elevationInfo: {
                     mode: "absolute-height",
                     offset: 0
-                }
+                },
+                listMode: "hide",
             });
         
             this.elevationLayer = new ElevationLayer({
