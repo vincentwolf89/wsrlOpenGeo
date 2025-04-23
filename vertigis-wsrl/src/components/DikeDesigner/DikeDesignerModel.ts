@@ -49,6 +49,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
     graphicsLayerLine: GraphicsLayer;
     graphicsLayerTemp: GraphicsLayer;
+    graphicsLayerMesh: GraphicsLayer;
     elevationLayer: ElevationLayer;
 
 
@@ -277,6 +278,15 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                     offset: 0
                 },
                 listMode: "hide",
+                visible: false,
+            });
+            this.graphicsLayerMesh = new GraphicsLayer({
+                title: "Temporary Layer",
+                elevationInfo: {
+                    mode: "absolute-height",
+                    offset: 0
+                },
+                listMode: "hide",
             });
         
             this.elevationLayer = new ElevationLayer({
@@ -284,7 +294,8 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
             });
             this.map.add(this.graphicsLayerLine);
             this.map.add(this.graphicsLayerTemp);
-            console.log(this.elevationLayer, "testing")
+            this.map.add(this.graphicsLayerMesh);
+        
 
 
             

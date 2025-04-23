@@ -131,6 +131,12 @@ const DikeDesigner = (
                 })
             );
 
+            try {
+                root._logo.dispose();
+            } catch { 
+                // Handle error if logo is not present
+            }
+
             const xAxis = chart.xAxes.push(
                 am5xy.ValueAxis.new(root, {
                     renderer: am5xy.AxisRendererX.new(root, {}),
@@ -303,6 +309,7 @@ const DikeDesigner = (
     };
     const handleClearDesign = () => {
         model.graphicsLayerTemp.removeAll();
+        model.graphicsLayerMesh.removeAll();
         model.totalVolumeDifference = null;
         model.excavationVolume = null;
         model.fillVolume = null;
@@ -584,7 +591,7 @@ const DikeDesigner = (
                                 id="chartdiv"
                                 style={{
                                     width: "100%",
-                                    height: "calc(100% - 40px)", // Adjust height to fit within the Paper
+                                    height: "calc(100% - 95px)", // Adjust height to fit within the Paper
                                 }}
                             ></div>
                         )}

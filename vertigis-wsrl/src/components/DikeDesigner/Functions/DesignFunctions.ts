@@ -101,18 +101,11 @@ export async function createDesign(model): Promise<void> {
             symbolLayers: [{ type: "fill" }]
         } as __esri.Symbol3DLayerProperties,
     });
-    model.graphicsLayerTemp.add(mergedGraphic);
+    model.graphicsLayerMesh.add(mergedGraphic);
     model.mergedMesh = merged
     model.meshGraphic = mergedGraphic;
 
 
-
-
-
-
-    //     };
-
-    // }
 }
 
 export async function calculateVolume(model): Promise<void> {
@@ -325,7 +318,7 @@ export function exportGraphicsLayerAsGeoJSON(model): void {
 
         const a = document.createElement("a");
         a.href = url;
-        a.download = "graphicsLayerTemp_export.geojson";
+        a.download = "ontwerp_export.geojson";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
