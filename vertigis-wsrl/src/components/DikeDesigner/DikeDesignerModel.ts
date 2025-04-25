@@ -38,8 +38,7 @@ import * as meshUtils from "esri/geometry/support/meshUtils";
 
 import SketchViewModel from "esri/widgets/Sketch";
 
-import * as GeoJSONInterfaces from "./GeoJSONInterfaces";
-
+import { initializeChart } from "./Functions/DesignFunctions";
 export interface DikeDesignerModelProperties extends ComponentModelProperties {
     elevationLayerUrl?: string;
 }
@@ -72,6 +71,10 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     chartRoot: any = null
     chart: any = null
     chartSeries: any = null
+
+
+
+    overviewVisible: boolean = false
 
     // New method to handle GeoJSON upload
     handleGeoJSONUpload(file: File): void {
@@ -240,6 +243,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
         // Reset the file input value to allow reuploading the same file
         fileInput.value = "";
+        this.overviewVisible = true
     };
 
     protected override _getSerializableProperties(): PropertyDefs<DikeDesignerModelProperties> {
@@ -255,8 +259,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
     protected async _onInitialize(): Promise<void> {
         await super._onInitialize();
-
-        
+        console.log("DikeDesignerModel initialized");
 
         this.messages.events.map.initialized.subscribe(async (map) => {
             console.log("Map initialized:", map);

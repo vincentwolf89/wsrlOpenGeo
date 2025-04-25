@@ -1,66 +1,59 @@
-/* eslint-disable prefer-const */
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/consistent-type-imports */
-/* eslint-disable import/order */
-
-import React, { useState, useEffect, useRef } from "react"; // <== Added useRef
-import type { ReactElement } from "react";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import EditIcon from "@mui/icons-material/Edit";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
-import MapIcon from "@mui/icons-material/Map";
-import CloseIcon from "@mui/icons-material/Close";
-import ClearIcon from "@mui/icons-material/Clear";
-import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
-import TableRowsIcon from '@mui/icons-material/TableRows';
-import FilterIcon from '@mui/icons-material/Filter';
+import type am5xy from "@amcharts/amcharts5/xy";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import ClearIcon from "@mui/icons-material/Clear";
+import CloseIcon from "@mui/icons-material/Close";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
+import EditIcon from "@mui/icons-material/Edit";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import FilterIcon from "@mui/icons-material/Filter";
+import MapIcon from "@mui/icons-material/Map";
+import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import SelectAllIcon from "@mui/icons-material/SelectAll";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
-import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
-import Draggable from "react-draggable";
+import TableRowsIcon from "@mui/icons-material/TableRows";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import {
-    Button,
-    ButtonGroup,
-    Stack,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails,
-    Typography,
-    Paper,
-    IconButton,
-    Tabs,
-    Tab,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    TextField,
-    LinearProgress,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Button,
+  ButtonGroup,
+  IconButton,
+  LinearProgress,
+  Paper,
+  Stack,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tabs,
+  TextField,
+  Typography,
 } from "@mui/material";
 import { LayoutElement } from "@vertigis/web/components";
 import type { LayoutElementProperties } from "@vertigis/web/components";
 import { useWatchAndRerender } from "@vertigis/web/ui";
-import * as XLSX from "xlsx";
-import * as am5 from "@amcharts/amcharts5";
-import * as am5xy from "@amcharts/amcharts5/xy";
-import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
+import React, { useEffect, useRef, useState } from "react";
+import type { ReactElement } from "react";
 
 import type DikeDesignerModel from "./DikeDesignerModel";
-import { calculateVolume, createDesign, exportGraphicsLayerAsGeoJSON } from "./Functions/DesignFunctions";
+import {
+  calculateVolume,
+  createDesign,
+  exportGraphicsLayerAsGeoJSON,
+  initializeChart,
+} from "./Functions/DesignFunctions";
 // import { SimpleWorker } from "./Workers/SimpleWorker"; // adjust path as needed
-
 const DikeDesigner = (
     props: LayoutElementProperties<DikeDesignerModel>
 ): ReactElement => {
     const { model } = props;
 
-    const workerRef = useRef<Worker | null>(null);
+    // const workerRef = useRef<Worker | null>(null);
 
     // useEffect(() => {
     //     const blob = new Blob([simpleWorkerCode], { type: "application/javascript" });
@@ -79,6 +72,7 @@ const DikeDesigner = (
     //     };
     //   }, []);
 
+    const chartContainerRef = useRef<HTMLDivElement | null>(null);
     useWatchAndRerender(model, "chartData");
 
     const [mapLeftBorder, setMapLeftBorder] = useState(0);
@@ -116,117 +110,15 @@ const DikeDesigner = (
     }, []);
 
     useEffect(() => {
-        if (activeTab === 0 && model.chartData) {
-            const root = am5.Root.new("chartdiv");
-
-            root.setThemes([am5themes_Animated.new(root)]);
-
-            const chart = root.container.children.push(
-                am5xy.XYChart.new(root, {
-                    panX: true,
-                    panY: true,
-                    wheelX: "panX",
-                    wheelY: "zoomX",
-                    pinchZoomX: true,
-                })
-            );
-
-            try {
-                root._logo.dispose();
-            } catch { 
-                // Handle error if logo is not present
-            }
-
-            const xAxis = chart.xAxes.push(
-                am5xy.ValueAxis.new(root, {
-                    renderer: am5xy.AxisRendererX.new(root, {}),
-                    tooltip: am5.Tooltip.new(root, {}),
-                })
-            );
-
-            const yAxis = chart.yAxes.push(
-                am5xy.ValueAxis.new(root, {
-                    renderer: am5xy.AxisRendererY.new(root, {}),
-                    tooltip: am5.Tooltip.new(root, {}),
-                })
-            );
-
-            const series = chart.series.push(
-                am5xy.LineSeries.new(root, {
-                    name: "Hoogte vs Afstand",
-                    xAxis: xAxis as any,
-                    yAxis: yAxis as any,
-                    valueYField: "hoogte",
-                    valueXField: "afstand",
-                    tooltip: am5.Tooltip.new(root, {
-                        labelText: "{valueY}",
-                    }),
-                })
-            );
-
-            series.data.setAll(model.chartData);
-
-            series.strokes.template.setAll({
-                strokeWidth: 2,
-            });
-
-            // Add draggable bullets with snapping logic
-            series.bullets.push((root, series, dataItem) => {
-                const circle = am5.Circle.new(root, {
-                    radius: 5,
-                    fill: root.interfaceColors.get("background"),
-                    stroke: series.get("fill"),
-                    strokeWidth: 2,
-                    draggable: true,
-                    interactive: true,
-                    cursorOverStyle: "pointer",
-                });
-
-                // Snap the coordinates to the nearest 0.5 meter
-                const snapToGrid = (value: number, gridSize: number) => Math.round(value / gridSize) * gridSize;
-
-                circle.events.on("dragstop", () => {
-                    // Calculate new positions
-                    const newY = yAxis.positionToValue(
-                        yAxis.coordinateToPosition(circle.y())
-                    );
-                    const newX = xAxis.positionToValue(
-                        xAxis.coordinateToPosition(circle.x())
-                    );
-
-                    // Snap to nearest 0.5 meter grid
-                    const snappedX = snapToGrid(newX, 0.5);
-                    const snappedY = snapToGrid(newY, 0.5);
-
-                    // Update chart
-                    dataItem.set("valueY", snappedY);
-                    dataItem.set("valueX", snappedX);
-
-                    // Update model.chartData
-                    const index = model.chartData.findIndex(
-                        (d) => d.afstand === dataItem.dataContext["afstand"]
-                    );
-
-                    if (index !== -1) {
-                        model.chartData[index].hoogte = snappedY;
-                        model.chartData[index].afstand = snappedX;
-                        model.chartData = [...model.chartData]; // Force reactivity
-                    }
-                });
-
-                return am5.Bullet.new(root, {
-                    sprite: circle,
-                });
-            });
-
-            chart.set("cursor", am5xy.XYCursor.new(root, {}));
-
-            return () => {
-                root.dispose();
-            };
+        initializeChart(model, activeTab, chartContainerRef);
+    
+        return () => {
+                if (model.chartRoot) {
+                    model.chartRoot.dispose();
+                    console.log("Chart disposed");
+                }
         }
-    }, [activeTab, model.chartData, model]);
-
+    }, [model.overviewVisible, model, activeTab, chartContainerRef, model.chartData]);
 
     const handleDrawLine = () => {
         model.startDrawingLine();
@@ -308,6 +200,7 @@ const DikeDesigner = (
         }
     };
     const handleClearDesign = () => {
+        model.offsetGeometries = []
         model.graphicsLayerTemp.removeAll();
         model.graphicsLayerMesh.removeAll();
         model.totalVolumeDifference = null;
@@ -322,6 +215,11 @@ const DikeDesigner = (
     useWatchAndRerender(model, "excavationVolume");
     useWatchAndRerender(model, "fillVolume)");
     useWatchAndRerender(model, "totalVolumeDifference");
+    useWatchAndRerender(model, "graphicsLayerLine.graphics.length");
+    useWatchAndRerender(model, "graphicsLayerTemp.graphics.length");
+    useWatchAndRerender(model, "chartData.length");
+    useWatchAndRerender(model, "overviewVisible");
+
 
 
 
@@ -381,6 +279,7 @@ const DikeDesigner = (
                                     </Button>
                                 </ButtonGroup>
                                 <Button
+                                    disabled={!model.graphicsLayerLine?.graphics.length}
                                     variant="outlined"
                                     color="primary"
                                     onClick={handleClearGraphics}
@@ -416,6 +315,7 @@ const DikeDesigner = (
                                     />
                                 </Button>
                                 <Button
+                                    disabled={!model.chartData?.length}
                                     variant="outlined"
                                     color="secondary"
                                     startIcon={<ClearIcon />}
@@ -457,6 +357,7 @@ const DikeDesigner = (
 
 
                                 <Button
+                                    disabled={!model.chartData?.length || !model.graphicsLayerLine?.graphics.length}
                                     variant="contained"
                                     color="primary"
                                     startIcon={<PlayCircleFilledWhiteIcon />}
@@ -466,6 +367,7 @@ const DikeDesigner = (
                                     Uitrollen in 3D
                                 </Button>
                                 <Button
+                                    disabled={!model.graphicsLayerTemp?.graphics.length}
                                     variant="contained"
                                     color="secondary"
                                     startIcon={<CloudDownloadIcon />}
@@ -476,6 +378,7 @@ const DikeDesigner = (
                                 </Button>
 
                                 <Button
+                                    disabled={!model.graphicsLayerTemp?.graphics.length}
                                     variant="outlined"
                                     color="primary"
                                     startIcon={<ClearIcon />}
@@ -588,17 +491,19 @@ const DikeDesigner = (
                         </Tabs>
                         {activeTab === 0 && (
                             <div
-                                id="chartdiv"
+                               
+                                ref={chartContainerRef}
                                 style={{
                                     width: "100%",
-                                    height: "calc(100% - 95px)", // Adjust height to fit within the Paper
+                                    height: "calc(100% - 95px)",
+                                    display: activeTab === 0 ? "block" : "none",
                                 }}
                             ></div>
                         )}
                         {activeTab === 1 && (
                             <TableContainer
                                 sx={{
-                                    height: "calc(100% - 40px)", // Adjust height to fit within the Paper
+                                    height: "calc(100% - 95px)", // Adjust height to fit within the Paper
                                     overflow: "auto",
                                 }}
                             >
@@ -607,7 +512,7 @@ const DikeDesigner = (
                                         <TableRow>
                                             {/* Render table headers based on the keys of the first object in sortedData */}
                                             {model.chartData?.length > 0 &&
-                                                Object.keys(model.chartData[0]).map((header) => (
+                                                Object.keys(model.chartData[0] as object).map((header) => (
                                                     <TableCell key={header} align="center">
                                                         {header.charAt(0).toUpperCase() + header.slice(1)}
                                                     </TableCell>
@@ -619,7 +524,7 @@ const DikeDesigner = (
                                             const rowKey = `afstand-${row.afstand ?? rowIndex}`; // Fallback to index if needed
                                             return (
                                                 <TableRow key={rowKey}>
-                                                    {Object.entries(row).map(([key, cell]) => (
+                                                    {Object.entries(row as object).map(([key, cell]) => (
                                                         <TableCell key={`${rowKey}-${key}`} align="center">
                                                             <TextField
                                                                 value={cell}

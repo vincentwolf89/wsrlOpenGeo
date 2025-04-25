@@ -5,6 +5,10 @@
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 /* eslint-disable import/order */
 
+import * as am5 from "@amcharts/amcharts5";
+import * as am5xy from "@amcharts/amcharts5/xy";
+import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
+
 import { Features } from "@vertigis/web/messaging";
 import GraphicsLayer from "esri/layers/GraphicsLayer";
 import GeoJSONLayer from "esri/layers/GeoJSONLayer";
@@ -25,46 +29,34 @@ import * as webMercatorUtils from "esri/geometry/support/webMercatorUtils";
 import * as projection from "esri/geometry/projection";
 import * as meshUtils from "esri/geometry/support/meshUtils";
 export async function createDesign(model): Promise<void> {
-    // if (model.graphicsLayerLine.graphics.length === 0) {
-    //     alert("Please sketch a line before uploading an Excel file.");
-    //     return;
-    // }
     model.meshes = [];
     const basePath = model.graphicsLayerLine.graphics.items[0].geometry;
     console.log(basePath, "Base path geometry");
 
-
-    // if (!basePath || !basePath.paths || basePath.paths.length === 0) {
-    //     alert("No valid line found for offset calculations.");
-    //     return;
-    // }
-
-    await model.chartData.forEach(row => {
-        const offsetDistance = (row.afstand || 0);
+    await model.chartData.forEach((row) => {
+        const offsetDistance = row.afstand || 0;
         const offsetLine = geometryEngine.offset(basePath, offsetDistance) as Polyline;
 
         if (offsetLine) {
             const elevation = row.hoogte || 0;
-            const updatedPaths = offsetLine.paths.map(path =>
-                path.map(coord => [coord[0], coord[1], elevation])
+            const updatedPaths = offsetLine.paths.map((path) =>
+                path.map((coord) => [coord[0], coord[1], elevation])
             );
 
             const offsetGraphic = new Graphic({
                 geometry: new Polyline({
                     paths: updatedPaths,
-                    spatialReference: SpatialReference.WebMercator
+                    spatialReference: SpatialReference.WebMercator,
                 }),
                 symbol: {
                     type: "simple-line", // SimpleLineSymbol type
                     style: "solid",
                     color: "grey",
-                    width: 1
-                } as __esri.SimpleLineSymbolProperties
+                    width: 1,
+                } as __esri.SimpleLineSymbolProperties,
             });
 
             model.graphicsLayerTemp.add(offsetGraphic);
-
-
 
             if (row.locatie) {
                 model.offsetGeometries[row.locatie] = offsetGraphic.geometry;
@@ -76,36 +68,57 @@ export async function createDesign(model): Promise<void> {
 
     console.log(model.offsetGeometries, "Offset geometries");
 
-    createPolygonBetween(model, "buitenkruin", "binnenkruin", [128, 0, 0, 0.9]);
-
-    let containsBerm = model.chartData.some(row => row.locatie?.toLowerCase().includes("berm"));
-
-    if (containsBerm) {
-        createPolygonBetween(model, "buitenkruin", "bovenkant_buitenberm", [50, 205, 50, 0.9]);
-        createPolygonBetween(model, "binnenkruin", "bovenkant_binnenberm", [50, 205, 50, 0.9]);
-        createPolygonBetween(model, "bovenkant_buitenberm", "onderkant_buitenberm", [50, 205, 50, 0.9]);
-        createPolygonBetween(model, "onderkant_buitenberm", "buitenteen", [50, 205, 50, 0.9]);
-        createPolygonBetween(model, "bovenkant_binnenberm", "onderkant_binnenberm", [50, 205, 50, 0.9]);
-        createPolygonBetween(model, "onderkant_binnenberm", "binnenteen", [50, 205, 50, 0.9]);
-    } else {
+    // Check and create polygons only if the required values exist
+    if (model.offsetGeometries["buitenkruin"] && model.offsetGeometries["binnenkruin"]) {
         createPolygonBetween(model, "buitenkruin", "binnenkruin", [128, 0, 0, 0.9]);
-        createPolygonBetween(model, "buitenkruin", "buitenteen", [50, 205, 50, 0.9]);
-        createPolygonBetween(model, "binnenkruin", "binnenteen", [50, 205, 50, 0.9]);
     }
 
-    const merged = meshUtils.merge(model.meshes)
+    const containsBerm = model.chartData.some((row) =>
+        row.locatie?.toLowerCase().includes("berm")
+    );
+
+    if (containsBerm) {
+        if (model.offsetGeometries["buitenkruin"] && model.offsetGeometries["bovenkant_buitenberm"]) {
+            createPolygonBetween(model, "buitenkruin", "bovenkant_buitenberm", [50, 205, 50, 0.9]);
+        }
+        if (model.offsetGeometries["binnenkruin"] && model.offsetGeometries["bovenkant_binnenberm"]) {
+            createPolygonBetween(model, "binnenkruin", "bovenkant_binnenberm", [50, 205, 50, 0.9]);
+        }
+        if (model.offsetGeometries["bovenkant_buitenberm"] && model.offsetGeometries["onderkant_buitenberm"]) {
+            createPolygonBetween(model, "bovenkant_buitenberm", "onderkant_buitenberm", [50, 205, 50, 0.9]);
+        }
+        if (model.offsetGeometries["onderkant_buitenberm"] && model.offsetGeometries["buitenteen"]) {
+            createPolygonBetween(model, "onderkant_buitenberm", "buitenteen", [50, 205, 50, 0.9]);
+        }
+        if (model.offsetGeometries["bovenkant_binnenberm"] && model.offsetGeometries["onderkant_binnenberm"]) {
+            createPolygonBetween(model, "bovenkant_binnenberm", "onderkant_binnenberm", [50, 205, 50, 0.9]);
+        }
+        if (model.offsetGeometries["onderkant_binnenberm"] && model.offsetGeometries["binnenteen"]) {
+            createPolygonBetween(model, "onderkant_binnenberm", "binnenteen", [50, 205, 50, 0.9]);
+        }
+    } else {
+        if (model.offsetGeometries["buitenkruin"] && model.offsetGeometries["binnenkruin"]) {
+            createPolygonBetween(model, "buitenkruin", "binnenkruin", [128, 0, 0, 0.9]);
+        }
+        if (model.offsetGeometries["buitenkruin"] && model.offsetGeometries["buitenteen"]) {
+            createPolygonBetween(model, "buitenkruin", "buitenteen", [50, 205, 50, 0.9]);
+        }
+        if (model.offsetGeometries["binnenkruin"] && model.offsetGeometries["binnenteen"]) {
+            createPolygonBetween(model, "binnenkruin", "binnenteen", [50, 205, 50, 0.9]);
+        }
+    }
+
+    const merged = meshUtils.merge(model.meshes);
     const mergedGraphic = new Graphic({
         geometry: merged,
         symbol: {
             type: "mesh-3d",
-            symbolLayers: [{ type: "fill" }]
+            symbolLayers: [{ type: "fill" }],
         } as __esri.Symbol3DLayerProperties,
     });
     model.graphicsLayerMesh.add(mergedGraphic);
-    model.mergedMesh = merged
+    model.mergedMesh = merged;
     model.meshGraphic = mergedGraphic;
-
-
 }
 
 export async function calculateVolume(model): Promise<void> {
@@ -324,3 +337,173 @@ export function exportGraphicsLayerAsGeoJSON(model): void {
         document.body.removeChild(a);
     });
 }
+
+export function initializeChart(model, activeTab, chartContainerRef): () => void {
+    if (activeTab !== 0 || !model.chartData || !chartContainerRef.current ) {
+        console.log(activeTab, model.chartData, chartContainerRef.current, "Chart not initialized");
+        return
+    }
+
+
+    model.chartRoot = am5.Root.new(chartContainerRef.current);
+    const root = model.chartRoot as am5.Root;
+    root.setThemes([am5themes_Animated.new(root)]);
+
+    const chart = root.container.children.push(
+        am5xy.XYChart.new(root, {
+            panX: true,
+            panY: true,
+            wheelX: "panX",
+            wheelY: "zoomX",
+            pinchZoomX: true,
+        })
+    );
+
+    try {
+        root._logo.dispose();
+    } catch {
+        // Handle error if logo is not present
+    }
+
+    const xAxis = chart.xAxes.push(
+        am5xy.ValueAxis.new(root, {
+            renderer: am5xy.AxisRendererX.new(root, {}),
+            tooltip: am5.Tooltip.new(root, {}),
+        })
+    );
+
+    const yAxis = chart.yAxes.push(
+        am5xy.ValueAxis.new(root, {
+            renderer: am5xy.AxisRendererY.new(root, {}),
+            tooltip: am5.Tooltip.new(root, {}),
+        })
+    );
+
+    const series = chart.series.push(
+        am5xy.LineSeries.new(root, {
+            name: "Hoogte vs Afstand",
+            xAxis: xAxis as any,
+            yAxis: yAxis as any,
+            valueYField: "hoogte",
+            valueXField: "afstand",
+            tooltip: am5.Tooltip.new(root, {
+                labelText: "{valueY}",
+            }),
+        })
+    );
+
+    series.data.setAll(model.chartData);
+
+    series.strokes.template.setAll({
+        strokeWidth: 2,
+    });
+
+      // Add draggable bullets with snapping logic
+    series.bullets.push((root, series, dataItem) => {
+        const circle = am5.Circle.new(root, {
+            radius: 5,
+            fill: root.interfaceColors.get("background"),
+            stroke: series.get("fill"),
+            strokeWidth: 2,
+            draggable: true,
+            interactive: true,
+            cursorOverStyle: "pointer",
+        });
+
+        // Snap the coordinates to the nearest 0.5 meter
+        const snapToGrid = (value: number, gridSize: number) => Math.round(value / gridSize) * gridSize;
+
+        circle.events.on("dragstop", () => {
+            // Calculate new positions
+            const newY = yAxis.positionToValue(
+                yAxis.coordinateToPosition(circle.y())
+            );
+            const newX = xAxis.positionToValue(
+                xAxis.coordinateToPosition(circle.x())
+            );
+
+            // Snap to nearest 0.5 meter grid
+            const snappedX = snapToGrid(newX, 0.5);
+            const snappedY = snapToGrid(newY, 0.5);
+
+            // Update chart
+            dataItem.set("valueY", snappedY);
+            dataItem.set("valueX", snappedX);
+
+            // Update model.chartData
+            const index = model.chartData.findIndex(
+                (d) => d.afstand === dataItem.dataContext["afstand"]
+            );
+
+            console.log(index)
+
+            if (index !== -1) {
+                model.chartData[index].hoogte = snappedY;
+                model.chartData[index].afstand = snappedX;
+                model.chartData = [...model.chartData]; // Force reactivity
+            }
+        });
+
+        return am5.Bullet.new(root, {
+            sprite: circle,
+        });
+    });
+
+    chart.set("cursor", am5xy.XYCursor.new(root, {}));
+
+    return () => {
+        root.dispose();
+    };
+}
+
+// export function handleChartDrag(){
+//     series.bullets.push((root, series, dataItem) => {
+//         const circle = am5.Circle.new(root, {
+//             radius: 5,
+//             fill: root.interfaceColors.get("background"),
+//             stroke: series.get("fill"),
+//             strokeWidth: 2,
+//             draggable: true,
+//             interactive: true,
+//             cursorOverStyle: "pointer",
+//         });
+
+//         // Snap the coordinates to the nearest 0.5 meter
+//         const snapToGrid = (value: number, gridSize: number) => Math.round(value / gridSize) * gridSize;
+
+//         circle.events.on("dragstop", () => {
+//             // Calculate new positions
+//             const newY = yAxis.positionToValue(
+//                 yAxis.coordinateToPosition(circle.y())
+//             );
+//             const newX = xAxis.positionToValue(
+//                 xAxis.coordinateToPosition(circle.x())
+//             );
+
+//             // Snap to nearest 0.5 meter grid
+//             const snappedX = snapToGrid(newX, 0.5);
+//             const snappedY = snapToGrid(newY, 0.5);
+
+//             // Update chart
+//             dataItem.set("valueY", snappedY);
+//             dataItem.set("valueX", snappedX);
+
+//             // Update model.chartData
+//             const index = model.chartData.findIndex(
+//                 (d) => d.afstand === dataItem.dataContext["afstand"]
+//             );
+
+//             console.log(index)
+
+//             // if (index !== -1) {
+//             //     model.chartData[index].hoogte = snappedY;
+//             //     model.chartData[index].afstand = snappedX;
+//             //     model.chartData = [...model.chartData]; // Force reactivity
+//             // }
+//         });
+
+//         return am5.Bullet.new(root, {
+//             sprite: circle,
+//         });
+//     });
+// }
