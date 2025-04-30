@@ -37,6 +37,11 @@
             "id": "stack-config-2",
             "title": "Lagen",
             "$type": "stack"
+        },
+        {
+            "id": "stack-config-3",
+            "title": "Lagen",
+            "$type": "stack"
         }
     ]
 }

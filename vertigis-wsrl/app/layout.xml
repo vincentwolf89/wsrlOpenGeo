@@ -8,34 +8,17 @@
              <stack xmlns="https://geocortex.com/layout/v1" id="stack-2" config="stack-config-2">
                 <layer-list xmlns="https://geocortex.com/layout/v1" id="layers-b780758f" models="#map-primary" config="layer-config-1"/>
             </stack>
-            <stack xmlns="https://geocortex.com/layout/v1" id="stack-1" config="stack-config-1">
-                <vertigis-wsrl:dike-designer slot="top-end" config="dike-designer-model-1" active="true" models="#map-primary"/>
-            </stack>
+
            
 
         </tabs>
-        <stack>
-        <split id="split-3c083778" config="6cb00aa7-2eb5-4f23-b543-924945ff9f62" height="10">
-            <tabs xmlns="https://geocortex.com/layout/web/v1"  config="tabs-config-2" slot="top-left" width="">
-            <stack xmlns="https://geocortex.com/layout/v1" id="stack-2" config="stack-config-5">
-            <split>
-                <!-- <gdss-ls:set-theme slot="top-end" config="set-theme-model-1" active="true" models="#map-primary"/>
-                <gdss-ls:vrije-datafout slot="top-end" config="vrije-datafout-model-1" active="true" models="#map-primary"/> -->
-            </split>
-            </stack>
-            <stack xmlns="https://geocortex.com/layout/v1" id="stack-4" config="stack-config-4">
-            <split>
-                <!-- <gdss-ls:label-button  slot="top-end" config="label-button-model-1" active="true" models="#map-primary"/>
-                <gdss-ls:label-button slot="top-end" config="label-button-model-2" active="true" models="#map-primary"/>
-                <gdss-ls:label-button slot="top-end" config="label-button-model-3" active="true" models="#map-primary"/> -->
-                </split>
-            </stack>
+   
 
-        </tabs>
-        </split>
         <map id="map-1" config="map-config-1">
 
         </map>
+        <stack resizable="true" id="stack-3" config="stack-config-3" width="26">
+             <vertigis-wsrl:dike-designer slot="top-end" config="dike-designer-model-1" active="true" models="#map-primary"/>
         </stack>
     </split>
 </layout>
