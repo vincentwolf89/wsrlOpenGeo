@@ -3,7 +3,6 @@ import ArchitectureIcon from "@mui/icons-material/Architecture";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import ClearIcon from "@mui/icons-material/Clear";
-import CloseIcon from "@mui/icons-material/Close";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import EditIcon from "@mui/icons-material/Edit";
 import FilterIcon from "@mui/icons-material/Filter";
@@ -16,20 +15,16 @@ import {
     Box,
     Button,
     ButtonGroup,
-    IconButton,
     LinearProgress,
-    Paper,
     Stack,
     Tab,
     Table,
     TableBody,
     TableCell,
     TableContainer,
-    TableHead,
     TableRow,
     Tabs,
     TextField,
-    Typography,
     Select,
     MenuItem,
     FormControl,
@@ -49,6 +44,7 @@ import {
     initializeChart,
     setInputLineFromFeatureLayer,
 } from "./Functions/DesignFunctions";
+import ChartAndTablePanel from "./SubComponents/ChartAndTablePanel";
 // import { SimpleWorker } from "./Workers/SimpleWorker"; // adjust path as needed
 const DikeDesigner = (
     props: LayoutElementProperties<DikeDesignerModel>
@@ -81,7 +77,6 @@ const DikeDesigner = (
     const [mapRightBorder, setMapRightBorder] = useState(window.innerWidth);
     const [activeTab, setActiveTab] = useState(0);
     const [isOverviewVisible, setIsOverviewVisible] = useState(false);
-    const [gridSize, setGridSize] = useState(1); // Default grid size
     const [loading, setLoading] = useState(false); // State to track loading status
     const [value, setValue] = React.useState(0);
     const [isLayerListVisible, setIsLayerListVisible] = useState(false);
@@ -159,7 +154,6 @@ const DikeDesigner = (
     };
 
     const handleGridChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setGridSize(parseFloat(event.target.value));
         model.gridSize = parseFloat(event.target.value);
     }
 
@@ -169,9 +163,9 @@ const DikeDesigner = (
         setInputLineFromFeatureLayer(model)
     };
 
-    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-        setActiveTab(newValue);
-    };
+    // const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    //     setActiveTab(newValue);
+    // };
 
     const handleCellChange = (rowIndex: number, colKey: string, value: string) => {
         const updatedData = [...model.chartData];
@@ -241,6 +235,7 @@ const DikeDesigner = (
     useWatchAndRerender(model, "chartData.length");
     useWatchAndRerender(model, "overviewVisible");
     useWatchAndRerender(model, "selectedLineLayerId");
+    useWatchAndRerender(model, "gridSize");
 
 
     interface TabPanelProps {
@@ -271,8 +266,6 @@ const DikeDesigner = (
             </div>
         );
     }
-
-
 
 
     return (
@@ -413,7 +406,7 @@ const DikeDesigner = (
 
                             {/* Grid-size input */}
                             <TextField
-                                value={gridSize}
+                                value={model.gridSize}
                                 label="Gridgrootte [m]"
                                 type="number"
                                 variant="outlined"
@@ -513,109 +506,17 @@ const DikeDesigner = (
 
             {/* Paper for Chart and Table */}
             {isOverviewVisible && model.chartData && (
-                <Paper
-                    elevation={3}
-                    sx={{
-                        position: "fixed",
-                        bottom: 0,
-                        left: mapLeftBorder, // Dynamically set left position
-                        width: mapRightBorder - mapLeftBorder, // Dynamically set width
-                        height: "50%", // Consume half of the map's height
-                        zIndex: 10,
-                        padding: 0,
-                        borderRadius: "5px",
-                        backgroundColor: "#ffffff",
-                        boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.15)",
-                    }}
-                >
-                    <Typography
-                        variant="h6"
-                        sx={{
-                            fontWeight: "bold",
-                            color: "#ffffff",
-                            backgroundColor: "#1976d2",
-                            padding: 1,
-                            fontSize: "12px",
-                            borderTopLeftRadius: "4px",
-                            borderTopRightRadius: "4px",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                        }}
-                    >
-                        Design overzicht
-                        <IconButton
-                            aria-label="close"
-                            onClick={() => setIsOverviewVisible(false)} // Close the Paper when clearing Excel data
-                            size="medium"
-                            sx={{ color: "#ffffff" }}
-                        >
-                            <CloseIcon />
-                        </IconButton>
-                    </Typography>
-                    <Tabs
-                        value={activeTab}
-                        onChange={handleTabChange}
-                        indicatorColor="primary"
-                        textColor="primary"
-                        variant="fullWidth"
-                    >
-                        <Tab label="Dwarsprofiel" />
-                        <Tab label="Invoerdata" />
-                    </Tabs>
-                    {activeTab === 0 && (
-                        <div
-
-                            ref={chartContainerRef}
-                            style={{
-                                width: "100%",
-                                height: "calc(100% - 95px)",
-                                display: activeTab === 0 ? "block" : "none",
-                            }}
-                        ></div>
-                    )}
-                    {activeTab === 1 && (
-                        <TableContainer
-                            sx={{
-                                height: "calc(100% - 95px)", // Adjust height to fit within the Paper
-                                overflow: "auto",
-                            }}
-                        >
-                            <Table stickyHeader>
-                                <TableHead>
-                                    <TableRow>
-                                        {/* Render table headers based on the keys of the first object in sortedData */}
-                                        {model.chartData?.length > 0 &&
-                                            Object.keys(model.chartData[0] as object).map((header) => (
-                                                <TableCell key={header} align="center">
-                                                    {header.charAt(0).toUpperCase() + header.slice(1)}
-                                                </TableCell>
-                                            ))}
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {model.chartData?.map((row, rowIndex) => {
-                                        const rowKey = `afstand-${row.afstand ?? rowIndex}`; // Fallback to index if needed
-                                        return (
-                                            <TableRow key={rowKey}>
-                                                {Object.entries(row as object).map(([key, cell]) => (
-                                                    <TableCell key={`${rowKey}-${key}`} align="center">
-                                                        <TextField
-                                                            value={cell}
-                                                            onChange={(e) => handleCellChange(rowIndex, key, e.target.value)} // Pass `key` instead of `colIndex`
-                                                            variant="outlined"
-                                                            size="small"
-                                                        />
-                                                    </TableCell>
-                                                ))}
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    )}
-                </Paper>
+                <ChartAndTablePanel
+                    isOverviewVisible={isOverviewVisible}
+                    setIsOverviewVisible={setIsOverviewVisible}
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    mapLeftBorder={mapLeftBorder}
+                    mapRightBorder={mapRightBorder}
+                    chartContainerRef={chartContainerRef}
+                    model={model}
+                    handleCellChange={handleCellChange}
+                />
             )}
 
         </LayoutElement>
