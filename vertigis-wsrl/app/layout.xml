@@ -2,23 +2,17 @@
 <layout xmlns="https://geocortex.com/layout/v1"
     xmlns:vertigis-wsrl="vertigis-wsrl">
     <split id="split-a913657c" resizable="true" config="root">
-    
-            <tabs xmlns="https://geocortex.com/layout/web/v1" id="tabs-db811610" config="tabs-config-1" slot="top-left" width="26">
-            
-             <stack xmlns="https://geocortex.com/layout/v1" id="stack-2" config="stack-config-2">
-                <layer-list xmlns="https://geocortex.com/layout/v1" id="layers-b780758f" models="#map-primary" config="layer-config-1"/>
-            </stack>
-
-           
-
-        </tabs>
-   
-
+        <stack resizable="true" id="stack-3" config="stack-config-3" width="26">
+            <vertigis-wsrl:dike-designer slot="top-end" config="dike-designer-model-1" active="true" models="#map-primary"/>
+        </stack>
         <map id="map-1" config="map-config-1">
-
         </map>
         <stack resizable="true" id="stack-3" config="stack-config-3" width="26">
-             <vertigis-wsrl:dike-designer slot="top-end" config="dike-designer-model-1" active="true" models="#map-primary"/>
+            <tabs xmlns="https://geocortex.com/layout/web/v1" id="tabs-db811610" config="tabs-config-1" slot="top-left" width="26">
+                <stack xmlns="https://geocortex.com/layout/v1" id="stack-2" config="stack-config-2">
+                    <layer-list xmlns="https://geocortex.com/layout/v1" id="layers-b780758f" models="#map-primary" config="layer-config-1"/>
+                </stack>
+            </tabs>
         </stack>
     </split>
 </layout>

@@ -36,6 +36,7 @@ export async function createDesign(model): Promise<void> {
     await model.chartData.forEach((row) => {
         const offsetDistance = row.afstand || 0;
         const offsetLine = geometryEngine.offset(basePath, offsetDistance) as Polyline;
+        console.log(offsetLine, "Offset line geometry");
 
         if (offsetLine) {
             const elevation = row.hoogte || 0;
@@ -133,7 +134,7 @@ export async function calculateVolume(model): Promise<void> {
     // elevationSampler.demResolution.min = 5; // Set the minimum resolution for the DEM
 
     console.log("Elevation sampler created:", elevationSampler);
-        
+
     const extent = model.meshGraphic.geometry.extent;
 
     const pointCoordsForVolume = [];
@@ -147,8 +148,8 @@ export async function calculateVolume(model): Promise<void> {
             //     spatialReference: SpatialReference.WebMercator
             // });
 
-            
-            
+
+
 
             // Query the elevation at the point, maybe batch this?
             const elevation = elevationSampler.elevationAt(x, y);
@@ -159,12 +160,12 @@ export async function calculateVolume(model): Promise<void> {
 
                 // Add the point to the ground elevation query
                 groundPoints.push([x, y]);
-                
+
             }
         }
     }
 
-    
+
 
     console.log("All points processed:", pointCoordsForVolume);
     if (pointCoordsForVolume.length === 0) {
@@ -199,12 +200,12 @@ export async function calculateVolume(model): Promise<void> {
     //   });
     // model.graphicsLayerLine.addMany(graphics);
 
-    
+
     const groundResult = await model.elevationLayer.queryElevation(multipointForGround, { returnSampleInfo: true });
     console.log("Ground elevation query result:", groundResult);
 
     let totalVolumeDifference = 0;
-    let excavationVolume= 0;
+    let excavationVolume = 0;
     let fillVolume = 0;
 
     groundResult.geometry.points.forEach(([x, y, zGround], index) => {
@@ -318,7 +319,7 @@ export function exportGraphicsLayerAsGeoJSON(model): void {
                             coordinates: (projectedGeometry as __esri.Polygon).rings,
                         };
                         geojson.features.push(feature);
-                    } 
+                    }
 
                     // geojson.features.push(feature);
                 }
@@ -339,7 +340,7 @@ export function exportGraphicsLayerAsGeoJSON(model): void {
 }
 
 export function initializeChart(model, activeTab, chartContainerRef): () => void {
-    if (activeTab !== 0 || !model.chartData || !chartContainerRef.current ) {
+    if (activeTab !== 0 || !model.chartData || !chartContainerRef.current) {
         console.log(activeTab, model.chartData, chartContainerRef.current, "Chart not initialized");
         return
     }
@@ -398,7 +399,7 @@ export function initializeChart(model, activeTab, chartContainerRef): () => void
         strokeWidth: 2,
     });
 
-      // Add draggable bullets with snapping logic
+    // Add draggable bullets with snapping logic
     series.bullets.push((root, series, dataItem) => {
         const circle = am5.Circle.new(root, {
             radius: 5,
@@ -456,54 +457,54 @@ export function initializeChart(model, activeTab, chartContainerRef): () => void
     };
 }
 
-// export function handleChartDrag(){
-//     series.bullets.push((root, series, dataItem) => {
-//         const circle = am5.Circle.new(root, {
-//             radius: 5,
-//             fill: root.interfaceColors.get("background"),
-//             stroke: series.get("fill"),
-//             strokeWidth: 2,
-//             draggable: true,
-//             interactive: true,
-//             cursorOverStyle: "pointer",
-//         });
+export async function getLineFeatureLayers(map): Promise<FeatureLayer[]> {
+    if (!map) {
+        console.error("Map is not initialized.");
+        return [];
+    }
 
-//         // Snap the coordinates to the nearest 0.5 meter
-//         const snapToGrid = (value: number, gridSize: number) => Math.round(value / gridSize) * gridSize;
+    // Filter layers with line geometry
+    const lineFeatureLayers = map.layers
+        .filter((layer) => layer.type === "feature")
+        .filter((layer: FeatureLayer) => layer.geometryType === "polyline");
 
-//         circle.events.on("dragstop", () => {
-//             // Calculate new positions
-//             const newY = yAxis.positionToValue(
-//                 yAxis.coordinateToPosition(circle.y())
-//             );
-//             const newX = xAxis.positionToValue(
-//                 xAxis.coordinateToPosition(circle.x())
-//             );
+    console.log("Line Feature Layers:", lineFeatureLayers);
+    return lineFeatureLayers as FeatureLayer[];
+}
 
-//             // Snap to nearest 0.5 meter grid
-//             const snappedX = snapToGrid(newX, 0.5);
-//             const snappedY = snapToGrid(newY, 0.5);
+export function setInputLineFromFeatureLayer(model) {
+    const inputLineFeatureLayer = model.map.layers.find((layer) => layer.id === model.selectedLineLayerId) as FeatureLayer;
+    //  find featurelayer with line geometry
+    const lineGeometry = inputLineFeatureLayer.queryFeatures({
+        where: "1=1",
+        returnGeometry: true,
+        outFields: ["*"],
+    }).then(async (result) => {
+        const features = result.features;
+        if (features.length > 0) {
+            features.forEach((feature) => {
 
-//             // Update chart
-//             dataItem.set("valueY", snappedY);
-//             dataItem.set("valueX", snappedX);
+                const lineGeometry = feature.geometry;
+                projection.load().then(() => {
+                    const projectedGeometry = projection.project(
+                        lineGeometry,
+                        new SpatialReference({ wkid: 3857 })
+                    );
+                    model.graphicsLayerLine.add(new Graphic({
+                        geometry: projectedGeometry as __esri.Geometry,
+                        symbol: model.lineLayerSymbol,
+                        attributes: feature.attributes,
+                    }));
+                    console.log(model.graphicsLayerLine, "graphicsLayerLine")
 
-//             // Update model.chartData
-//             const index = model.chartData.findIndex(
-//                 (d) => d.afstand === dataItem.dataContext["afstand"]
-//             );
+                })
+            })
 
-//             console.log(index)
+        } else {
+            console.warn("No features found in the selected feature layer.");
+        }
+    }).catch((error) => {
+        console.error("Error querying feature layer:", error);
+    })
 
-//             // if (index !== -1) {
-//             //     model.chartData[index].hoogte = snappedY;
-//             //     model.chartData[index].afstand = snappedX;
-//             //     model.chartData = [...model.chartData]; // Force reactivity
-//             // }
-//         });
-
-//         return am5.Bullet.new(root, {
-//             sprite: circle,
-//         });
-//     });
-// }
+}

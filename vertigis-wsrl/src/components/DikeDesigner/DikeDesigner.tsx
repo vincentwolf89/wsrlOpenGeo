@@ -30,6 +30,10 @@ import {
     Tabs,
     TextField,
     Typography,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
 } from "@mui/material";
 import { LayoutElement } from "@vertigis/web/components";
 import type { LayoutElementProperties } from "@vertigis/web/components";
@@ -43,6 +47,7 @@ import {
     createDesign,
     exportGraphicsLayerAsGeoJSON,
     initializeChart,
+    setInputLineFromFeatureLayer,
 } from "./Functions/DesignFunctions";
 // import { SimpleWorker } from "./Workers/SimpleWorker"; // adjust path as needed
 const DikeDesigner = (
@@ -79,6 +84,8 @@ const DikeDesigner = (
     const [gridSize, setGridSize] = useState(1); // Default grid size
     const [loading, setLoading] = useState(false); // State to track loading status
     const [value, setValue] = React.useState(0);
+    const [isLayerListVisible, setIsLayerListVisible] = useState(false);
+
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
@@ -131,8 +138,13 @@ const DikeDesigner = (
     };
 
     const handleSelectFromMap = () => {
-        model.selectLineFromMap();
+        if (model.lineFeatureLayers?.length > 0) {
+            setIsLayerListVisible(true);
+        } else {
+            console.warn("No line feature layers available.");
+        }
     };
+
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -143,12 +155,19 @@ const DikeDesigner = (
 
     const handleClearGraphics = () => {
         model.graphicsLayerLine.removeAll();
+        model.selectedLineLayerId = null;
     };
 
     const handleGridChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setGridSize(parseFloat(event.target.value));
         model.gridSize = parseFloat(event.target.value);
     }
+
+    const setSelectedLineLayerId = (lineLayerId: string) => {
+        model.selectedLineLayerId = lineLayerId;
+        model.graphicsLayerLine.removeAll();
+        setInputLineFromFeatureLayer(model)
+    };
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setActiveTab(newValue);
@@ -221,6 +240,7 @@ const DikeDesigner = (
     useWatchAndRerender(model, "graphicsLayerTemp.graphics.length");
     useWatchAndRerender(model, "chartData.length");
     useWatchAndRerender(model, "overviewVisible");
+    useWatchAndRerender(model, "selectedLineLayerId");
 
 
     interface TabPanelProps {
@@ -256,7 +276,7 @@ const DikeDesigner = (
 
 
     return (
-        <LayoutElement {...props}>
+        <LayoutElement {...props} style={{ width: "100%" }}>
             <Box
                 sx={{ width: '100%' }}
             >
@@ -266,7 +286,9 @@ const DikeDesigner = (
                         onChange={handleChange}
                         variant="scrollable"
                         scrollButtons="auto"
+
                         aria-label="scrollable auto tabs example"
+                
                     >
                         <Tab icon={<ArchitectureIcon />}label="Dimensioneren" {...a11yProps(0)}>
                         </Tab>
@@ -278,7 +300,7 @@ const DikeDesigner = (
                 <CustomTabPanel value={value} index={0}>
                     <Stack spacing={1}>
 
-                        <Stack spacing={1} sx={{ outline: 1, padding: 1, borderRadius: 1, outlineColor: "#D3D3D3" }}>
+                        <Stack spacing={2} sx={{ outline: 1, padding: 1, borderRadius: 1, outlineColor: "#D3D3D3" }}>
                             <ButtonGroup fullWidth>
                                 <Button
                                     disabled={!model.sketchViewModel}
@@ -294,6 +316,7 @@ const DikeDesigner = (
                                     onClick={handleUploadGeoJSON}
                                     startIcon={<UploadFileIcon />}
                                     variant="contained"
+                                    disabled={!model.map}
                                 >
                                     Upload GeoJSON
                                 </Button>
@@ -302,11 +325,32 @@ const DikeDesigner = (
                                     onClick={handleSelectFromMap}
                                     startIcon={<MapIcon />}
                                     variant="contained"
-                                    disabled
+                                    disabled={!model.map}
                                 >
                                     Selecteer uit de kaart
                                 </Button>
                             </ButtonGroup>
+                            { isLayerListVisible && (
+
+                            
+                            <FormControl sx={{ marginTop:2 }} size="small">
+                                <InputLabel id="demo-select-small-label">Ontwerplijn</InputLabel>
+                                <Select
+                                value={model.selectedLineLayerId}
+                                onChange={(e) => setSelectedLineLayerId(e.target.value)}
+                                displayEmpty
+                                fullWidth
+                                variant="outlined"
+                            >
+                                {model.lineFeatureLayers.map((layer) => (
+                                    <MenuItem key={layer.id} value={layer.id}>
+                                        {layer.title}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                                </FormControl>
+                            )}
+    
                             <Button
                                 disabled={!model.graphicsLayerLine?.graphics.length}
                                 variant="outlined"

@@ -38,7 +38,7 @@ import * as meshUtils from "esri/geometry/support/meshUtils";
 
 import SketchViewModel from "esri/widgets/Sketch";
 
-import { initializeChart } from "./Functions/DesignFunctions";
+import { initializeChart, getLineFeatureLayers } from "./Functions/DesignFunctions";
 export interface DikeDesignerModelProperties extends ComponentModelProperties {
     elevationLayerUrl?: string;
 }
@@ -71,6 +71,16 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     chartRoot: any = null
     chart: any = null
     chartSeries: any = null
+
+    lineFeatureLayers: FeatureLayer[] = []
+    selectedLineLayerId: string | null 
+    selectedLineLayer: FeatureLayer | null 
+
+    lineLayerSymbol = {
+        type: "simple-line",
+        color: [255, 0, 255],
+        width: 4
+    };
 
 
 
@@ -156,16 +166,11 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
                         const projected = projection.project(esriGeometry, spatialRefOut);
 
-                                    const symbol = {
-                                        type: "simple-line",
-                                        color: [255, 0, 255],
-                                        width: 2
-                                    };
 
                                     const graphic = new Graphic({
                                         geometry: projected as any,
                                         attributes: properties,
-                                        symbol: symbol as any
+                                        symbol: this.lineLayerSymbol,
                                     });
 
                                     this.graphicsLayerLine.add(graphic);
@@ -275,12 +280,12 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                 listMode: "hide",
             });
             this.graphicsLayerTemp = new GraphicsLayer({
-                title: "Temporary Layer",
+                title: "Ontwerpdata - tijdelijk",
                 elevationInfo: {
                     mode: "absolute-height",
                     offset: 0
                 },
-                listMode: "hide",
+                listMode: "show",
                 visible: false,
             });
             this.graphicsLayerMesh = new GraphicsLayer({
@@ -298,7 +303,10 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
             this.map.add(this.graphicsLayerLine);
             this.map.add(this.graphicsLayerTemp);
             this.map.add(this.graphicsLayerMesh);
-        
+
+
+            this.lineFeatureLayers = await getLineFeatureLayers(this.map);
+            console.log("Line feature layers:", this.lineFeatureLayers);
 
 
             
