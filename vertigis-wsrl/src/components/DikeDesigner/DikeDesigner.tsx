@@ -161,6 +161,14 @@ const DikeDesigner = (
         model.selectedLineLayerId = lineLayerId;
         model.graphicsLayerLine.removeAll();
         setInputLineFromFeatureLayer(model)
+
+        // Find the selected feature layer
+        const selectedLayer = model.lineFeatureLayers.find((layer) => layer.id === lineLayerId);
+        if (selectedLayer) {
+            // Extract field names from the selected layer
+            const fields = selectedLayer.fields.map((field: { name: string }) => field.name);
+            model.selectedDijkvakLayerFields = fields;
+        }
     };
 
     // const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -180,17 +188,11 @@ const DikeDesigner = (
         };
 
         model.chartData = updatedData;
+        model.allChartData[model.activeSheet] = updatedData; // Update the active sheet data
 
         // 🔁 Update chart with new data
         seriesRef.current?.data.setAll(updatedData);
 
-        // Update the corresponding sheet in excelSheets
-        const sheetData = [...model.excelSheets[model.activeSheet]];
-        if (sheetData[rowIndex + 1]) {
-            const columnIndex = colKey === "afstand" ? 1 : colKey === "hoogte" ? 2 : 0;
-            sheetData[rowIndex + 1][columnIndex] = parsedValue;
-            model.excelSheets[model.activeSheet] = sheetData;
-        }
     };
 
     const handleOpenOverview = () => {
@@ -246,13 +248,14 @@ const DikeDesigner = (
     useWatchAndRerender(model, "selectedLineLayerId");
     useWatchAndRerender(model, "gridSize");
     useWatchAndRerender(model, "activeSheet");
+    useWatchAndRerender(model, "selectedDijkvakField");
 
 
     interface TabPanelProps {
         children?: React.ReactNode;
         index: number;
         value: number;
-      }
+    }
 
     function a11yProps(index: number) {
         return {
@@ -291,9 +294,9 @@ const DikeDesigner = (
                         scrollButtons="auto"
 
                         aria-label="scrollable auto tabs example"
-                
+
                     >
-                        <Tab icon={<ArchitectureIcon />}label="Dimensioneren" {...a11yProps(0)}>
+                        <Tab icon={<ArchitectureIcon />} label="Dimensioneren" {...a11yProps(0)}>
                         </Tab>
                         <Tab icon={<AssessmentIcon />} label="Effecten" {...a11yProps(1)} />
                         <Tab icon={<AttachMoneyIcon />} label="Kosten" {...a11yProps(2)} />
@@ -333,27 +336,73 @@ const DikeDesigner = (
                                     Selecteer uit de kaart
                                 </Button>
                             </ButtonGroup>
-                            { isLayerListVisible && (
+                            {isLayerListVisible && (
+                                <>
+                                    {/* Ontwerplijn Dropdown */}
+                                    <FormControl sx={{ marginTop: 2, fontSize: "11px" }} size="small">
+                                        <InputLabel
+                                            id="line-layer-label"
+                                            sx={{ fontSize: "11px" }} // Larger font for the label
+                                        >
+                                            Ontwerplijn
+                                        </InputLabel>
+                                        <Select
+                                            value={model.selectedLineLayerId}
+                                            onChange={(e) => setSelectedLineLayerId(e.target.value)}
+                                            displayEmpty
+                                            fullWidth
+                                            variant="outlined"
+                                            sx={{
+                                                fontSize: "11px", // Larger font for the dropdown text
+                                            }}
+                                        >
+                                            {model.lineFeatureLayers.map((layer) => (
+                                                <MenuItem
+                                                    key={layer.id}
+                                                    value={layer.id}
+                                                    sx={{ fontSize: "11px" }} // Larger font for the menu items
+                                                >
+                                                    {layer.title}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
 
-                            
-                            <FormControl sx={{ marginTop:2 }} size="small">
-                                <InputLabel id="demo-select-small-label">Ontwerplijn</InputLabel>
-                                <Select
-                                value={model.selectedLineLayerId}
-                                onChange={(e) => setSelectedLineLayerId(e.target.value)}
-                                displayEmpty
-                                fullWidth
-                                variant="outlined"
-                            >
-                                {model.lineFeatureLayers.map((layer) => (
-                                    <MenuItem key={layer.id} value={layer.id}>
-                                        {layer.title}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                                </FormControl>
+                                    {/* Dijkvak-id Dropdown */}
+                                    {model.selectedDijkvakLayerFields.length > 0 && (
+                                        <FormControl sx={{ marginTop: 2, fontSize: "14px" }} size="small">
+                                            <InputLabel
+                                                id="dijkvak-field-label"
+                                                sx={{ fontSize: "11px" }} // Larger font for the label
+                                            >
+                                                Dijkvak-id veld
+                                            </InputLabel>
+                                            <Select
+                                                value={model.selectedDijkvakField || ""}
+                                                onChange={(e) => {
+                                                    model.selectedDijkvakField = e.target.value; // Store in the model
+                                                }}
+                                                displayEmpty
+                                                fullWidth
+                                                variant="outlined"
+                                                sx={{
+                                                    fontSize: "11px", // Larger font for the dropdown text
+                                                }}
+                                            >
+                                                {model.selectedDijkvakLayerFields.map((field) => (
+                                                    <MenuItem
+                                                        key={field}
+                                                        value={field}
+                                                        sx={{ fontSize: "11px" }} // Larger font for the menu items
+                                                    >
+                                                        {field}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    )}
+                                </>
                             )}
-    
                             <Button
                                 disabled={!model.graphicsLayerLine?.graphics.length}
                                 variant="outlined"

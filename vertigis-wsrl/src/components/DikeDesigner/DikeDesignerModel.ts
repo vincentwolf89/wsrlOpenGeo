@@ -66,6 +66,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     fillVolume: number = 0
 
     chartData: any[] = null
+    allChartData: Record<string, any[]> = {}
     excelSheets: Record<string, any[]> = {};
     activeSheet: string = "";
 
@@ -76,6 +77,8 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     lineFeatureLayers: FeatureLayer[] = []
     selectedLineLayerId: string | null 
     selectedLineLayer: FeatureLayer | null 
+    selectedDijkvakLayerFields: string[] = []
+    selectedDijkvakField: string | null = null
 
     lineLayerSymbol = {
         type: "simple-line",
@@ -214,6 +217,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     selectLineFromMap(){
     }
 
+    // here we need to make chartData contain all the sheets and forget about the excelsheets later
     handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const fileInput = event.target; // Reference to the file input
         const file = fileInput.files?.[0];
@@ -225,19 +229,31 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
                 // Extract all sheets
                 const sheets: Record<string, any[]> = {};
+                const allChartData: Record<string, any[]> = {};
                 workbook.SheetNames.forEach((sheetName) => {
                     const sheet = workbook.Sheets[sheetName];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     sheets[sheetName] = jsonData;
+    
+                    // Prepare chart data for each sheet
+                    if (jsonData.length > 1) {
+                        allChartData[sheetName] = jsonData
+                            .slice(1) // Skip the header row
+                            .map((row: any[]) => ({
+                                locatie: row[0], // Location name
+                                afstand: row[1], // X-axis value
+                                hoogte: row[2], // Y-axis value
+                            }))
+                            .sort((a, b) => a.afstand - b.afstand); // Sort by afstand
+                    }
                 });
+                this.allChartData = allChartData; // Store all chart data
 
-                // Store all sheets in a new property
-                this.excelSheets = sheets;
-
+          
                 // Set the first sheet as the default table data
                 const firstSheetName = workbook.SheetNames[0];
-                this.setSheetData(firstSheetName);
-                this.activeSheet = firstSheetName; // Set the active sheet name
+                this.chartData = allChartData[firstSheetName]; 
+                this.activeSheet = firstSheetName; 
             };
             reader.readAsArrayBuffer(file);
         }

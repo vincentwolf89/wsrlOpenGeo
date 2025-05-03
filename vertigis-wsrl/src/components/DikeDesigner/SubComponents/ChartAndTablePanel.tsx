@@ -13,7 +13,7 @@ import {
     TableBody,
     TextField,
 } from "@mui/material";
-import React, { useState } from "react";
+// import React, { useState } from "react";
 
 
 
@@ -41,13 +41,10 @@ const ChartAndTablePanel: React.FC<ChartAndTablePanelProps> = ({
     model,
     handleCellChange,
 }) => {
-    const [activeSheet, setActiveSheet] = useState<string | null>(null);
 
     const handleSheetChange = (sheetName: string) => {
-        setActiveSheet(sheetName);
-        // something here goes wrong with setting and saving!
-        model.activeSheet = sheetName; // Assuming this is how you set the active sheet in your model  
-        // model.setSheetData(sheetName); // Assuming this function sets the data for the selected sheet
+        model.activeSheet = sheetName; 
+        model.chartData = model.allChartData[sheetName];
     }
 
     return (
@@ -99,8 +96,20 @@ const ChartAndTablePanel: React.FC<ChartAndTablePanelProps> = ({
                 variant="scrollable"
                 scrollButtons="auto"
             >
-                {Object.keys(model.excelSheets as object || {}).map((sheetName) => (
-                    <Tab key={sheetName} label={sheetName} value={sheetName} />
+                {Object.keys(model.allChartData as object || {}).map((sheetName) => (
+                    <Tab
+                        key={sheetName}
+                        label={sheetName}
+                        value={sheetName}
+                        sx={{
+                            fontSize: "11px",
+                            backgroundColor: model.activeSheet === sheetName ? "#e0e0e0" : "#f5f5f5", // Active tab is slightly darker
+                            color: model.activeSheet === sheetName ? "#000" : "#555", // Active tab text is darker
+                            "&:hover": {
+                                backgroundColor: "#d6d6d6", // Hover effect
+                            },
+                        }}
+                    />
                 ))}
             </Tabs>
             <Tabs
@@ -110,7 +119,11 @@ const ChartAndTablePanel: React.FC<ChartAndTablePanelProps> = ({
                 textColor="primary"
                 variant="fullWidth"
             >
-                <Tab label="Dwarsprofiel" />
+                <Tab sx={{
+                            fontSize: "11px",
+                        }}
+                             
+                    label="Dwarsprofiel" />
                 <Tab label="Invoerdata" />
             </Tabs>
             {activeTab === 0 && (
@@ -135,7 +148,7 @@ const ChartAndTablePanel: React.FC<ChartAndTablePanelProps> = ({
                             <TableRow>
                                 {model.chartData?.length > 0 &&
                                     Object.keys(model.chartData[0] as object).map((header) => (
-                                        <TableCell key={header} align="center">
+                                        <TableCell sx={{ fontSize: "11px" }} key={header} align="center">
                                             {header.charAt(0).toUpperCase() + header.slice(1)}
                                         </TableCell>
                                     ))}
