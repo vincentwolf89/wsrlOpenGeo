@@ -168,6 +168,7 @@ const DikeDesigner = (
     // };
 
     const handleCellChange = (rowIndex: number, colKey: string, value: string) => {
+
         const updatedData = [...model.chartData];
         const parsedValue = ["afstand", "hoogte"].includes(colKey)
             ? parseFloat(value)
@@ -182,6 +183,14 @@ const DikeDesigner = (
 
         // 🔁 Update chart with new data
         seriesRef.current?.data.setAll(updatedData);
+
+        // Update the corresponding sheet in excelSheets
+        const sheetData = [...model.excelSheets[model.activeSheet]];
+        if (sheetData[rowIndex + 1]) {
+            const columnIndex = colKey === "afstand" ? 1 : colKey === "hoogte" ? 2 : 0;
+            sheetData[rowIndex + 1][columnIndex] = parsedValue;
+            model.excelSheets[model.activeSheet] = sheetData;
+        }
     };
 
     const handleOpenOverview = () => {
@@ -236,6 +245,7 @@ const DikeDesigner = (
     useWatchAndRerender(model, "overviewVisible");
     useWatchAndRerender(model, "selectedLineLayerId");
     useWatchAndRerender(model, "gridSize");
+    useWatchAndRerender(model, "activeSheet");
 
 
     interface TabPanelProps {

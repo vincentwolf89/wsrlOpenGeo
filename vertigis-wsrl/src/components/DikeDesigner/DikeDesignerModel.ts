@@ -66,7 +66,8 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     fillVolume: number = 0
 
     chartData: any[] = null
-    excelData: any[] = null
+    excelSheets: Record<string, any[]> = {};
+    activeSheet: string = "";
 
     chartRoot: any = null
     chart: any = null
@@ -221,35 +222,50 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
             reader.onload = (e) => {
                 const data = new Uint8Array(e.target?.result as ArrayBuffer);
                 const workbook = XLSX.read(data, { type: "array" });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-                // Set Excel data for the table
-                this.excelData = jsonData;
-                
+                // Extract all sheets
+                const sheets: Record<string, any[]> = {};
+                workbook.SheetNames.forEach((sheetName) => {
+                    const sheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    sheets[sheetName] = jsonData;
+                });
 
-                // Prepare and sort chart data
-                if (jsonData.length > 1) {
-                    const sortedData = jsonData
-                        .slice(1) // Skip the header row
-                        .map((row: any[]) => ({
-                            locatie: row[0], // Location name
-                            afstand: row[1], // X-axis value
-                            hoogte: row[2],  // Y-axis value
-                        }))
-                        .sort((a, b) => a.afstand - b.afstand); // Sort by afstand (X-axis)
+                // Store all sheets in a new property
+                this.excelSheets = sheets;
 
-                    this.chartData = sortedData; // Update chartData to trigger UI update
-                }
+                // Set the first sheet as the default table data
+                const firstSheetName = workbook.SheetNames[0];
+                this.setSheetData(firstSheetName);
+                this.activeSheet = firstSheetName; // Set the active sheet name
             };
             reader.readAsArrayBuffer(file);
         }
 
         // Reset the file input value to allow reuploading the same file
         fileInput.value = "";
-        this.overviewVisible = true
+        this.overviewVisible = true;
     };
+
+    // New method to set the table data for a selected sheet
+    setSheetData(sheetName: string): void {
+        const sheetData = this.excelSheets[sheetName];
+        if (sheetData) {
+            // Prepare and sort chart data
+            if (sheetData.length > 1) {
+                const sortedData = sheetData
+                    .slice(1) // Skip the header row
+                    .map((row: any[]) => ({
+                        locatie: row[0], // Location name
+                        afstand: row[1], // X-axis value
+                        hoogte: row[2], // Y-axis value
+                    }))
+                    .sort((a, b) => a.afstand - b.afstand); // Sort by afstand (X-axis)
+
+                this.chartData = sortedData; // Update chartData to trigger UI update
+            }
+        }
+    }
 
     protected override _getSerializableProperties(): PropertyDefs<DikeDesignerModelProperties> {
         const props = super._getSerializableProperties();

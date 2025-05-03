@@ -441,6 +441,13 @@ export function initializeChart(model, activeTab, chartContainerRef): () => void
             if (index !== -1) {
                 model.chartData[index].hoogte = snappedY;
                 model.chartData[index].afstand = snappedX;
+                
+                // Update the corresponding sheet in excelSheets
+                const sheetData = model.excelSheets[model.activeSheet];
+                if (sheetData[index + 1]) {
+                    sheetData[index + 1][1] = snappedX; // Update afstand
+                    sheetData[index + 1][2] = snappedY; // Update hoogte
+                }
                 model.chartData = [...model.chartData]; // Force reactivity
             }
         });
