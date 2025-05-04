@@ -39,7 +39,7 @@ import type { ReactElement } from "react";
 import type DikeDesignerModel from "./DikeDesignerModel";
 import {
     calculateVolume,
-    createDesign,
+    createDesigns,
     exportGraphicsLayerAsGeoJSON,
     initializeChart,
     setInputLineFromFeatureLayer,
@@ -151,6 +151,7 @@ const DikeDesigner = (
     const handleClearGraphics = () => {
         model.graphicsLayerLine.removeAll();
         model.selectedLineLayerId = null;
+        model.selectedDijkvakField = null;
     };
 
     const handleGridChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -216,7 +217,7 @@ const DikeDesigner = (
 
         setLoading(true); // Show loader
         try {
-            await createDesign(model);
+            await createDesigns(model);
             await calculateVolume(model);
             console.log("All done...");
         } catch (error) {
@@ -226,6 +227,7 @@ const DikeDesigner = (
         }
     };
     const handleClearDesign = () => {
+        model.meshes = []
         model.offsetGeometries = []
         model.graphicsLayerTemp.removeAll();
         model.graphicsLayerMesh.removeAll();
@@ -490,6 +492,17 @@ const DikeDesigner = (
                                 fullWidth
                             >
                                 Uitrollen in 3D
+                            </Button>
+                            
+                            <Button
+                                disabled={!model.chartData?.length || !model.graphicsLayerLine?.graphics.length || !model.selectedDijkvakField}
+                                variant="contained"
+                                color="primary"
+                                startIcon={<PlayCircleFilledWhiteIcon />}
+                                onClick={handleCreateDesign}
+                                fullWidth
+                            >
+                                Uitrollen over dijkvakken
                             </Button>
                             <Button
                                 disabled={!model.graphicsLayerTemp?.graphics.length}

@@ -28,12 +28,67 @@ import * as geometryEngine from "esri/geometry/geometryEngine";
 import * as webMercatorUtils from "esri/geometry/support/webMercatorUtils";
 import * as projection from "esri/geometry/projection";
 import * as meshUtils from "esri/geometry/support/meshUtils";
-export async function createDesign(model): Promise<void> {
-    model.meshes = [];
-    const basePath = model.graphicsLayerLine.graphics.items[0].geometry;
+
+
+
+export async function createDesigns(model): Promise<void> {
+
+    let basePath: Polyline | undefined = undefined;
+    let chartData: any[] = [];
+    if (model.selectedDijkvakField){
+        console.log("do stuff here...")
+        model.graphicsLayerLine.graphics.items.forEach(async(graphic) => {
+            const attributes = graphic.attributes;
+            if (attributes[model.selectedDijkvakField]) {
+                const dijkvakValue = attributes[model.selectedDijkvakField];
+            
+                // find corresponding chartdata
+                chartData = model.allChartData[dijkvakValue]
+                basePath = graphic.geometry
+
+                console.log(dijkvakValue, "Dijkvak value")
+                console.log(chartData, "Chart data")
+                console.log(basePath, "Base path geometry")
+
+                await createDesign(model, graphic.geometry, model.allChartData[dijkvakValue], dijkvakValue);
+            }
+        })
+    } else {
+        basePath = model.graphicsLayerLine.graphics.items[0].geometry;
+        chartData = model.chartData
+        createDesign(model, basePath, chartData, "default");
+    }
+
+    
+    // if (model.selectedDijkvakField){
+    //     console.log(model.selectedDijkvakField, "Selected dijkvak field")
+    //     model.graphicsLayerLine.graphics.items.forEach((graphic) => {
+    //         const attributes = graphic.attributes;
+    //         if (attributes[model.selectedDijkvakField]) {
+    //             const dijkvakValue = attributes[model.selectedDijkvakField];
+    //             console.log(dijkvakValue, "Dijkvak value")
+    //             // model.chartData.forEach((row) => {
+    //             //     if (row.dijkvak === dijkvakValue) {
+    //             //         row.afstand = attributes.afstand;
+    //             //         row.hoogte = attributes.hoogte;
+    //             //     }
+    //             // });
+    //         }
+    //     })
+    // }
+
+    // const basePath = model.graphicsLayerLine.graphics.items[0].geometry;
+    // const basePath = model.basePath
+
+}
+export async function createDesign(model, basePath, chartData, dijkvak): Promise<void> {
+
+    
     console.log(basePath, "Base path geometry");
 
-    await model.chartData.forEach((row) => {
+    let offsetGeometries = []
+
+    await chartData.forEach((row) => {
         const offsetDistance = row.afstand || 0;
         const offsetLine = geometryEngine.offset(basePath, offsetDistance) as Polyline;
         console.log(offsetLine, "Offset line geometry");
@@ -55,57 +110,59 @@ export async function createDesign(model): Promise<void> {
                     color: "grey",
                     width: 1,
                 } as __esri.SimpleLineSymbolProperties,
+               
+
             });
 
             model.graphicsLayerTemp.add(offsetGraphic);
 
             if (row.locatie) {
-                model.offsetGeometries[row.locatie] = offsetGraphic.geometry;
+                offsetGeometries[row.locatie] = offsetGraphic.geometry;
             } else {
                 console.log("Row name is missing in the data.", row);
             }
         }
     });
 
-    console.log(model.offsetGeometries, "Offset geometries");
+    // console.log(offsetGeometries, "Offset geometries");
 
     // Check and create polygons only if the required values exist
-    if (model.offsetGeometries["buitenkruin"] && model.offsetGeometries["binnenkruin"]) {
-        createPolygonBetween(model, "buitenkruin", "binnenkruin", [128, 0, 0, 0.9]);
+    if (offsetGeometries["buitenkruin"] && offsetGeometries["binnenkruin"]) {
+        createPolygonBetween(model, "buitenkruin", "binnenkruin", offsetGeometries);
     }
 
-    const containsBerm = model.chartData.some((row) =>
+    const containsBerm = chartData.some((row) =>
         row.locatie?.toLowerCase().includes("berm")
     );
 
     if (containsBerm) {
-        if (model.offsetGeometries["buitenkruin"] && model.offsetGeometries["bovenkant_buitenberm"]) {
-            createPolygonBetween(model, "buitenkruin", "bovenkant_buitenberm", [50, 205, 50, 0.9]);
+        if (offsetGeometries["buitenkruin"] && offsetGeometries["bovenkant_buitenberm"]) {
+            createPolygonBetween(model, "buitenkruin", "bovenkant_buitenberm", offsetGeometries);
         }
-        if (model.offsetGeometries["binnenkruin"] && model.offsetGeometries["bovenkant_binnenberm"]) {
-            createPolygonBetween(model, "binnenkruin", "bovenkant_binnenberm", [50, 205, 50, 0.9]);
+        if (offsetGeometries["binnenkruin"] && offsetGeometries["bovenkant_binnenberm"]) {
+            createPolygonBetween(model, "binnenkruin", "bovenkant_binnenberm", offsetGeometries);
         }
-        if (model.offsetGeometries["bovenkant_buitenberm"] && model.offsetGeometries["onderkant_buitenberm"]) {
-            createPolygonBetween(model, "bovenkant_buitenberm", "onderkant_buitenberm", [50, 205, 50, 0.9]);
+        if (offsetGeometries["bovenkant_buitenberm"] && offsetGeometries["onderkant_buitenberm"]) {
+            createPolygonBetween(model, "bovenkant_buitenberm", "onderkant_buitenberm", offsetGeometries);
         }
-        if (model.offsetGeometries["onderkant_buitenberm"] && model.offsetGeometries["buitenteen"]) {
-            createPolygonBetween(model, "onderkant_buitenberm", "buitenteen", [50, 205, 50, 0.9]);
+        if (offsetGeometries["onderkant_buitenberm"] && offsetGeometries["buitenteen"]) {
+            createPolygonBetween(model, "onderkant_buitenberm", "buitenteen", offsetGeometries);
         }
-        if (model.offsetGeometries["bovenkant_binnenberm"] && model.offsetGeometries["onderkant_binnenberm"]) {
-            createPolygonBetween(model, "bovenkant_binnenberm", "onderkant_binnenberm", [50, 205, 50, 0.9]);
+        if (offsetGeometries["bovenkant_binnenberm"] && offsetGeometries["onderkant_binnenberm"]) {
+            createPolygonBetween(model, "bovenkant_binnenberm", "onderkant_binnenberm", offsetGeometries);
         }
-        if (model.offsetGeometries["onderkant_binnenberm"] && model.offsetGeometries["binnenteen"]) {
-            createPolygonBetween(model, "onderkant_binnenberm", "binnenteen", [50, 205, 50, 0.9]);
+        if (offsetGeometries["onderkant_binnenberm"] && offsetGeometries["binnenteen"]) {
+            createPolygonBetween(model, "onderkant_binnenberm", "binnenteen", offsetGeometries);
         }
     } else {
-        if (model.offsetGeometries["buitenkruin"] && model.offsetGeometries["binnenkruin"]) {
+        if (offsetGeometries["buitenkruin"] && offsetGeometries["binnenkruin"]) {
             createPolygonBetween(model, "buitenkruin", "binnenkruin", [128, 0, 0, 0.9]);
         }
-        if (model.offsetGeometries["buitenkruin"] && model.offsetGeometries["buitenteen"]) {
-            createPolygonBetween(model, "buitenkruin", "buitenteen", [50, 205, 50, 0.9]);
+        if (offsetGeometries["buitenkruin"] && offsetGeometries["buitenteen"]) {
+            createPolygonBetween(model, "buitenkruin", "buitenteen", offsetGeometries);
         }
-        if (model.offsetGeometries["binnenkruin"] && model.offsetGeometries["binnenteen"]) {
-            createPolygonBetween(model, "binnenkruin", "binnenteen", [50, 205, 50, 0.9]);
+        if (offsetGeometries["binnenkruin"] && offsetGeometries["binnenteen"]) {
+            createPolygonBetween(model, "binnenkruin", "binnenteen", offsetGeometries);
         }
     }
 
@@ -250,10 +307,10 @@ function createMeshFromPolygon(model, polygon, textureUrl = null) {
 
     // graphicsLayerTemp.add(new Graphic({ geometry: mesh, symbol, attributes: { footprint: polygon } }));
 }
-function createPolygonBetween(model, nameA, nameB, fillColor) {
-    console.log(nameA, nameB, model.offsetGeometries, "createPolygonBetween function called");
-    const geomA = model.offsetGeometries[nameA];
-    const geomB = model.offsetGeometries[nameB];
+function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
+    console.log(nameA, nameB, offsetGeometries, "createPolygonBetween function called");
+    const geomA = offsetGeometries[nameA];
+    const geomB = offsetGeometries[nameB];
     if (!geomA || !geomB) {
         console.warn(`Could not find lines for ${nameA} and/or ${nameB}`);
         return;
