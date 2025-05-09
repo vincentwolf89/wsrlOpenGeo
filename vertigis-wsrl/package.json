@@ -7,10 +7,11 @@
     "author": "",
     "type": "commonjs",
     "scripts": {
-        "build": "vertigis-web-sdk build",
+        "build": "vertigis-web-sdk build && npm run rename-output",
         "start": "vertigis-web-sdk start",
         "upgrade": "vertigis-web-sdk upgrade",
-        "prettier": "prettier --write \"**/*.json\" \"**/*.js\" \"**/*.ts\" \"**/*.tsx\""
+        "prettier": "prettier --write \"**/*.json\" \"**/*.js\" \"**/*.ts\" \"**/*.tsx\"",
+        "rename-output": "node ./scripts/rename.js"
     },
     "devDependencies": {
         "@vertigis/web": "5.34.0",

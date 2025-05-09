@@ -284,7 +284,7 @@ const DikeDesigner = (
 
 
     return (
-        <LayoutElement {...props} style={{ width: "100%" }}>
+        <LayoutElement {...props} style={{ width: "100%", overflowY:"scroll" }}>
             <Box
                 sx={{ width: '100%' }}
             >
@@ -316,6 +316,11 @@ const DikeDesigner = (
                                     onClick={handleDrawLine}
                                     startIcon={<EditIcon />}
                                     variant="contained"
+                                    sx={{
+                                        flexDirection: "column", // Stack icon and text vertically
+                                        padding: "8px 4px", // Adjust padding for better spacing
+                                        fontSize: "9px", // Adjust font size for smaller screens
+                                    }}
                                 >
                                     Teken lijn
                                 </Button>
@@ -325,6 +330,11 @@ const DikeDesigner = (
                                     startIcon={<UploadFileIcon />}
                                     variant="contained"
                                     disabled={!model.map}
+                                    sx={{
+                                        flexDirection: "column", // Stack icon and text vertically
+                                        padding: "8px 4px", // Adjust padding for better spacing
+                                        fontSize: "9px", // Adjust font size for smaller screens
+                                    }}
                                 >
                                     Upload GeoJSON
                                 </Button>
@@ -334,8 +344,13 @@ const DikeDesigner = (
                                     startIcon={<MapIcon />}
                                     variant="contained"
                                     disabled={!model.map}
+                                    sx={{
+                                        flexDirection: "column", // Stack icon and text vertically
+                                        padding: "8px 4px", // Adjust padding for better spacing
+                                        fontSize: "9px", // Adjust font size for smaller screens
+                                    }}
                                 >
-                                    Selecteer uit de kaart
+                                    Kies uit kaart
                                 </Button>
                             </ButtonGroup>
                             {isLayerListVisible && (
