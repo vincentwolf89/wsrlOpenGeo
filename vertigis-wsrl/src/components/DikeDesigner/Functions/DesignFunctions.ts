@@ -166,6 +166,8 @@ export async function createDesign(model, basePath, chartData, dijkvak): Promise
         }
     }
 
+    console.log(model.uniqueParts, "Unique parts");
+
     const merged = meshUtils.merge(model.meshes);
     const mergedGraphic = new Graphic({
         geometry: merged,
@@ -308,7 +310,7 @@ function createMeshFromPolygon(model, polygon, textureUrl = null) {
     // graphicsLayerTemp.add(new Graphic({ geometry: mesh, symbol, attributes: { footprint: polygon } }));
 }
 function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
-    console.log(nameA, nameB, offsetGeometries, "createPolygonBetween function called");
+    // console.log(nameA, nameB, offsetGeometries, "createPolygonBetween function called");
     const geomA = offsetGeometries[nameA];
     const geomB = offsetGeometries[nameB];
     if (!geomA || !geomB) {
@@ -333,16 +335,17 @@ function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
         spatialReference: geomA.spatialReference
     });
 
+    const partName = `${nameA}-${nameB}`;
+
     const graphics2D = new Graphic({
         geometry: polygon2d,
-         attributes: { name: `${nameA}-${nameB}` }
+         attributes: { name: partName }
     });
         
     const graphic3d = new Graphic({
         geometry: polygon3d,
-        attributes: { name: `${nameA}-${nameB}` }
+        attributes: { name: partName }
     });
-    console.log(graphic3d, "Graphic 3D")
 
     model.graphicsLayerTemp.add(graphic3d);
 
@@ -351,6 +354,8 @@ function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
     }).catch((error) => {
         console.error("Error adding 2D polygon to design layer:", error);   
     });
+    
+    model.uniqueParts.push(partName);
 
     console.log(model.designLayer2D, "Design layer 2D")
 

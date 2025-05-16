@@ -53,6 +53,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     elevationLayer: ElevationLayer;
 
     designLayer2D: FeatureLayer | null = null;
+    uniqueParts: string[] = [];
 
     map: any;
     view: any;
@@ -326,76 +327,53 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                 ]
             });
 
+            // Your unique values (deduplicated)
+            const uniqueNames = [
+                "buitenkruin-binnenkruin",
+                "buitenkruin-bovenkant_buitenberm",
+                "binnenkruin-bovenkant_binnenberm",
+                "bovenkant_buitenberm-onderkant_buitenberm",
+                "onderkant_buitenberm-buitenteen",
+                "bovenkant_binnenberm-onderkant_binnenberm",
+                "onderkant_binnenberm-binnenteen"
+            ];
+
+            // Helper to pick color based on rules
+            function getSymbolForName(name: string) {
+                if (name.includes("berm")) {
+                    // Green for berms
+                    return {
+                        type: "simple-fill",
+                        color: [102, 204, 102, 0.9], // green
+                        outline: { color: [0, 100, 0, 1], width: 1 }
+                    };
+                }
+                if (name.includes("kruin")) {
+                    // Grey for kruin
+                    return {
+                        type: "simple-fill",
+                        color: [180, 180, 180, 0.9], // grey
+                        outline: { color: [80, 80, 80, 1], width: 1 }
+                    };
+                }
+                // Default color
+                return {
+                    type: "simple-fill",
+                    color: [200, 200, 255, 0.9], // light blue
+                    outline: { color: [100, 100, 200, 1], width: 1 }
+                };
+            }
+
+            const uniqueValueInfos = uniqueNames.map(name => ({
+                value: name,
+                symbol: getSymbolForName(name)
+            }));
+
 
 
             this.designLayer2D.renderer = new UniqueValueRenderer({
                 field: "name",
-                uniqueValueInfos: [
-                    {
-                        value: "buitenkruin-bovenkant_buitenberm",
-                        symbol: {
-                            type: "simple-fill",
-                            color: [255, 204, 204, 0.7], // light red
-                            outline: { color: [128, 0, 0, 1], width: 1 }
-                        } as any
-                    },
-                    {
-                        value: "bovenkant_buitenberm",
-                        symbol: {
-                            type: "simple-fill",
-                            color: [204, 255, 204, 0.7], // light green
-                            outline: { color: [0, 128, 0, 1], width: 1 }
-                        } as any
-                    },
-                    {
-                        value: "bovenkant_binnenberm",
-                        symbol: {
-                            type: "simple-fill",
-                            color: [204, 204, 255, 0.7], // light blue
-                            outline: { color: [0, 0, 128, 1], width: 1 }
-                        } as any
-                    },
-                    {
-                        value: "onderkant_binnenberm",
-                        symbol: {
-                            type: "simple-fill",
-                            color: [255, 255, 204, 0.7], // light yellow
-                            outline: { color: [128, 128, 0, 1], width: 1 }
-                        } as any
-                    },
-                    {
-                        value: "buitenkruin",
-                        symbol: {
-                            type: "simple-fill",
-                            color: [255, 153, 51, 0.7], // orange
-                            outline: { color: [128, 64, 0, 1], width: 1 }
-                        } as any
-                    },
-                    {
-                        value: "binnenkruin",
-                        symbol: {
-                            type: "simple-fill",
-                            color: [153, 204, 255, 0.7], // sky blue
-                            outline: { color: [0, 64, 128, 1], width: 1 }
-                        } as any
-                    },
-                    {
-                        value: "binnenteen",
-                        symbol: {
-                            type: "simple-fill",
-                            color: [204, 153, 255, 0.7], // purple
-                            outline: { color: [64, 0, 128, 1], width: 1 }
-                        } as any
-                    },
-                    {
-                        value: "buitenteen",
-                        symbol: {
-                            type: "simple-fill",
-                            color: [153, 255, 255, 0.7], // cyan
-                            outline: { color: [0, 128, 128, 1], width: 1 }
-                        } as any
-                    }
-                ],
+                uniqueValueInfos,
                 defaultSymbol: {
                     type: "simple-fill",
                     color: [204, 255, 204, 0.7], // light green
@@ -423,12 +401,12 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                 visible: false,
             });
             this.graphicsLayerMesh = new GraphicsLayer({
-                title: "Temporary Layer",
+                title: "Mesh layer - tijdelijk",
                 elevationInfo: {
                     mode: "absolute-height",
                     offset: 0
                 },
-                listMode: "hide",
+                listMode: "show",
             });
 
             this.elevationLayer = new ElevationLayer({

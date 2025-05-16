@@ -37,6 +37,8 @@ import { useWatchAndRerender } from "@vertigis/web/ui";
 import React, { useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 
+
+
 import type DikeDesignerModel from "./DikeDesignerModel";
 import {
     calculateVolume,
@@ -46,6 +48,9 @@ import {
     setInputLineFromFeatureLayer
 } from "./Functions/DesignFunctions";
 import ChartAndTablePanel from "./SubComponents/ChartAndTablePanel";
+import EffectAnalysisPanel from "./SubComponents/EffectAnalysisPanel";
+
+
 // import { SimpleWorker } from "./Workers/SimpleWorker"; // adjust path as needed
 const DikeDesigner = (
     props: LayoutElementProperties<DikeDesignerModel>
@@ -610,6 +615,9 @@ const DikeDesigner = (
                             </div>
                         </Stack>
                     </Stack>
+                </CustomTabPanel>
+                <CustomTabPanel value={value} index={1}>
+                    <EffectAnalysisPanel model={model} />
                 </CustomTabPanel>
             </Box>
 
