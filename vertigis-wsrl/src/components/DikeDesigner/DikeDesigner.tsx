@@ -10,6 +10,7 @@ import MapIcon from "@mui/icons-material/Map";
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 import SelectAllIcon from "@mui/icons-material/SelectAll";
 import TableRowsIcon from "@mui/icons-material/TableRows";
+// import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import {
     Box,
@@ -42,7 +43,7 @@ import {
     createDesigns,
     exportGraphicsLayerAsGeoJSON,
     initializeChart,
-    setInputLineFromFeatureLayer,
+    setInputLineFromFeatureLayer
 } from "./Functions/DesignFunctions";
 import ChartAndTablePanel from "./SubComponents/ChartAndTablePanel";
 // import { SimpleWorker } from "./Workers/SimpleWorker"; // adjust path as needed
@@ -226,6 +227,18 @@ const DikeDesigner = (
             setLoading(false); // Hide loader
         }
     };
+
+    // const handle2DAnalysis = async () => {
+    //     setLoading(true); // Show loader
+    //     try {
+    //         await convertTo2D(model);
+    //         console.log("2D analysis done...");
+    //     } catch (error) {
+    //         console.error("Error during 2D analysis:", error);
+    //     } finally {
+    //         setLoading(false); // Hide loader
+    //     }
+    // };
     const handleClearDesign = () => {
         model.meshes = []
         model.offsetGeometries = []
@@ -519,6 +532,16 @@ const DikeDesigner = (
                             >
                                 Uitrollen over dijkvakken
                             </Button>
+                            {/* <Button
+                                disabled={!model.chartData?.length || !model.graphicsLayerLine?.graphics.length || !model.selectedDijkvakField}
+                                variant="contained"
+                                color="primary"
+                                startIcon={<TravelExploreIcon />}
+                                onClick={handle2DAnalysis}
+                                fullWidth
+                            >
+                                Ruimtebeslag analyse (2D)
+                            </Button> */}
                             <Button
                                 disabled={!model.graphicsLayerTemp?.graphics.length}
                                 variant="contained"
@@ -575,7 +598,7 @@ const DikeDesigner = (
                                             </TableRow>
                                             <TableRow>
                                                 <TableCell sx={{ fontSize: 11 }} align="left">
-                                                    Opvolume [m³]
+                                                    Opvulvolume [m³]
                                                 </TableCell>
                                                 <TableCell sx={{ fontSize: 11 }} align="right">
                                                     {model.fillVolume ?? "-"}

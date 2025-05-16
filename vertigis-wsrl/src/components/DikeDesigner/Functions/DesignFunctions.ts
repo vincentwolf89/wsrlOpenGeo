@@ -321,23 +321,40 @@ function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
     let ring = pathA.concat(pathB);
     ring.push(pathA[0]);
 
-    const polygon = new Polygon({
+    let ring2d = ring.map(point => [point[0], point[1]]);
+
+    const polygon3d = new Polygon({
         rings: [ring],
         spatialReference: geomA.spatialReference
     });
 
-    const graphic = new Graphic({
-        geometry: polygon,
-        attributes: { name: `${nameA}-${nameB}` }
+    const polygon2d = new Polygon({
+        rings: [ring2d],
+        spatialReference: geomA.spatialReference
     });
 
-    model.graphicsLayerTemp.add(graphic);
+    const graphics2D = new Graphic({
+        geometry: polygon2d,
+         attributes: { name: `${nameA}-${nameB}` }
+    });
+        
+    const graphic3d = new Graphic({
+        geometry: polygon3d,
+        attributes: { name: `${nameA}-${nameB}` }
+    });
+    console.log(graphic3d, "Graphic 3D")
 
-    // featureLayerDesign.applyEdits({
-    //     addFeatures: [graphic]
-    // });
+    model.graphicsLayerTemp.add(graphic3d);
 
-    createMeshFromPolygon(model, polygon, null);
+    model.designLayer2D.applyEdits({
+        addFeatures: [graphics2D]
+    }).catch((error) => {
+        console.error("Error adding 2D polygon to design layer:", error);   
+    });
+
+    console.log(model.designLayer2D, "Design layer 2D")
+
+    createMeshFromPolygon(model, polygon3d, null);
 }
 
 export function exportGraphicsLayerAsGeoJSON(model): void {

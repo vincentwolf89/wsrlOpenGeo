@@ -21,6 +21,7 @@ import GraphicsLayer from "esri/layers/GraphicsLayer";
 import GeoJSONLayer from "esri/layers/GeoJSONLayer";
 import ElevationLayer from "esri/layers/ElevationLayer";
 import FeatureLayer from "esri/layers/FeatureLayer";
+import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
 
 import Graphic from "esri/Graphic";
 
@@ -51,6 +52,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     graphicsLayerMesh: GraphicsLayer;
     elevationLayer: ElevationLayer;
 
+    designLayer2D: FeatureLayer | null = null;
 
     map: any;
     view: any;
@@ -75,8 +77,8 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     chartSeries: any = null
 
     lineFeatureLayers: FeatureLayer[] = []
-    selectedLineLayerId: string | null 
-    selectedLineLayer: FeatureLayer | null 
+    selectedLineLayerId: string | null
+    selectedLineLayer: FeatureLayer | null
     selectedDijkvakLayerFields: string[] = []
     selectedDijkvakField: string | null = null
 
@@ -106,7 +108,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                 return match ? parseInt(match[1]) : null;
             }
 
-            if (crs?.properties?.name)  {
+            if (crs?.properties?.name) {
                 // Handle cases where CRS is an object with a "name" property
                 const name = crs.properties.name;
 
@@ -171,15 +173,15 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                         const projected = projection.project(esriGeometry, spatialRefOut);
 
 
-                                    const graphic = new Graphic({
-                                        geometry: projected as any,
-                                        attributes: properties,
-                                        symbol: this.lineLayerSymbol,
-                                    });
+                        const graphic = new Graphic({
+                            geometry: projected as any,
+                            attributes: properties,
+                            symbol: this.lineLayerSymbol,
+                        });
 
-                                    this.graphicsLayerLine.add(graphic);
-                                    console.log("graphic has been added")
-                                    console.log(this.graphicsLayerLine, this.map)
+                        this.graphicsLayerLine.add(graphic);
+                        console.log("graphic has been added")
+                        console.log(this.graphicsLayerLine, this.map)
                     })
 
 
@@ -194,7 +196,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
         reader.readAsText(file);
     }
 
-    startDrawingLine(){
+    startDrawingLine() {
         this.sketchViewModel.create("polyline");
 
         // Listen for the create event to get the geometry
@@ -209,12 +211,12 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                 this.sketchViewModel.set("state", "update");
 
                 this.sketchViewModel.update(event.graphic) // Update the graphic with the new geometry
-;
+                    ;
             }
         });
     }
 
-    selectLineFromMap(){
+    selectLineFromMap() {
     }
 
     // here we need to make chartData contain all the sheets and forget about the excelsheets later
@@ -234,7 +236,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                     const sheet = workbook.Sheets[sheetName];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     sheets[sheetName] = jsonData;
-    
+
                     // Prepare chart data for each sheet
                     if (jsonData.length > 1) {
                         allChartData[sheetName] = jsonData
@@ -249,11 +251,11 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                 });
                 this.allChartData = allChartData; // Store all chart data
 
-          
+
                 // Set the first sheet as the default table data
                 const firstSheetName = workbook.SheetNames[0];
-                this.chartData = allChartData[firstSheetName]; 
-                this.activeSheet = firstSheetName; 
+                this.chartData = allChartData[firstSheetName];
+                this.activeSheet = firstSheetName;
             };
             reader.readAsArrayBuffer(file);
         }
@@ -303,6 +305,106 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
             this.map = map.maps.map;
             this.view = map.maps["view"];
 
+            this.designLayer2D = new FeatureLayer({
+                title: "Ontwerpdata - 2D",
+                listMode: "show",
+                geometryType: "polygon",
+                objectIdField: "ObjectID",
+                source: [],
+                fields: [
+                    {
+                        name: "ObjectID",
+                        alias: "ObjectID",
+                        type: "oid"
+                    },
+                    {
+                        name: "name",
+                        alias: "Name",
+                        type: "string"
+                    }
+                    // Add more fields if needed
+                ]
+            });
+
+
+
+            this.designLayer2D.renderer = new UniqueValueRenderer({
+                field: "name",
+                uniqueValueInfos: [
+                    {
+                        value: "buitenkruin-bovenkant_buitenberm",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [255, 204, 204, 0.7], // light red
+                            outline: { color: [128, 0, 0, 1], width: 1 }
+                        } as any
+                    },
+                    {
+                        value: "bovenkant_buitenberm",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [204, 255, 204, 0.7], // light green
+                            outline: { color: [0, 128, 0, 1], width: 1 }
+                        } as any
+                    },
+                    {
+                        value: "bovenkant_binnenberm",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [204, 204, 255, 0.7], // light blue
+                            outline: { color: [0, 0, 128, 1], width: 1 }
+                        } as any
+                    },
+                    {
+                        value: "onderkant_binnenberm",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [255, 255, 204, 0.7], // light yellow
+                            outline: { color: [128, 128, 0, 1], width: 1 }
+                        } as any
+                    },
+                    {
+                        value: "buitenkruin",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [255, 153, 51, 0.7], // orange
+                            outline: { color: [128, 64, 0, 1], width: 1 }
+                        } as any
+                    },
+                    {
+                        value: "binnenkruin",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [153, 204, 255, 0.7], // sky blue
+                            outline: { color: [0, 64, 128, 1], width: 1 }
+                        } as any
+                    },
+                    {
+                        value: "binnenteen",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [204, 153, 255, 0.7], // purple
+                            outline: { color: [64, 0, 128, 1], width: 1 }
+                        } as any
+                    },
+                    {
+                        value: "buitenteen",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [153, 255, 255, 0.7], // cyan
+                            outline: { color: [0, 128, 128, 1], width: 1 }
+                        } as any
+                    }
+                ],
+                defaultSymbol: {
+                    type: "simple-fill",
+                    color: [204, 255, 204, 0.7], // light green
+                    outline: { color: [0, 128, 0, 1], width: 1 }
+                } as any
+            });
+
+
+
             this.graphicsLayerLine = new GraphicsLayer({
                 title: "Temporary Layer",
                 elevationInfo: {
@@ -328,20 +430,21 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                 },
                 listMode: "hide",
             });
-        
+
             this.elevationLayer = new ElevationLayer({
                 url: this.elevationLayerUrl,
             });
             this.map.add(this.graphicsLayerLine);
             this.map.add(this.graphicsLayerTemp);
             this.map.add(this.graphicsLayerMesh);
+            this.map.add(this.designLayer2D);
 
 
             this.lineFeatureLayers = await getLineFeatureLayers(this.map);
             console.log("Line feature layers:", this.lineFeatureLayers);
 
 
-            
+
 
             // Initialize the SketchViewModel
 
@@ -350,16 +453,16 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
             //     layer: this.graphicsLayerLine,
             // });
             await reactiveUtils
-            .whenOnce(() => this.view)
-            .then(() => {
-                
-                console.log("Graphics layer added to the map.");
-                
-            this.sketchViewModel = new SketchViewModel({
-                view: this.view,
-                layer: this.graphicsLayerLine,
-            });
-            });
+                .whenOnce(() => this.view)
+                .then(() => {
+
+                    console.log("Graphics layer added to the map.");
+
+                    this.sketchViewModel = new SketchViewModel({
+                        view: this.view,
+                        layer: this.graphicsLayerLine,
+                    });
+                });
         });
     }
 }
