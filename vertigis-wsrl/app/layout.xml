@@ -12,6 +12,9 @@
                 <stack xmlns="https://geocortex.com/layout/v1" id="stack-2" config="stack-config-2">
                     <layer-list xmlns="https://geocortex.com/layout/v1" id="layers-b780758f" models="#map-primary" config="layer-config-1"/>
                 </stack>
+                <stack xmlns="https://geocortex.com/layout/v1" id="stack-1" config="stack-config-1">
+                    <legend xmlns="https://geocortex.com/layout/v1" id="legend-b780758f" models="#map-primary" config="legend-config-1"/>
+                </stack>
             </tabs>
         </stack>
     </split>

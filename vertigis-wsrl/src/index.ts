@@ -1,12 +1,25 @@
 import type { LibraryRegistry } from "@vertigis/web/config";
 import type { GetDesignerSettingsSchemaArgs } from "@vertigis/web/designer";
 
+import { signIn } from "./auth";
 import DikeDesigner, { DikeDesignerModel } from "./components/DikeDesigner";
 
 
 const LAYOUT_NAMESPACE = "vertigis-wsrl";
+const isDevMode = window.location.hostname === "localhost";
 
 const getDikeDesigner = () => import("./components/DikeDesigner");
+
+if (isDevMode) {
+    console.log("Running in development mode");
+    signIn().then((cred) => {
+        console.log("User authenticated:", cred);
+    }).catch((error) => {
+        console.error("Error during authentication:", error);
+    });
+} else {
+    console.log("Not in development mode");
+}
 
 export default function (registry: LibraryRegistry): void {
     registry.registerComponent({

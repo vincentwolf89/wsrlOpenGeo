@@ -29,13 +29,13 @@
             "$type": "tabs"
         },
         {
-            "id": "stack-config-1",
-            "title": "3D ontwerper",
+            "id": "stack-config-2",
+            "title": "Lagen",
             "$type": "stack"
         },
         {
-            "id": "stack-config-2",
-            "title": "Lagen",
+            "id": "stack-config-1",
+            "title": "Legenda",
             "$type": "stack"
         },
         {

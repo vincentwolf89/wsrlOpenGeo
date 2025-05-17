@@ -590,3 +590,21 @@ export function setInputLineFromFeatureLayer(model) {
     })
 
 }
+
+export function cleanFeatureLayer(layer) {
+    layer.queryObjectIds().then((objectIds) => {
+        if (objectIds.length === 0) {
+            console.log("No features to delete.");
+            return;
+        }
+        const deletes = objectIds.map(id => ({
+            objectId: id
+        }));
+
+        layer.applyEdits({
+            deleteFeatures: deletes
+        }).catch((error) => {
+            console.error("Error deleting features:", error);
+        });
+    });
+}

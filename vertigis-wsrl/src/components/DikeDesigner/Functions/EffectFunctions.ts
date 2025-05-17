@@ -1,23 +1,20 @@
 import * as geometryEngine from "@arcgis/core/geometry/geometryEngine";
 import type FeatureLayer from "@arcgis/core/layers/FeatureLayer";
-import Query from "@arcgis/core/rest/support/Query";
+// import Query from "@arcgis/core/rest/support/Query";
 
 
-export async function getIntersectingFeatures(model, layer) {
-    // Get BAG panden layer
-    const bagPandenLayer = model.map.allLayers.items.find(
-        (layer) => layer.title === "3D BAG WGS"
+export async function getIntersectingFeatures(model, layerTitle) {
+    const layerToQuery = model.map.allLayers.items.find(
+        (layer) => layer.title === layerTitle
     ) as FeatureLayer;
 
-    if (!bagPandenLayer) {
+    if (!layerToQuery) {
         console.warn("BAG panden layer not found!");
         return [];
     }
 
-    // Collect all geometries from the graphics
     const geometries = model.graphicsLayerTemp.graphics.items.map(g => g.geometry);
 
-    // Union all geometries into one (returns null if array is empty)
     const unionGeometry = geometries.length > 1
         ? geometryEngine.union(geometries as __esri.Geometry[])
         : geometries[0];
@@ -27,17 +24,18 @@ export async function getIntersectingFeatures(model, layer) {
         return [];
     }
 
-    const query = new Query();
-    // query.where = "1=1";
+    const query = layerToQuery.createQuery();
     query.returnGeometry = true;
-    query.outFields = ["*"]
+    query.outFields = ["*"];
     query.geometry = unionGeometry;
     query.spatialRelationship = "intersects";
 
-    // Query the layer for intersecting features
-    const result = await bagPandenLayer.queryFeatures(query);
-    console.log("Intersecting features:", result);
-
-    // Return the intersecting features
-    return result.features;
+    try {
+        const result = await layerToQuery.queryFeatures(query);
+        console.log("Intersecting features:", result);
+        return result.features;
+    } catch (error) {
+        console.error("Error querying features:", error);
+        return [];
+    }
 }

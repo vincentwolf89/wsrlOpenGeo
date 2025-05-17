@@ -45,6 +45,9 @@ export interface DikeDesignerModelProperties extends ComponentModelProperties {
 }
 @serializable
 export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerModelProperties> {
+
+    loading: boolean = false;
+    
     elevationLayerUrl: DikeDesignerModelProperties["elevationLayerUrl"];
 
     graphicsLayerLine: GraphicsLayer;
@@ -89,6 +92,9 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
         width: 4
     };
 
+    // data for analysis
+    intersectingPanden: object[] = []
+    intersectingBomen: object[] = []
 
 
     overviewVisible: boolean = false

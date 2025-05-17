@@ -42,6 +42,7 @@ import type { ReactElement } from "react";
 import type DikeDesignerModel from "./DikeDesignerModel";
 import {
     calculateVolume,
+    cleanFeatureLayer,
     createDesigns,
     exportGraphicsLayerAsGeoJSON,
     initializeChart,
@@ -252,6 +253,7 @@ const DikeDesigner = (
         model.totalVolumeDifference = null;
         model.excavationVolume = null;
         model.fillVolume = null;
+        cleanFeatureLayer(model.designLayer2D);
     };
 
     const handleExportGraphics = () => {
