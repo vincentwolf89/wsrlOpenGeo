@@ -4,6 +4,7 @@ import type FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 
 
 export async function getIntersectingFeatures(model, layerTitle) {
+
     const layerToQuery = model.map.allLayers.items.find(
         (layer) => layer.title === layerTitle
     ) as FeatureLayer;
@@ -38,4 +39,5 @@ export async function getIntersectingFeatures(model, layerTitle) {
         console.error("Error querying features:", error);
         return [];
     }
+    
 }

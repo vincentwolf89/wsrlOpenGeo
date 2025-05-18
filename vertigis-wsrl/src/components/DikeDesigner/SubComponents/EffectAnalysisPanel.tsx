@@ -16,7 +16,9 @@ const EffectAnalysisPanel: React.FC<EffectAnalysisPanelProps> = ({
 }) => {
 
     const handleTest = async () => {
-        model.loading = true;
+        model.messages.commands.ui.displayBusyState.execute({}).catch((error) => {
+            console.error("Error displaying busy state:", error);
+        });
         await getIntersectingFeatures(model, "BAG 2D").then((result) => {
             model.intersectingPanden = result;
             console.log("Intersecting features:", result);
@@ -29,6 +31,10 @@ const EffectAnalysisPanel: React.FC<EffectAnalysisPanelProps> = ({
             console.log("Intersecting features:", result);
         }).catch((error) => {
             console.error("Error fetching intersecting features:", error);
+        });
+
+        model.messages.commands.ui.hideBusyState.execute().catch((error) => {
+            console.error("Error displaying busy state:", error);
         });
 
     };
