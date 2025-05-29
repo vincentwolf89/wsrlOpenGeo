@@ -233,6 +233,7 @@ const DikeDesigner = (
         model.fillVolume = null;
         model.intersectingPanden = null;
         model.intersectingBomen = null;
+        model.intersectingPercelen = null;
         cleanFeatureLayer(model.designLayer2D);
     };
 
@@ -302,7 +303,7 @@ const DikeDesigner = (
                         </Tab>
                         <Tab icon={<AssessmentIcon />} label="Effecten" {...a11yProps(1)} />
                         <Tab icon={<AttachMoneyIcon />} label="Kosten" {...a11yProps(2)} />
-                        <Tab icon={<SelectAllIcon />} label="Selecteren" {...a11yProps(3)} />
+                        <Tab icon={<SelectAllIcon />} label="Afwegen" {...a11yProps(3)} />
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={value} index={0}>

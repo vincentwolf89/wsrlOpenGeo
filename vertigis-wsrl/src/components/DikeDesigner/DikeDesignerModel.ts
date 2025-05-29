@@ -95,6 +95,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     // data for analysis
     intersectingPanden: object[] = []
     intersectingBomen: object[] = []
+    intersectingPercelen: object[] = []
 
 
     overviewVisible: boolean = false

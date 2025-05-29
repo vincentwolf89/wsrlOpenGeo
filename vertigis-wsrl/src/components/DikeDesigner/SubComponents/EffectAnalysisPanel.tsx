@@ -21,14 +21,21 @@ const EffectAnalysisPanel: React.FC<EffectAnalysisPanelProps> = ({
         });
         await getIntersectingFeatures(model, "BAG 2D").then((result) => {
             model.intersectingPanden = result;
-            console.log("Intersecting features:", result);
+            console.log("Intersecting panden:", result);
         }).catch((error) => {
             console.error("Error fetching intersecting features:", error);
         });
 
         await getIntersectingFeatures(model, "Bomenregister 2015").then((result) => {
             model.intersectingBomen = result;   
-            console.log("Intersecting features:", result);
+            console.log("Intersecting bomen:", result);
+        }).catch((error) => {
+            console.error("Error fetching intersecting features:", error);
+        });
+
+        await getIntersectingFeatures(model, "DKK - perceel").then((result) => {
+            model.intersectingPercelen = result;   
+            console.log("Intersecting percelen:", result);
         }).catch((error) => {
             console.error("Error fetching intersecting features:", error);
         });
@@ -41,6 +48,7 @@ const EffectAnalysisPanel: React.FC<EffectAnalysisPanelProps> = ({
 
     useWatchAndRerender(model, "intersectingPanden")
     useWatchAndRerender(model, "intersectingBomen")
+    useWatchAndRerender(model, "intersectingPercelen")
 
     return (
         <Stack spacing={2}>
@@ -70,6 +78,10 @@ const EffectAnalysisPanel: React.FC<EffectAnalysisPanelProps> = ({
                         <TableRow>
                             <TableCell sx={{ fontSize: "11px"}}>Bomen</TableCell>
                             <TableCell  sx={{ fontSize: "11px"}} align="right">{model.intersectingBomen?.length}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell sx={{ fontSize: "11px"}}>Percelen</TableCell>
+                            <TableCell  sx={{ fontSize: "11px"}} align="right">{model.intersectingPercelen?.length}</TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
