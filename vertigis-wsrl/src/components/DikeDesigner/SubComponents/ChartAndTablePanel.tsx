@@ -1,4 +1,6 @@
+import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
     Paper,
     Typography,
@@ -13,6 +15,9 @@ import {
     TableBody,
     TextField,
     Box,
+    Select,
+    MenuItem,
+    Button,
 } from "@mui/material";
 // import React, { useState } from "react";
 
@@ -42,11 +47,27 @@ const ChartAndTablePanel: React.FC<ChartAndTablePanelProps> = ({
     model,
     handleCellChange,
 }) => {
-
     const handleSheetChange = (sheetName: string) => {
-        model.activeSheet = sheetName; 
+        // Save current chartData to the active sheet before switching
+        model.allChartData[model.activeSheet] = [...model.chartData];
+
+        // Switch to the new sheet
+        model.activeSheet = sheetName;
         model.chartData = model.allChartData[sheetName];
     }
+
+    const handleAddRow = () => {
+        const newRow = {
+            locatie: "",
+            afstand: "",
+            hoogte: "",
+        };
+        model.chartData = [...model.chartData, newRow];
+    };
+
+    const handleRemoveRow = (rowIndex: number) => {
+        model.chartData = model.chartData.filter((_, index) => index !== rowIndex);
+    };
 
     return (
 <Paper
@@ -145,50 +166,99 @@ const ChartAndTablePanel: React.FC<ChartAndTablePanelProps> = ({
   )}
 
   {activeTab === 1 && (
-    <TableContainer
-      sx={{
-        flexGrow: 1,
-        overflow: "auto",
-      }}
-    >
-      <Table stickyHeader>
-        <TableHead>
-          <TableRow>
-            {model.chartData?.length > 0 &&
-              Object.keys(model.chartData[0]  as object || {}).map((header) => (
-                <TableCell key={header} align="center" sx={{ fontSize: "11px" }}>
-                  {header.charAt(0).toUpperCase() + header.slice(1)}
-                </TableCell>
-              ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {model.chartData?.map((row, rowIndex) => {
-            const rowKey = `afstand-${row.afstand ?? rowIndex}`;
-            return (
-              <TableRow key={rowKey}>
-                {Object.entries(row as object || {}).map(([key, cell]) => (
-                  <TableCell key={`${rowKey}-${key}`} align="center">
-                    {typeof cell === "string" || typeof cell === "number" ? (
-                      <TextField
-                        value={cell}
-                        onChange={(e) =>
-                          handleCellChange(rowIndex as number, key, e.target.value)
-                        }
-                        variant="outlined"
-                        size="small"
-                      />
-                    ) : (
-                      <span>Invalid Data</span>
-                    )}
+    <>
+      {/* Add and Remove Row Buttons */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          padding: "8px",
+          backgroundColor: "#f5f5f5",
+        }}
+      >
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={handleAddRow}
+        >
+          Voeg nieuwe rij toe
+        </Button>
+      </Box>
+
+      <TableContainer
+        sx={{
+          flexGrow: 1,
+          overflow: "auto",
+        }}
+      >
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              {model.chartData?.length > 0 &&
+                Object.keys(model.chartData[0]  as object || {}).map((header) => (
+                  <TableCell key={header} align="center" sx={{ fontSize: "11px" }}>
+                    {header.charAt(0).toUpperCase() + header.slice(1)}
                   </TableCell>
                 ))}
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+              <TableCell align="center" sx={{ fontSize: "11px" }}>
+                Acties
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {model.chartData?.map((row, rowIndex) => {
+              const rowKey = `afstand-${row.afstand ?? rowIndex}`;
+              return (
+                <TableRow key={rowKey}>
+                  {Object.entries(row as object || {}).map(([key, cell], colIndex) => (
+                    <TableCell key={`${rowKey}-${key}`} align="center">
+                      {colIndex === 0 ? ( // Check if it's the first column
+                        <Select
+                          value={cell}
+                          onChange={(e) =>
+                            handleCellChange(rowIndex as number, key, e.target.value as string)
+                          }
+                          variant="outlined"
+                          size="small"
+                          fullWidth
+                        >
+                          {model.dwpLocations.map((option) => (
+                            <MenuItem key={option} value={option}>
+                              {option}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      ) : typeof cell === "string" || typeof cell === "number" ? (
+                        <TextField
+                          value={isNaN(cell as number) ? "" : cell} // Replace NaN with an empty string
+                          onChange={(e) =>
+                            handleCellChange(rowIndex as number, key, e.target.value)
+                          }
+                          variant="outlined"
+                          size="small"
+                        />
+                      ) : (
+                        <span>Invalid Data</span>
+                      )}
+                    </TableCell>
+                  ))}
+                  <TableCell align="center">
+                    <IconButton
+                        color="error"
+                        size="small"
+                        onClick={() => handleRemoveRow(rowIndex as number)}
+                    >
+                        <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   )}
 </Paper>
 

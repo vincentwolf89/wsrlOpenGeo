@@ -47,7 +47,7 @@ export interface DikeDesignerModelProperties extends ComponentModelProperties {
 export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerModelProperties> {
 
     loading: boolean = false;
-    
+
     elevationLayerUrl: DikeDesignerModelProperties["elevationLayerUrl"];
 
     graphicsLayerLine: GraphicsLayer;
@@ -96,6 +96,17 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     intersectingPanden: object[] = []
     intersectingBomen: object[] = []
     intersectingPercelen: object[] = []
+
+    dwpLocations: string[] = [
+        "buitenteen",
+        "onderkant_buitenberm",
+        "bovenkant_buitenberm",
+        "buitenkruin",
+        "binnenkruin",
+        "bovenkant_binnenberm",
+        "onderkant_binnenberm",
+        "binnenteen",
+    ]
 
 
     overviewVisible: boolean = false
