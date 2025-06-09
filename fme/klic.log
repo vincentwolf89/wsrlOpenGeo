@@ -1,0 +1,497 @@
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|Current FME version: FME 2024.2.1.0 (20241202 - Build 24801 - WIN64)
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|System Time: 20250607122933 UTC
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|FME_HOME is 'C:\Program Files\FME\'
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|FME Form (floating)
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|Permanent License.
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|Machine host name is: MSI
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|OS Locale Name     : nl_NL
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|OS Locale Encoding : windows-1252
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|Process Encoding   : UTF-8
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|FME API version: '4.0 20240212'
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|FME Configuration: FME_BASE is 'no'
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|FME Configuration: FME_MF_DIR is 'C:\Users\vince\Desktop/'
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|FME Configuration: FME_MF_NAME is 'klic.fmw'
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|FME Configuration: FME_PRODUCT_NAME is 'FME(R) 2024.2.1.0'
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|Operating System: Microsoft Windows 11 64-bit  (Build 26100)
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|FME Platform: WIN64
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|System Status: 373.10 GB of disk space available in the FME temporary folder (C:\Users\vince\AppData\Local\Temp\wbrun_1749297572038_11480\fmetmp_4)
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|System Status: 15.71 GB of physical memory available
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|System Status: 62.83 GB of virtual memory available
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|START - ProcessID: 2224, peak process memory usage: 43328 kB, current process memory usage: 43328 kB
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|FME Configuration: Command line arguments are `C:\Program Files\FME\fme.exe' `C:\Users\vince\Desktop\wb-xlate-1749299362728_11480' `--FME_LAUNCH_VIEWER_APP' `WORKBENCH' `LOG_STANDARDOUT' `YES' `LOG_TIMINGS' `YES' `LogCountServerName' `50417' `LOG_STANDARDOUT' `No' `WORKBENCH_LOG_SERVER' `50301'
+2025-06-07 14:29:33|   0.0|  0.0|INFORM|FME Configuration: Connection Storage: 'C:\Users\vince\AppData\Roaming\Safe Software\FME\'
+2025-06-07 14:29:36|   0.2|  0.2|INFORM|Shared folders for formats are : C:\Program Files\FME\datasources;C:\Users\vince\Documents\FME\Formats
+2025-06-07 14:29:36|   0.2|  0.0|INFORM|Shared folders for transformers are : C:\Users\vince\AppData\Roaming\Safe Software\FME\Packages\24801-win64\transformers;C:\Program Files\FME\transformers;C:\Users\vince\AppData\Roaming\Safe Software\FME\FME Store\Transformers
+2025-06-07 14:29:36|   0.2|  0.0|INFORM|Shared folders for coordinate systems are : C:\Users\vince\Documents\FME\CoordinateSystems
+2025-06-07 14:29:36|   0.2|  0.0|INFORM|Shared folders for coordinate system exceptions are : C:\Users\vince\Documents\FME\CoordinateSystemExceptions
+2025-06-07 14:29:36|   0.2|  0.0|INFORM|Shared folders for coordinate system grid overrides are : C:\Users\vince\Documents\FME\CoordinateSystemGridOverrides
+2025-06-07 14:29:36|   0.2|  0.0|INFORM|Shared folders for CS-MAP transformation exceptions are : C:\Users\vince\Documents\FME\CsmapTransformationExceptions
+2025-06-07 14:29:36|   0.2|  0.0|INFORM|Shared folders for transformer categories are : C:\Users\vince\Documents\FME\TransformerCategories
+2025-06-07 14:29:36|   0.2|  0.0|INFORM|FME Configuration: No destination coordinate system set
+2025-06-07 14:29:36|   0.2|  0.0|INFORM|FME Configuration: Current working folder is `C:\Users\vince\Desktop'
+2025-06-07 14:29:36|   0.2|  0.0|INFORM|FME Configuration: Temporary folder is `C:\Users\vince\AppData\Local\Temp\wbrun_1749297572038_11480\fmetmp_4', set from environment variable `FME_TEMP'
+2025-06-07 14:29:36|   0.2|  0.0|INFORM|FME Configuration: Cache folder is 'C:\Users\vince\AppData\Local\Temp'
+2025-06-07 14:29:36|   0.2|  0.0|INFORM|FME Configuration: FME_HOME is `C:\Program Files\FME\'
+2025-06-07 14:29:36|   0.2|  0.0|INFORM|FME Configuration: Start freeing memory when the process exceeds 47.12 GB
+2025-06-07 14:29:36|   0.2|  0.0|INFORM|FME Configuration: Stop freeing memory when the process is below 35.34 GB
+2025-06-07 14:29:39|   0.4|  0.2|INFORM|Creating writer for format: 
+2025-06-07 14:29:39|   0.6|  0.2|INFORM|Creating reader for format: 
+2025-06-07 14:29:39|   0.6|  0.0|INFORM|MULTI_READER(MULTI_READER): Will fail with first member reader failure
+2025-06-07 14:29:39|   0.6|  0.0|INFORM|Using Multi Reader with keyword `MULTI_READER' to read multiple datasets
+2025-06-07 14:29:39|   0.6|  0.0|INFORM|Using MultiWriter with keyword `MULTI_DEST' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:29:39|   0.6|  0.0|INFORM|Loaded module 'LogCount_func' from file 'C:\Program Files\FME\plugins/LogCount_func.dll'
+2025-06-07 14:29:39|   0.6|  0.0|INFORM|FME API version of module 'LogCount_func' matches current internal version (4.0 20240212)
+2025-06-07 14:29:39|   0.6|  0.0|INFORM|Emptying factory pipeline
+2025-06-07 14:29:39|   0.6|  0.0|STATS |Restoring 98418 feature(s) from FME feature store file `C:\Users\vince\AppData\Local\Temp\wb-cache-klic-pnTBbV\Main_KLIC_Transformer -1 2 fo 1 Output_raw  0  e03cf9f930d426e5407f42e9672f1f064cad3741.ffs'
+2025-06-07 14:29:40|   0.8|  0.2|INFORM|Creating writer for format: 
+2025-06-07 14:29:40|   0.8|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:29:40|   0.9|  0.1|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:29:40|   0.9|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:29:40|   0.9|  0.0|INFORM|Loaded module 'GEOJSON' from file 'C:\Program Files\FME\plugins/JSON.dll'
+2025-06-07 14:29:40|   0.9|  0.0|INFORM|FME API version of module 'JSON' matches current internal version (4.0 20240212)
+2025-06-07 14:29:40|   0.9|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:29:40|   0.9|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:29:40|   0.9|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:29:40|   0.9|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:29:40|   0.9|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Elektriciteitskabel.geojson'
+2025-06-07 14:29:40|   0.9|  0.0|INFORM|FME Configuration: Using FME Reprojection Engine
+2025-06-07 14:29:40|   0.9|  0.0|INFORM|CS-MAP Reprojector: Transformation will be automatically selected for 'EPSG:28992' -> 'LL84', and is not guaranteed to remain the same in future releases of FME
+2025-06-07 14:29:40|   0.9|  0.0|INFORM|Reprojector: Using transformation `RDNAPTRANS2018_Amersfoort-RD-2008_to_ETRS89,Forward(Grid File Interpolation,EPSG:9282)' when reprojecting from EPSG:28992 to LL84
+2025-06-07 14:29:40|   0.9|  0.0|INFORM|Reprojector:`RDNAPTRANS2018_Amersfoort-RD-2008_to_ETRS89,Forward(Grid File Interpolation,EPSG:9282)' will use the following grid shift files:
+2025-06-07 14:29:40|   1.0|  0.1|INFORM|Reprojector:     C:\Program Files\FME\Reproject\GridData\Netherlands\rdtrans2018.gsb
+2025-06-07 14:29:40|   1.0|  0.0|INFORM|Reprojector: If a point is outside the usable range of 'RDNAPTRANS2018_Amersfoort-RD-2008_to_ETRS89' the following fallback transformation will be used: 'RDNAPTRANS2018-Fallback_Amersfoort-RD-2008_to_ETRS89,Forward(Seven Parameter,EPSG:9281)'
+2025-06-07 14:29:44|   5.1|  4.1|INFORM|KLIC_Transformer_Output_raw_-1_9_Player (RecorderFactory): Playing back feature 30500
+2025-06-07 14:29:49|  10.0|  4.9|INFORM|KLIC_Transformer_Output_raw_-1_9_Player (RecorderFactory): Playing back feature 72000
+2025-06-07 14:29:54|  14.1|  4.1|INFORM|Closing the GEOJSON writer
+2025-06-07 14:29:54|  14.1|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:54|  14.1|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:29:54|  14.1|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:54|  14.1|  0.0|STATS |                               Features Written
+2025-06-07 14:29:54|  14.1|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:54|  14.1|  0.0|STATS |Elektriciteitskabel                                                       3435
+2025-06-07 14:29:54|  14.1|  0.0|STATS |==============================================================================
+2025-06-07 14:29:54|  14.1|  0.0|STATS |Total Features Written                                                    3435
+2025-06-07 14:29:54|  14.1|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:54|  14.1|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:29:54|  14.2|  0.1|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:29:54|  14.2|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:29:54|  14.3|  0.1|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:29:54|  14.3|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:29:54|  14.3|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:29:54|  14.3|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:29:54|  14.3|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:29:54|  14.3|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Appurtenance.geojson'
+2025-06-07 14:29:58|  17.9|  3.6|INFORM|Closing the GEOJSON writer
+2025-06-07 14:29:58|  17.9|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  17.9|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:29:58|  17.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  17.9|  0.0|STATS |                               Features Written
+2025-06-07 14:29:58|  17.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  17.9|  0.0|STATS |Appurtenance                                                             15174
+2025-06-07 14:29:58|  17.9|  0.0|STATS |==============================================================================
+2025-06-07 14:29:58|  17.9|  0.0|STATS |Total Features Written                                                   15174
+2025-06-07 14:29:58|  17.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  17.9|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:29:58|  17.9|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:29:58|  17.9|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:29:58|  17.9|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:29:58|  17.9|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:29:58|  17.9|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:29:58|  17.9|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:29:58|  17.9|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:29:58|  17.9|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\TechnischGebouw.geojson'
+2025-06-07 14:29:58|  18.0|  0.1|INFORM|Closing the GEOJSON writer
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:29:58|  18.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.0|  0.0|STATS |                               Features Written
+2025-06-07 14:29:58|  18.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.0|  0.0|STATS |TechnischGebouw                                                             63
+2025-06-07 14:29:58|  18.0|  0.0|STATS |==============================================================================
+2025-06-07 14:29:58|  18.0|  0.0|STATS |Total Features Written                                                      63
+2025-06-07 14:29:58|  18.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Mangat.geojson'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Closing the GEOJSON writer
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:29:58|  18.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.0|  0.0|STATS |                               Features Written
+2025-06-07 14:29:58|  18.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.0|  0.0|STATS |Mangat                                                                     100
+2025-06-07 14:29:58|  18.0|  0.0|STATS |==============================================================================
+2025-06-07 14:29:58|  18.0|  0.0|STATS |Total Features Written                                                     100
+2025-06-07 14:29:58|  18.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\AanduidingEisVoorzorgsmaatregel.geojson'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Closing the GEOJSON writer
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:29:58|  18.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.0|  0.0|STATS |                               Features Written
+2025-06-07 14:29:58|  18.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.0|  0.0|STATS |AanduidingEisVoorzorgsmaatregel                                              7
+2025-06-07 14:29:58|  18.0|  0.0|STATS |==============================================================================
+2025-06-07 14:29:58|  18.0|  0.0|STATS |Total Features Written                                                       7
+2025-06-07 14:29:58|  18.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:29:58|  18.0|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Waterleiding.geojson'
+2025-06-07 14:29:58|  18.5|  0.5|INFORM|Closing the GEOJSON writer
+2025-06-07 14:29:58|  18.5|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.5|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:29:58|  18.5|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.5|  0.0|STATS |                               Features Written
+2025-06-07 14:29:58|  18.5|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.5|  0.0|STATS |Waterleiding                                                              1998
+2025-06-07 14:29:58|  18.5|  0.0|STATS |==============================================================================
+2025-06-07 14:29:58|  18.5|  0.0|STATS |Total Features Written                                                    1998
+2025-06-07 14:29:58|  18.5|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.5|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:29:58|  18.5|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:29:58|  18.5|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:29:58|  18.5|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:29:58|  18.5|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:29:58|  18.5|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:29:58|  18.5|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:29:58|  18.5|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:29:58|  18.5|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\ExtraGeometrie.geojson'
+2025-06-07 14:29:58|  18.7|  0.2|INFORM|Closing the GEOJSON writer
+2025-06-07 14:29:58|  18.7|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.7|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:29:58|  18.7|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.7|  0.0|STATS |                               Features Written
+2025-06-07 14:29:58|  18.7|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.7|  0.0|STATS |ExtraGeometrie                                                             139
+2025-06-07 14:29:58|  18.7|  0.0|STATS |==============================================================================
+2025-06-07 14:29:58|  18.7|  0.0|STATS |Total Features Written                                                     139
+2025-06-07 14:29:58|  18.7|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.7|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:29:58|  18.7|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:29:58|  18.7|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:29:58|  18.7|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:29:58|  18.7|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:29:58|  18.7|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:29:58|  18.7|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:29:58|  18.7|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:29:58|  18.7|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\UtilityLink.geojson'
+2025-06-07 14:29:58|  18.8|  0.1|INFORM|Closing the GEOJSON writer
+2025-06-07 14:29:58|  18.8|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.8|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:29:58|  18.8|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.8|  0.0|STATS |                               Features Written
+2025-06-07 14:29:58|  18.8|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.8|  0.0|STATS |UtilityLink                                                                342
+2025-06-07 14:29:58|  18.8|  0.0|STATS |==============================================================================
+2025-06-07 14:29:58|  18.8|  0.0|STATS |Total Features Written                                                     342
+2025-06-07 14:29:58|  18.8|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:29:58|  18.8|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:29:58|  18.8|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:29:58|  18.8|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:29:58|  18.8|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:29:58|  18.8|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:29:58|  18.8|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:29:59|  18.8|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:29:59|  18.8|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:29:59|  18.8|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Annotatie.geojson'
+2025-06-07 14:30:02|  21.7|  2.9|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:02|  21.7|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:02|  21.7|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:02|  21.7|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:02|  21.7|  0.0|STATS |                               Features Written
+2025-06-07 14:30:02|  21.7|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:02|  21.7|  0.0|STATS |Annotatie                                                                12379
+2025-06-07 14:30:02|  21.7|  0.0|STATS |==============================================================================
+2025-06-07 14:30:02|  21.7|  0.0|STATS |Total Features Written                                                   12379
+2025-06-07 14:30:02|  21.7|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:02|  21.7|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:30:02|  21.7|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:30:02|  21.7|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:30:02|  21.7|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:30:02|  21.7|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:30:02|  21.7|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:30:02|  21.7|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:30:02|  21.7|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:30:02|  21.7|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\ExtraDetailinfo.geojson'
+2025-06-07 14:30:02|  21.9|  0.2|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:02|  21.9|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:02|  21.9|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:02|  21.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:02|  21.9|  0.0|STATS |                               Features Written
+2025-06-07 14:30:02|  21.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:02|  21.9|  0.0|STATS |ExtraDetailinfo                                                            302
+2025-06-07 14:30:02|  21.9|  0.0|STATS |==============================================================================
+2025-06-07 14:30:02|  21.9|  0.0|STATS |Total Features Written                                                     302
+2025-06-07 14:30:02|  21.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:02|  21.9|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:30:02|  21.9|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:30:02|  21.9|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:30:02|  21.9|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:30:02|  21.9|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:30:02|  21.9|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:30:02|  21.9|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:30:02|  21.9|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:30:02|  21.9|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Rioolleiding.geojson'
+2025-06-07 14:30:02|  22.2|  0.3|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:02|  22.2|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:02|  22.2|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:02|  22.2|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:02|  22.2|  0.0|STATS |                               Features Written
+2025-06-07 14:30:02|  22.2|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:02|  22.2|  0.0|STATS |Rioolleiding                                                              1094
+2025-06-07 14:30:02|  22.2|  0.0|STATS |==============================================================================
+2025-06-07 14:30:02|  22.2|  0.0|STATS |Total Features Written                                                    1094
+2025-06-07 14:30:02|  22.2|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:02|  22.2|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:30:02|  22.2|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:30:02|  22.2|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:30:02|  22.2|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:30:02|  22.2|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:30:02|  22.2|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:30:02|  22.2|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:30:02|  22.2|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:30:02|  22.2|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\OlieGasChemicalienPijpleiding.geojson'
+2025-06-07 14:30:03|  23.0|  0.8|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:03|  23.0|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:03|  23.0|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:03|  23.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:03|  23.0|  0.0|STATS |                               Features Written
+2025-06-07 14:30:03|  23.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:03|  23.0|  0.0|STATS |OlieGasChemicalienPijpleiding                                             2740
+2025-06-07 14:30:03|  23.0|  0.0|STATS |==============================================================================
+2025-06-07 14:30:03|  23.0|  0.0|STATS |Total Features Written                                                    2740
+2025-06-07 14:30:03|  23.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:03|  23.0|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:30:03|  23.0|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:30:03|  23.0|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:30:03|  23.0|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:30:03|  23.0|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:30:03|  23.0|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:30:03|  23.0|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:30:03|  23.0|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:30:03|  23.0|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\EigenTopografie.geojson'
+2025-06-07 14:30:03|  23.2|  0.2|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:03|  23.2|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:03|  23.2|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:03|  23.2|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:03|  23.2|  0.0|STATS |                               Features Written
+2025-06-07 14:30:03|  23.2|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:03|  23.2|  0.0|STATS |EigenTopografie                                                           1138
+2025-06-07 14:30:03|  23.2|  0.0|STATS |==============================================================================
+2025-06-07 14:30:03|  23.2|  0.0|STATS |Total Features Written                                                    1138
+2025-06-07 14:30:03|  23.2|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:03|  23.2|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:30:03|  23.2|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:30:03|  23.3|  0.1|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:30:03|  23.3|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:30:03|  23.3|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:30:03|  23.3|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:30:03|  23.3|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:30:03|  23.3|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:30:03|  23.3|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Mantelbuis.geojson'
+2025-06-07 14:30:04|  23.6|  0.3|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:04|  23.6|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:04|  23.6|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:04|  23.6|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:04|  23.6|  0.0|STATS |                               Features Written
+2025-06-07 14:30:04|  23.6|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:04|  23.6|  0.0|STATS |Mantelbuis                                                                1421
+2025-06-07 14:30:04|  23.6|  0.0|STATS |==============================================================================
+2025-06-07 14:30:04|  23.6|  0.0|STATS |Total Features Written                                                    1421
+2025-06-07 14:30:04|  23.6|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:04|  23.6|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:30:04|  23.6|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:30:04|  23.6|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:30:04|  23.6|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:30:04|  23.6|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:30:04|  23.6|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:30:04|  23.6|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:30:04|  23.6|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:30:04|  23.6|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Kabelbed.geojson'
+2025-06-07 14:30:05|  24.3|  0.7|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:05|  24.3|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:05|  24.3|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:05|  24.3|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:05|  24.3|  0.0|STATS |                               Features Written
+2025-06-07 14:30:05|  24.3|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:05|  24.3|  0.0|STATS |Kabelbed                                                                  2824
+2025-06-07 14:30:05|  24.3|  0.0|STATS |==============================================================================
+2025-06-07 14:30:05|  24.3|  0.0|STATS |Total Features Written                                                    2824
+2025-06-07 14:30:05|  24.3|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:05|  24.3|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:30:05|  24.3|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:30:05|  24.3|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:30:05|  24.3|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:30:05|  24.3|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:30:05|  24.3|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:30:05|  24.3|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:30:05|  24.3|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:30:05|  24.3|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Maatvoering.geojson'
+2025-06-07 14:30:17|  35.9| 11.6|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:17|  35.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:17|  35.9|  0.0|STATS |                               Features Written
+2025-06-07 14:30:17|  35.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:17|  35.9|  0.0|STATS |Maatvoering                                                              50943
+2025-06-07 14:30:17|  35.9|  0.0|STATS |==============================================================================
+2025-06-07 14:30:17|  35.9|  0.0|STATS |Total Features Written                                                   50943
+2025-06-07 14:30:17|  35.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\DiepteTovMaaiveld.geojson'
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:17|  35.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:17|  35.9|  0.0|STATS |                               Features Written
+2025-06-07 14:30:17|  35.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:17|  35.9|  0.0|STATS |DiepteTovMaaiveld                                                          142
+2025-06-07 14:30:17|  35.9|  0.0|STATS |==============================================================================
+2025-06-07 14:30:17|  35.9|  0.0|STATS |Total Features Written                                                     142
+2025-06-07 14:30:17|  35.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:30:17|  35.9|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Telecommunicatiekabel.geojson'
+2025-06-07 14:30:18|  37.0|  1.1|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:18|  37.0|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.0|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:18|  37.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.0|  0.0|STATS |                               Features Written
+2025-06-07 14:30:18|  37.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.0|  0.0|STATS |Telecommunicatiekabel                                                     3536
+2025-06-07 14:30:18|  37.0|  0.0|STATS |==============================================================================
+2025-06-07 14:30:18|  37.0|  0.0|STATS |Total Features Written                                                    3536
+2025-06-07 14:30:18|  37.0|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.1|  0.1|INFORM|Creating writer for format: 
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Overig.geojson'
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:18|  37.1|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.1|  0.0|STATS |                               Features Written
+2025-06-07 14:30:18|  37.1|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.1|  0.0|STATS |Overig                                                                      14
+2025-06-07 14:30:18|  37.1|  0.0|STATS |==============================================================================
+2025-06-07 14:30:18|  37.1|  0.0|STATS |Total Features Written                                                      14
+2025-06-07 14:30:18|  37.1|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:30:18|  37.1|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Duct.geojson'
+2025-06-07 14:30:18|  37.2|  0.1|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:18|  37.2|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.2|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:18|  37.2|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.2|  0.0|STATS |                               Features Written
+2025-06-07 14:30:18|  37.2|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.2|  0.0|STATS |Duct                                                                       613
+2025-06-07 14:30:18|  37.2|  0.0|STATS |==============================================================================
+2025-06-07 14:30:18|  37.2|  0.0|STATS |Total Features Written                                                     613
+2025-06-07 14:30:18|  37.2|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.2|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:30:18|  37.3|  0.1|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Kast.geojson'
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:18|  37.3|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.3|  0.0|STATS |                               Features Written
+2025-06-07 14:30:18|  37.3|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.3|  0.0|STATS |Kast                                                                         8
+2025-06-07 14:30:18|  37.3|  0.0|STATS |==============================================================================
+2025-06-07 14:30:18|  37.3|  0.0|STATS |Total Features Written                                                       8
+2025-06-07 14:30:18|  37.3|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Creating writer for format: 
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Using MultiWriter with keyword `FeatureWriter' to output data (ID_ATTRIBUTE is `multi_writer_id')
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Creating writer for format: GeoJSON (Geographic JavaScript Object Notation)
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Trying to find a DYNAMIC plugin for writer named `GEOJSON'
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|FME Configuration: Destination coordinate system set to `EPSG:28992'
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Coordinate System `EPSG:28992' parameters: CS_NAME=`Netherlands-RDNew-2008' DESC_NM=`Netherlands, Amersfoort RD 2008 datum, New System' DT_NAME=`Amersfoort-RD-2008' GROUP=`EUROPE' MAP_SCL=`1' ORG_LAT=`52.15616055555556' ORG_LNG=`5.387638888888889' PROJ=`OSTERO' QUAD=`1' SCL_RED=`0.9999079' SOURCE=`Kadaster' UNIT=`METER' X_OFF=`155000' Y_OFF=`463000'
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Writer `FeatureWriter_0' of type `GEOJSON' using group definition keyword `FeatureWriter_0_DEF'
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|GeoJSON Writer: All features not in WGS84 will be reprojected to WGS84
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|GEOJSON Writer: Opening the GEOJSON writer with destination dataset 'C:\Users\vince\Desktop\klic\gis\Mast.geojson'
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Closing the GEOJSON writer
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.3|  0.0|INFORM|Feature output statistics for `GEOJSON' writer using keyword `FeatureWriter_0':
+2025-06-07 14:30:18|  37.3|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.3|  0.0|STATS |                               Features Written
+2025-06-07 14:30:18|  37.3|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:18|  37.3|  0.0|STATS |Mast                                                                         6
+2025-06-07 14:30:18|  37.3|  0.0|STATS |==============================================================================
+2025-06-07 14:30:18|  37.3|  0.0|STATS |Total Features Written                                                       6
+2025-06-07 14:30:18|  37.3|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:19|  37.9|  0.6|STATS |Destination Feature Type Routing Correlator (RoutingFactory): Tested 0 input feature(s), wrote 0 output feature(s): 0 matched merge filters, 0 were routed to output, 0 could not be routed.
+2025-06-07 14:30:19|  37.9|  0.0|STATS |Final Output Nuker (TeeFactory): Cloned 0 input feature(s) into 0 output feature(s)
+2025-06-07 14:30:19|  37.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:19|  37.9|  0.0|STATS |                            Features Read Summary
+2025-06-07 14:30:19|  37.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:19|  37.9|  0.0|STATS |==============================================================================
+2025-06-07 14:30:19|  37.9|  0.0|STATS |Total Features Read                                                          0
+2025-06-07 14:30:19|  37.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:19|  37.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:19|  37.9|  0.0|STATS |                           Features Written Summary
+2025-06-07 14:30:19|  37.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:19|  37.9|  0.0|STATS |==============================================================================
+2025-06-07 14:30:19|  37.9|  0.0|STATS |Total Features Written                                                       0
+2025-06-07 14:30:19|  37.9|  0.0|STATS |=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2025-06-07 14:30:19|  37.9|  0.0|WARN  |-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+2025-06-07 14:30:19|  37.9|  0.0|WARN  |-~                                                                             ~-
+2025-06-07 14:30:19|  37.9|  0.0|WARN  |-~    Feature caches have been recorded at every stage of the translation.     ~-
+2025-06-07 14:30:19|  37.9|  0.0|WARN  |-~                      To inspect the recorded features,                      ~-
+2025-06-07 14:30:19|  37.9|  0.0|WARN  |-~              click the feature cache icons next to the ports.               ~-
+2025-06-07 14:30:19|  37.9|  0.0|WARN  |-~                                                                             ~-
+2025-06-07 14:30:19|  37.9|  0.0|WARN  |-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+2025-06-07 14:30:19|  37.9|  0.0|INFORM|Translation was SUCCESSFUL with 7 warning(s) (0 feature(s) output)
+2025-06-07 14:30:19|  37.9|  0.0|INFORM|FME Session Duration: 45.9 seconds. (CPU: 34.2s user, 3.7s system)
+2025-06-07 14:30:19|  37.9|  0.0|INFORM|END - ProcessID: 2224, peak process memory usage: 653956 kB, current process memory usage: 106236 kB
