@@ -19,6 +19,7 @@ import {
   MenuItem,
   Button,
 } from "@mui/material";
+// import { useEffect } from "react";
 // import React, { useState } from "react";
 
 
@@ -47,14 +48,25 @@ const ChartAndTablePanel: React.FC<ChartAndTablePanelProps> = ({
   model,
   handleCellChange,
 }) => {
-  const handleSheetChange = (sheetName: string) => {
-    // Save current chartData to the active sheet before switching
-    model.allChartData[model.activeSheet] = [...model.chartData];
+const handleSheetChange = (sheetName: string) => {
+    const currentSheet = model.activeSheet;
+    const currentData = model.chartData ? [...model.chartData] : [];
+    model.allChartData[currentSheet] = currentData;
 
-    // Switch to the new sheet
     model.activeSheet = sheetName;
-    model.chartData = model.allChartData[sheetName];
-  }
+
+    const newChartData = model.allChartData[sheetName] ? [...model.allChartData[sheetName]] : [];
+    model.chartData = newChartData;
+
+    console.log("Switched to sheet:", sheetName, model.chartData);
+};
+  
+    // useEffect(() => {
+    //     console.log("ChartAndTablePanel mounted");
+    //     return () => {
+    //         console.log("ChartAndTablePanel unmounted");
+    //     };
+    // }, []);
 
   const handleAddRow = () => {
     const newRow = {
@@ -188,6 +200,7 @@ const ChartAndTablePanel: React.FC<ChartAndTablePanelProps> = ({
           </Box>
 
           <TableContainer
+           key={model.activeSheet}
             sx={{
               flexGrow: 1,
               overflow: "auto",
@@ -211,7 +224,7 @@ const ChartAndTablePanel: React.FC<ChartAndTablePanelProps> = ({
                 {model.chartData?.map((row, rowIndex) => {
                   const rowKey = `afstand-${row.afstand ?? rowIndex}`;
                   return (
-                    <TableRow key={rowKey}>
+                    <TableRow key={row.id || rowKey}>
                       {Object.entries(row as object || {}).map(([key, cell], colIndex) => (
                         <TableCell key={`${rowKey}-${key}`} align="center">
                           {colIndex === 0 ? ( // Check if it's the first column

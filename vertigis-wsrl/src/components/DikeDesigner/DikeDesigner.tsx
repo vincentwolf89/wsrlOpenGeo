@@ -56,7 +56,6 @@ const DikeDesigner = (
     //   }, []);
 
     const chartContainerRef = useRef<HTMLDivElement | null>(null);
-    useWatchAndRerender(model, "chartData");
 
     const [mapLeftBorder, setMapLeftBorder] = useState(0);
     const [mapRightBorder, setMapRightBorder] = useState(window.innerWidth);
@@ -251,7 +250,10 @@ const DikeDesigner = (
     useWatchAndRerender(model, "selectedLineLayerId");
     useWatchAndRerender(model, "gridSize");
     useWatchAndRerender(model, "activeSheet");
+    useWatchAndRerender(model, "activeTab");
     useWatchAndRerender(model, "selectedDijkvakField");
+    useWatchAndRerender(model, "chartData");
+    useWatchAndRerender(model, "allChartData");
 
 
     interface TabPanelProps {

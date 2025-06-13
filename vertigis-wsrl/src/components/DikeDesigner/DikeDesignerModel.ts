@@ -269,6 +269,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                     }
                 });
                 this.allChartData = allChartData; // Store all chart data
+                console.log("All chart data:", this.allChartData);
 
 
                 // Set the first sheet as the default table data
