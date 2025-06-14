@@ -35,13 +35,13 @@ export async function createDesigns(model): Promise<void> {
 
     let basePath: Polyline | undefined = undefined;
     let chartData: any[] = [];
-    if (model.selectedDijkvakField){
+    if (model.selectedDijkvakField) {
         console.log("do stuff here...")
-        model.graphicsLayerLine.graphics.items.forEach(async(graphic) => {
+        model.graphicsLayerLine.graphics.items.forEach(async (graphic) => {
             const attributes = graphic.attributes;
             if (attributes[model.selectedDijkvakField]) {
                 const dijkvakValue = attributes[model.selectedDijkvakField];
-            
+
                 // find corresponding chartdata
                 chartData = model.allChartData[dijkvakValue]
                 basePath = graphic.geometry
@@ -59,7 +59,7 @@ export async function createDesigns(model): Promise<void> {
         createDesign(model, basePath, chartData, "default");
     }
 
-    
+
     // if (model.selectedDijkvakField){
     //     console.log(model.selectedDijkvakField, "Selected dijkvak field")
     //     model.graphicsLayerLine.graphics.items.forEach((graphic) => {
@@ -83,7 +83,7 @@ export async function createDesigns(model): Promise<void> {
 }
 export async function createDesign(model, basePath, chartData, dijkvak): Promise<void> {
 
-    
+
     console.log(basePath, "Base path geometry");
 
     let offsetGeometries = []
@@ -110,7 +110,7 @@ export async function createDesign(model, basePath, chartData, dijkvak): Promise
                     color: "grey",
                     width: 1,
                 } as __esri.SimpleLineSymbolProperties,
-               
+
 
             });
 
@@ -339,9 +339,9 @@ function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
 
     const graphics2D = new Graphic({
         geometry: polygon2d,
-         attributes: { name: partName }
+        attributes: { name: partName }
     });
-        
+
     const graphic3d = new Graphic({
         geometry: polygon3d,
         attributes: { name: partName }
@@ -352,9 +352,9 @@ function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
     model.designLayer2D.applyEdits({
         addFeatures: [graphics2D]
     }).catch((error) => {
-        console.error("Error adding 2D polygon to design layer:", error);   
+        console.error("Error adding 2D polygon to design layer:", error);
     });
-    
+
     model.uniqueParts.push(partName);
 
     console.log(model.designLayer2D, "Design layer 2D")
@@ -520,10 +520,10 @@ export function initializeChart(model, activeTab, chartContainerRef): () => void
             if (index !== -1) {
                 model.chartData[index].hoogte = snappedY;
                 model.chartData[index].afstand = snappedX;
-                
-                
+
+
                 model.chartData = [...model.chartData]; // Force reactivity
-                model.allChartData[model.activeSheet] = [...model.chartData]; 
+                model.allChartData[model.activeSheet] = [...model.chartData];
             }
         });
 
@@ -606,5 +606,95 @@ export function cleanFeatureLayer(layer) {
         }).catch((error) => {
             console.error("Error deleting features:", error);
         });
+    });
+}
+
+export async function createCrossSection(model) {
+    model.messages.commands.ui.displayNotification.execute({
+
+        title: "Cross Section",
+        message: "Click on the map to start drawing a line, this tool is in development.",
+        type: "success",
+    })
+    model.startDrawingLine().then(() => {
+        getPointsOnLine(model.graphicsLayerLine.graphics.items[0].geometry, 1).then((offsetLocations) => {
+            console.log(offsetLocations, "Offset locations for cross section");
+            model.messages.commands.ui.displayNotification.execute({
+
+                title: "Cross Section",
+                message: "Cross section locations created successfully, this tool in development.",
+                type: "success",
+            });
+            // model.crossSectionLocations = offsetLocations;
+            // model.graphicsLayerTemp.removeAll();
+        });
+    });
+}
+
+
+// code for creating offset locations based on a start offset, segment length, step size, and segment number --> move to separate file if needed
+export function createOffsetLocations(
+    startOffset: number,
+    segmentLength: number,
+    stepSize: number,
+    segmentNumber: number
+) {
+    const locations = [];
+    let iterations = Math.floor(segmentLength / stepSize);
+    let offset = startOffset;
+    let offsetInSegment = 0;
+    for (let i = 0; i < iterations; i++) {
+        locations.push({
+            offset,
+            offsetInSegment,
+            segment: segmentNumber,
+        });
+        offset += stepSize;
+        offsetInSegment += stepSize;
+    }
+    return locations;
+}
+
+export function getPointsOnLine(profileLine: any, intervalSize: number): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+        try {
+            const path = profileLine.paths[0];
+            const lineSegments = path.length - 1;
+            let totalLength = 0;
+            let startDistance = 0;
+            let offsetLocations: any[] = [];
+
+            for (let step = 0; step < lineSegments; step++) {
+                const [xStart, yStart] = path[step];
+                const [xEnd, yEnd] = path[step + 1];
+
+                const lineSegment = new Polyline({
+                    hasZ: false,
+                    hasM: false,
+                    paths: [
+                        [
+                            [xStart, yStart],
+                            [xEnd, yEnd],
+                        ],
+                    ],
+                    spatialReference: profileLine.spatialReference,
+                });
+
+                let segmentLength = Math.round(geometryEngine.geodesicLength(lineSegment, "meters"));
+                if (segmentLength % 2 !== 0) segmentLength += 1;
+
+                totalLength += segmentLength;
+
+                // Add offset locations for this segment
+                offsetLocations = offsetLocations.concat(
+                    createOffsetLocations(startDistance, segmentLength, intervalSize, step)
+                );
+                startDistance += segmentLength;
+            }
+            //   console.log(offsetLocations, "Offset locations");
+            resolve(offsetLocations);
+        } catch (error) {
+            reject(error);
+        }
     });
 }

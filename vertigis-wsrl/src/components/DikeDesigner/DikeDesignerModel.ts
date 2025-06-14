@@ -214,24 +214,27 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
         reader.readAsText(file);
     }
-
-    startDrawingLine() {
+    startDrawingLine(): Promise<__esri.Polyline> {
+        this.graphicsLayerLine.removeAll();
         this.sketchViewModel.create("polyline");
 
-        // Listen for the create event to get the geometry
-        this.sketchViewModel.on("create", async (event) => {
-            if (event.state === "complete") {
-                const drawnLine = event.graphic.geometry;
-                // console.log("Polygon geometry:", poylgonGeometry);
+        return new Promise((resolve, reject) => {
+            const handler = this.sketchViewModel.on("create", (event: any) => {
+                if (event.state === "complete") {
+                    const drawnLine = event.graphic.geometry;
+                    this.drawnLine = drawnLine;
+                    this.sketchViewModel.set("state", "update");
+                    this.sketchViewModel.update(event.graphic);
 
-                // publish event to show dialog
-                this.drawnLine = drawnLine;
-                console.log(this.sketchViewModel)
-                this.sketchViewModel.set("state", "update");
-
-                this.sketchViewModel.update(event.graphic) // Update the graphic with the new geometry
-                    ;
-            }
+                    handler.remove(); // Clean up the event listener
+                    resolve(drawnLine);
+                }
+                // Optionally handle cancel/error states here
+                // else if (event.state === "cancel") {
+                //     handler.remove();
+                //     reject(new Error("Drawing cancelled"));
+                // }
+            });
         });
     }
 
@@ -428,6 +431,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                 listMode: "show",
             });
 
+
             this.elevationLayer = new ElevationLayer({
                 url: this.elevationLayerUrl,
             });
@@ -442,13 +446,6 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
 
 
-
-            // Initialize the SketchViewModel
-
-            // this.sketchViewModel = new SketchViewModel({
-            //     view: this.view,
-            //     layer: this.graphicsLayerLine,
-            // });
             await reactiveUtils
                 .whenOnce(() => this.view)
                 .then(() => {

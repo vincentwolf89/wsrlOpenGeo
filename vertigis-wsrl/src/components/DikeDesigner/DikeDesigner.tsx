@@ -108,8 +108,8 @@ const DikeDesigner = (
         }
     }, [model.overviewVisible, model, activeTab, chartContainerRef, model.chartData]);
 
-    const handleDrawLine = () => {
-        model.startDrawingLine();
+    const handleDrawLine = async () => {
+        await model.startDrawingLine();
     };
 
     const handleUploadGeoJSON = () => {
