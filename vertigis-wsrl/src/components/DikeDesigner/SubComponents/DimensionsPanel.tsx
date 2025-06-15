@@ -26,11 +26,6 @@ import {
 import React from "react";
 
 import { stackStyle } from "../../styles";
-import { createCrossSection } from "../Functions/DesignFunctions";
-
-const handleCreateCrossSection = (model: any) => async () => {
-        await createCrossSection(model);
-}
 
 
 interface DimensionsPanelProps {
@@ -47,6 +42,7 @@ interface DimensionsPanelProps {
     handleExcelUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
     handleClearExcel: () => void;
     handleOpenOverview: () => void;
+    handleCreateCrossSection: () => () => void;
     handleCreateDesign: () => void;
     handleExportGraphics: () => void;
     handleClearDesign: () => void;
@@ -67,6 +63,7 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
     handleExcelUpload,
     handleClearExcel,
     handleOpenOverview,
+    handleCreateCrossSection,
     handleCreateDesign,
     handleExportGraphics,
     handleClearDesign,
@@ -368,7 +365,7 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
                     variant="contained"
                     color="primary"
                     startIcon={<InsightsIcon />}
-                    onClick={handleCreateCrossSection(model)}
+                    onClick={handleCreateCrossSection()}
                     fullWidth
                 >
                     Maak dwarsprofiel

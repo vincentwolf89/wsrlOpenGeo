@@ -538,6 +538,129 @@ export function initializeChart(model, activeTab, chartContainerRef): () => void
         root.dispose();
     };
 }
+export function initializeCrossSectionChart(model, crossSectionChartContainerRef): () => void {
+    if (!model.crossSectionChartData || !crossSectionChartContainerRef?.current) {
+        console.log(model.crossSectionChartData, crossSectionChartContainerRef?.current, "Chart not initialized");
+        return
+    }
+
+
+    model.crossSectionChartRoot = am5.Root.new(crossSectionChartContainerRef.current);
+    const root = model.crossSectionChartRoot as am5.Root;
+    root.setThemes([am5themes_Animated.new(root)]);
+
+    const chart = root.container.children.push(
+        am5xy.XYChart.new(root, {
+            panX: true,
+            panY: true,
+            wheelX: "panX",
+            wheelY: "zoomX",
+            pinchZoomX: true,
+        })
+    );
+
+    try {
+        root._logo.dispose();
+    } catch {
+        // Handle error if logo is not present
+    }
+
+    const xAxis = chart.xAxes.push(
+        am5xy.ValueAxis.new(root, {
+            renderer: am5xy.AxisRendererX.new(root, {}),
+            tooltip: am5.Tooltip.new(root, {}),
+        })
+    );
+
+    const yAxis = chart.yAxes.push(
+        am5xy.ValueAxis.new(root, {
+            renderer: am5xy.AxisRendererY.new(root, {}),
+            tooltip: am5.Tooltip.new(root, {}),
+        })
+    );
+
+    const series = chart.series.push(
+        am5xy.LineSeries.new(root, {
+            name: "Hoogte vs Afstand",
+            xAxis: xAxis as any,
+            yAxis: yAxis as any,
+            valueYField: "hoogte",
+            valueXField: "afstand",
+            tooltip: am5.Tooltip.new(root, {
+                labelText: "{valueY}",
+            }),
+        })
+    );
+
+    series.data.setAll(model.crossSectionChartData);
+
+    console.log(model.crossSectionChartData, "Cross section chart data");
+
+    series.strokes.template.setAll({
+        strokeWidth: 2,
+    });
+
+    // Add draggable bullets with snapping logic
+    // series.bullets.push((root, series, dataItem) => {
+    //     const circle = am5.Circle.new(root, {
+    //         radius: 5,
+    //         fill: root.interfaceColors.get("background"),
+    //         stroke: series.get("fill"),
+    //         strokeWidth: 2,
+    //         draggable: true,
+    //         interactive: true,
+    //         cursorOverStyle: "pointer",
+    //     });
+
+    //     // Snap the coordinates to the nearest 0.5 meter
+    //     const snapToGrid = (value: number, gridSize: number) => Math.round(value / gridSize) * gridSize;
+
+    //     circle.events.on("dragstop", () => {
+    //         // Calculate new positions
+    //         const newY = yAxis.positionToValue(
+    //             yAxis.coordinateToPosition(circle.y())
+    //         );
+    //         const newX = xAxis.positionToValue(
+    //             xAxis.coordinateToPosition(circle.x())
+    //         );
+
+    //         // Snap to nearest 0.5 meter grid
+    //         const snappedX = snapToGrid(newX, 0.5);
+    //         const snappedY = snapToGrid(newY, 0.5);
+
+    //         // Update chart
+    //         dataItem.set("valueY", snappedY);
+    //         dataItem.set("valueX", snappedX);
+
+    //         // Update model.chartData
+    //         const index = model.chartData.findIndex(
+    //             (d) => d.afstand === dataItem.dataContext["afstand"]
+    //         );
+
+    //         console.log(index)
+
+    //         if (index !== -1) {
+    //             model.chartData[index].hoogte = snappedY;
+    //             model.chartData[index].afstand = snappedX;
+
+
+    //             model.chartData = [...model.chartData]; // Force reactivity
+    //             model.allChartData[model.activeSheet] = [...model.chartData];
+    //         }
+    //     });
+
+    //     return am5.Bullet.new(root, {
+    //         sprite: circle,
+    //     });
+    // });
+
+    chart.set("cursor", am5xy.XYCursor.new(root, {}));
+
+    return () => {
+        root.dispose();
+    };
+}
+
 
 export async function getLineFeatureLayers(map): Promise<FeatureLayer[]> {
     if (!map) {
@@ -613,18 +736,64 @@ export async function createCrossSection(model) {
     model.messages.commands.ui.displayNotification.execute({
 
         title: "Cross Section",
-        message: "Click on the map to start drawing a line, this tool is in development.",
+        message: "Klik op de kaart om een dwarsprofiel te tekenen. Deze tool is in ontwikkeling.",
         type: "success",
     })
     model.startDrawingLine().then(() => {
         getPointsOnLine(model.graphicsLayerLine.graphics.items[0].geometry, 1).then((offsetLocations) => {
             console.log(offsetLocations, "Offset locations for cross section");
+            const sRef = model.graphicsLayerLine.graphics.items[0].geometry.spatialReference;
+            const promises = offsetLocations.map(loc =>
+                getPointAlongLine( model.graphicsLayerLine.graphics.items[0].geometry.paths[0], loc, sRef)
+            );
+
+            Promise.all(promises).then(async pointGraphics => {
+                console.log(pointGraphics, "Point graphics for cross section");
+             const multipoint = new Multipoint({
+                hasM: true,
+            points: pointGraphics.map(g => {
+                const { x, y } = g.geometry as Point;
+                const offset = g.attributes?.offset ?? 0;
+                return [x, y, undefined, offset]; // [x, y, z, m]
+            }),
+            spatialReference: model.graphicsLayerLine.graphics.items[0].geometry.spatialReference
+            });
+            console.log(pointGraphics, "Point graphics for cross section");
+            console.log(multipoint, "Multipoint for cross section");
+            
+            const elevationResult = await model.elevationLayer.queryElevation(multipoint, { returnSampleInfo: true });
+
+            model.crossSectionChartData = elevationResult.geometry.points.map((point, index) => ({
+                afstand: point[3], // m value
+                hoogte: point[2]
+            }));
+
+
+            console.log("Elevation query result:", elevationResult);
+
+            if (model.meshes.length > 0) {
+                
+                let elevationSampler = await meshUtils.createElevationSampler(
+                    model.mergedMesh
+                );
+
+                const meshElevationResult = elevationSampler.queryElevation(multipoint);
+                console.log("Mesh elevation result:", meshElevationResult);
+                // set model.crossSectionChartData to the elevation result
+
+
+                // initializeCrossSectionChart(model, model.crossSectionChartContainerRef);
+
+            }
+
             model.messages.commands.ui.displayNotification.execute({
 
                 title: "Cross Section",
-                message: "Cross section locations created successfully, this tool in development.",
+                message: "Dwarsprofiel punten opgehaald en hoogtes berekend, deze worden straks getoond in de grafiek. Deze tool is in ontwikkeling.",
                 type: "success",
             });
+            });
+
             // model.crossSectionLocations = offsetLocations;
             // model.graphicsLayerTemp.removeAll();
         });
@@ -697,4 +866,69 @@ export function getPointsOnLine(profileLine: any, intervalSize: number): Promise
             reject(error);
         }
     });
+}
+
+export function getPointAlongLine(
+  paths: number[],
+  offsetLocation: { offset: number; offsetInSegment: number; segment: number },
+  spatialReference: __esri.SpatialReference
+): Promise<__esri.Graphic> {
+  return new Promise((resolve, reject) => {
+    try {
+      const x1 = paths[offsetLocation.segment][0];
+      const y1 = paths[offsetLocation.segment][1];
+      const x2 = paths[offsetLocation.segment + 1][0];
+      const y2 = paths[offsetLocation.segment + 1][1];
+
+      const lineSegment = new Polyline({
+        hasZ: false,
+        hasM: false,
+        paths: [
+          [
+            [x1, y1],
+            [x2, y2],
+          ],
+        ],
+        spatialReference,
+      });
+
+      const pathDistancePlanar = geometryEngine.planarLength(lineSegment, "meters");
+      const pathDistanceGeodesic = geometryEngine.geodesicLength(lineSegment, "meters");
+      const planarToGeodesic = pathDistancePlanar / pathDistanceGeodesic;
+
+      let distanceDiff = offsetLocation.offsetInSegment * planarToGeodesic;
+
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      const x3 = distanceDiff * Math.cos(angle);
+      const y3 = distanceDiff * Math.sin(angle);
+
+      const point = new Point({
+        x: x1 + x3,
+        y: y1 + y3,
+        m: offsetLocation.offset,
+        spatialReference,
+      });
+
+      const defaultPointSymbol = {
+        type: "simple-marker",
+        color: [226, 119, 40, 0],
+        outline: {
+          color: [255, 255, 255, 0],
+          width: 1,
+        },
+      };
+
+      const pointGraphic = new Graphic({
+        geometry: point,
+        symbol: defaultPointSymbol,
+        attributes: {
+          offset: offsetLocation.offset,
+        },
+      });
+
+      resolve(pointGraphic);
+    } catch (error) {
+      reject(error);
+    }
+  });
 }

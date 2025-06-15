@@ -23,9 +23,12 @@ import {
     createDesigns,
     exportGraphicsLayerAsGeoJSON,
     initializeChart,
-    setInputLineFromFeatureLayer
+    initializeCrossSectionChart,
+    setInputLineFromFeatureLayer,
+    createCrossSection
 } from "./Functions/DesignFunctions";
 import ChartAndTablePanel from "./SubComponents/ChartAndTablePanel";
+import CrossSectionChartPanel from "./SubComponents/CrossSectionChartPanel";
 import DimensionsPanel from "./SubComponents/DimensionsPanel";
 import EffectAnalysisPanel from "./SubComponents/EffectAnalysisPanel";
 
@@ -36,31 +39,14 @@ const DikeDesigner = (
 ): ReactElement => {
     const { model } = props;
 
-    // const workerRef = useRef<Worker | null>(null);
-
-    // useEffect(() => {
-    //     const blob = new Blob([simpleWorkerCode], { type: "application/javascript" });
-    //     const worker = new Worker(URL.createObjectURL(blob));
-    //     workerRef.current = worker;
-
-    //     worker.onmessage = (e) => {
-    //       console.log("Received from worker:", e.data);
-    //     };
-
-    //     // Send test data
-    //     worker.postMessage(5);
-
-    //     return () => {
-    //       worker.terminate();
-    //     };
-    //   }, []);
-
     const chartContainerRef = useRef<HTMLDivElement | null>(null);
+    const crossSectionChartContainerRef = useRef<HTMLDivElement | null>(null);
 
     const [mapLeftBorder, setMapLeftBorder] = useState(0);
     const [mapRightBorder, setMapRightBorder] = useState(window.innerWidth);
     const [activeTab, setActiveTab] = useState(0);
     const [isOverviewVisible, setIsOverviewVisible] = useState(false);
+    const [isCrossSectionPanelVisible, setIsCrossSectionPanelVisible] = useState(false);
     const [loading, setLoading] = useState(false); // State to track loading status
     const [value, setValue] = React.useState(0);
     const [isLayerListVisible, setIsLayerListVisible] = useState(false);
@@ -71,6 +57,7 @@ const DikeDesigner = (
     };
 
     const seriesRef = useRef<am5xy.LineSeries | null>(null);
+    const chartSeriesRef = useRef<am5xy.LineSeries | null>(null);
 
     const observeMapLeftBorder = () => {
         const mapElement = document.querySelector(".gcx-map");
@@ -99,7 +86,6 @@ const DikeDesigner = (
 
     useEffect(() => {
         initializeChart(model, activeTab, chartContainerRef);
-
         return () => {
             if (model.chartRoot) {
                 model.chartRoot.dispose();
@@ -107,6 +93,18 @@ const DikeDesigner = (
             }
         }
     }, [model.overviewVisible, model, activeTab, chartContainerRef, model.chartData]);
+
+    useEffect(() => {
+        initializeCrossSectionChart(model, crossSectionChartContainerRef);
+        return () => {
+            if (model.crossSectionChartRoot) {
+                model.crossSectionChartRoot.dispose();
+                console.log("Cross-section chart disposed");
+            }
+        };
+    }, [model, model.crossSectionChartRoot, crossSectionChartContainerRef, model.crossSectionChartData]);
+
+
 
     const handleDrawLine = async () => {
         await model.startDrawingLine();
@@ -182,6 +180,7 @@ const DikeDesigner = (
 
     const handleOpenOverview = () => {
         setIsOverviewVisible(true);
+        setIsCrossSectionPanelVisible(false);
         const updatedData = [...model.chartData];
         model.chartData = updatedData
         seriesRef.current?.data.setAll(model.chartData);
@@ -210,6 +209,15 @@ const DikeDesigner = (
             setLoading(false); // Hide loader
         }
     };
+
+    
+    const handleCreateCrossSection = () => async () => {
+        setIsOverviewVisible(false);
+        setIsCrossSectionPanelVisible(true);
+        await createCrossSection(model);
+        chartSeriesRef.current?.data.setAll(model.crossSectionChartData);
+        // set something for series ref...?
+    }
 
     // const handle2DAnalysis = async () => {
     //     setLoading(true); // Show loader
@@ -254,6 +262,8 @@ const DikeDesigner = (
     useWatchAndRerender(model, "selectedDijkvakField");
     useWatchAndRerender(model, "chartData");
     useWatchAndRerender(model, "allChartData");
+    useWatchAndRerender(model, "crossSectionChartData");
+    useWatchAndRerender(model, "crossSectionChartData.length");
 
 
     interface TabPanelProps {
@@ -326,6 +336,7 @@ const DikeDesigner = (
                     handleCreateDesign={handleCreateDesign}
                     handleExportGraphics={handleExportGraphics}
                     handleClearDesign={handleClearDesign}
+                    handleCreateCrossSection={handleCreateCrossSection}
                     loading={loading}
                 />
                 </CustomTabPanel>
@@ -349,7 +360,17 @@ const DikeDesigner = (
                     handleCellChange={handleCellChange}
                 />
             )}
-
+            {/* Paper for Cross Section Chart */}
+            {isCrossSectionPanelVisible && (    
+                <CrossSectionChartPanel
+                    isCrossSectionPanelVisible={isCrossSectionPanelVisible}
+                    setIsCrossSectionPanelVisible={setIsCrossSectionPanelVisible}
+                    mapLeftBorder={mapLeftBorder}
+                    mapRightBorder={mapRightBorder}
+                    crossSectionChartContainerRef={crossSectionChartContainerRef}
+                    model={model}
+                />
+            )}
         </LayoutElement>
     );
 };
