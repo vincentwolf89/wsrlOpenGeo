@@ -418,7 +418,7 @@ export function exportGraphicsLayerAsGeoJSON(model): void {
     });
 }
 
-export function initializeChart(model, activeTab, chartContainerRef): () => void {
+export function initializeChart(model, activeTab, chartContainerRef, seriesRef): () => void {
     if (activeTab !== 0 || !model.chartData || !chartContainerRef.current) {
         console.log(activeTab, model.chartData, chartContainerRef.current, "Chart not initialized");
         return
@@ -473,6 +473,7 @@ export function initializeChart(model, activeTab, chartContainerRef): () => void
     );
 
     series.data.setAll(model.chartData);
+    seriesRef.current = series
 
     series.strokes.template.setAll({
         strokeWidth: 2,
@@ -538,7 +539,7 @@ export function initializeChart(model, activeTab, chartContainerRef): () => void
         root.dispose();
     };
 }
-export function initializeCrossSectionChart(model, crossSectionChartContainerRef): () => void {
+export function initializeCrossSectionChart(model, crossSectionChartContainerRef, chartSeriesRef, meshSeriesRef): () => void {
     if (!model.crossSectionChartData || !crossSectionChartContainerRef?.current) {
         console.log(model.crossSectionChartData, crossSectionChartContainerRef?.current, "Chart not initialized");
         return
@@ -579,7 +580,7 @@ export function initializeCrossSectionChart(model, crossSectionChartContainerRef
         })
     );
 
-    const series = chart.series.push(
+    const elevationSeries = chart.series.push(
         am5xy.LineSeries.new(root, {
             name: "Hoogte vs Afstand",
             xAxis: xAxis as any,
@@ -592,67 +593,36 @@ export function initializeCrossSectionChart(model, crossSectionChartContainerRef
         })
     );
 
-    series.data.setAll(model.crossSectionChartData);
+    elevationSeries.data.setAll(model.crossSectionChartData);
+    chartSeriesRef.current = elevationSeries
 
-    console.log(model.crossSectionChartData, "Cross section chart data");
-
-    series.strokes.template.setAll({
+    elevationSeries.strokes.template.setAll({
         strokeWidth: 2,
     });
 
-    // Add draggable bullets with snapping logic
-    // series.bullets.push((root, series, dataItem) => {
-    //     const circle = am5.Circle.new(root, {
-    //         radius: 5,
-    //         fill: root.interfaceColors.get("background"),
-    //         stroke: series.get("fill"),
-    //         strokeWidth: 2,
-    //         draggable: true,
-    //         interactive: true,
-    //         cursorOverStyle: "pointer",
-    //     });
+    const meshSeries = chart.series.push(
+        am5xy.LineSeries.new(root, {
+            name: "Mesh Hoogte vs Afstand",
+            xAxis: xAxis as any,
+            yAxis: yAxis as any,
+            valueYField: "hoogte",
+            valueXField: "afstand",
+            tooltip: am5.Tooltip.new(root, {
+                labelText: "{valueY}",
+            }),
+        })
+    );
 
-    //     // Snap the coordinates to the nearest 0.5 meter
-    //     const snapToGrid = (value: number, gridSize: number) => Math.round(value / gridSize) * gridSize;
+    if (model.meshSeriesData?.length) {
+       meshSeries.data.setAll(model.meshSeriesData);
+       console.log(model.meshSeriesData, "Mesh series data has been set");
+    }
 
-    //     circle.events.on("dragstop", () => {
-    //         // Calculate new positions
-    //         const newY = yAxis.positionToValue(
-    //             yAxis.coordinateToPosition(circle.y())
-    //         );
-    //         const newX = xAxis.positionToValue(
-    //             xAxis.coordinateToPosition(circle.x())
-    //         );
+    meshSeriesRef.current = meshSeries;
+    meshSeries.strokes.template.setAll({
+        strokeWidth: 2,
+    });
 
-    //         // Snap to nearest 0.5 meter grid
-    //         const snappedX = snapToGrid(newX, 0.5);
-    //         const snappedY = snapToGrid(newY, 0.5);
-
-    //         // Update chart
-    //         dataItem.set("valueY", snappedY);
-    //         dataItem.set("valueX", snappedX);
-
-    //         // Update model.chartData
-    //         const index = model.chartData.findIndex(
-    //             (d) => d.afstand === dataItem.dataContext["afstand"]
-    //         );
-
-    //         console.log(index)
-
-    //         if (index !== -1) {
-    //             model.chartData[index].hoogte = snappedY;
-    //             model.chartData[index].afstand = snappedX;
-
-
-    //             model.chartData = [...model.chartData]; // Force reactivity
-    //             model.allChartData[model.activeSheet] = [...model.chartData];
-    //         }
-    //     });
-
-    //     return am5.Bullet.new(root, {
-    //         sprite: circle,
-    //     });
-    // });
 
     chart.set("cursor", am5xy.XYCursor.new(root, {}));
 
@@ -777,12 +747,21 @@ export async function createCrossSection(model) {
                     model.mergedMesh
                 );
 
-                const meshElevationResult = elevationSampler.queryElevation(multipoint);
+                const meshElevationResult = elevationSampler.queryElevation(multipoint)
+                    console.log("Mesh elevation result:", meshElevationResult);
+                    if ("points" in meshElevationResult && Array.isArray(meshElevationResult.points)) {
+                        model.meshSeriesData = meshElevationResult.points.map((point, index) => ({
+                            afstand: point[3], // m value
+                            hoogte: point[2]
+                        }));
+                        console.log("Mesh series data:", model.meshSeriesData);
+                    } else {
+                        model.meshSeriesData = [];
+                        console.warn("meshElevationResult does not have a 'points' property or is not an array.", meshElevationResult);
+                    }
+             
                 console.log("Mesh elevation result:", meshElevationResult);
-                // set model.crossSectionChartData to the elevation result
 
-
-                // initializeCrossSectionChart(model, model.crossSectionChartContainerRef);
 
             }
 

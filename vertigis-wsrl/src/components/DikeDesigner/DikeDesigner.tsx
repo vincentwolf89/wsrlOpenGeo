@@ -58,6 +58,7 @@ const DikeDesigner = (
 
     const seriesRef = useRef<am5xy.LineSeries | null>(null);
     const chartSeriesRef = useRef<am5xy.LineSeries | null>(null);
+    const meshSeriesRef = useRef<am5xy.LineSeries | null>(null);
 
     const observeMapLeftBorder = () => {
         const mapElement = document.querySelector(".gcx-map");
@@ -85,7 +86,7 @@ const DikeDesigner = (
     }, []);
 
     useEffect(() => {
-        initializeChart(model, activeTab, chartContainerRef);
+        initializeChart(model, activeTab, chartContainerRef, seriesRef);
         return () => {
             if (model.chartRoot) {
                 model.chartRoot.dispose();
@@ -95,14 +96,14 @@ const DikeDesigner = (
     }, [model.overviewVisible, model, activeTab, chartContainerRef, model.chartData]);
 
     useEffect(() => {
-        initializeCrossSectionChart(model, crossSectionChartContainerRef);
+        initializeCrossSectionChart(model, crossSectionChartContainerRef, chartSeriesRef, meshSeriesRef);
         return () => {
             if (model.crossSectionChartRoot) {
                 model.crossSectionChartRoot.dispose();
                 console.log("Cross-section chart disposed");
             }
         };
-    }, [model, model.crossSectionChartRoot, crossSectionChartContainerRef, model.crossSectionChartData]);
+    }, [model, model.crossSectionChartRoot, crossSectionChartContainerRef, model.crossSectionChartData, model.meshSeriesData]);
 
 
 
@@ -191,7 +192,7 @@ const DikeDesigner = (
     };
     const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
 
-        setIsOverviewVisible(true); // Close the overview when uploading a new Excel file
+    setIsOverviewVisible(true); // Close the overview when uploading a new Excel file
         model.handleExcelUpload(event);
 
     }
@@ -264,6 +265,8 @@ const DikeDesigner = (
     useWatchAndRerender(model, "allChartData");
     useWatchAndRerender(model, "crossSectionChartData");
     useWatchAndRerender(model, "crossSectionChartData.length");
+    useWatchAndRerender(model, "meshSeriesData");
+    useWatchAndRerender(model, "meshSeriesData.length");
 
 
     interface TabPanelProps {
