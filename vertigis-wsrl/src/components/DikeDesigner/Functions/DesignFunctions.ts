@@ -539,7 +539,9 @@ export function initializeChart(model, activeTab, chartContainerRef, seriesRef):
         root.dispose();
     };
 }
-export function initializeCrossSectionChart(model, crossSectionChartContainerRef, chartSeriesRef, meshSeriesRef): () => void {
+export function initializeCrossSectionChart(model, crossSectionChartContainerRef, refs: { chartSeriesRef: any; meshSeriesRef: any; userSeriesRef: any }): () => void {
+  const { chartSeriesRef, meshSeriesRef, userSeriesRef } = refs;
+
     if (!model.crossSectionChartData || !crossSectionChartContainerRef?.current) {
         console.log(model.crossSectionChartData, crossSectionChartContainerRef?.current, "Chart not initialized");
         return
@@ -588,8 +590,9 @@ export function initializeCrossSectionChart(model, crossSectionChartContainerRef
             valueYField: "hoogte",
             valueXField: "afstand",
             tooltip: am5.Tooltip.new(root, {
-                labelText: "{valueY}",
+                labelText: "Grond hoogte: {valueY}",
             }),
+            stroke: am5.color(0xff9900),
         })
     );
 
@@ -597,7 +600,7 @@ export function initializeCrossSectionChart(model, crossSectionChartContainerRef
     chartSeriesRef.current = elevationSeries
 
     elevationSeries.strokes.template.setAll({
-        strokeWidth: 2,
+        strokeWidth: 3,
     });
 
     const meshSeries = chart.series.push(
@@ -608,8 +611,9 @@ export function initializeCrossSectionChart(model, crossSectionChartContainerRef
             valueYField: "hoogte",
             valueXField: "afstand",
             tooltip: am5.Tooltip.new(root, {
-                labelText: "{valueY}",
+                labelText: "Ontwerp hoogte: {valueY}",
             }),
+            stroke: am5.color(0x888888)
         })
     );
 
@@ -620,8 +624,42 @@ export function initializeCrossSectionChart(model, crossSectionChartContainerRef
 
     meshSeriesRef.current = meshSeries;
     meshSeries.strokes.template.setAll({
+        strokeWidth: 3,
+    });
+
+    const userSeries = chart.series.push(
+        am5xy.LineSeries.new(root, {
+            name: "User Drawn Line",
+            xAxis: xAxis as any,
+            yAxis: yAxis as any,
+            valueYField: "hoogte",
+            valueXField: "afstand",
+            stroke: am5.color(0x00cc00), // green or any color
+            tooltip: am5.Tooltip.new(root, {
+            labelText: "{valueY}",
+            }),
+        })
+    );
+    chart.plotContainer.events.on("click", (ev) => {
+        // Convert pixel coordinates to axis values
+        const point = chart.plotContainer.toLocal(ev.point);
+        const afstand = xAxis.positionToValue(xAxis.coordinateToPosition(point.x));
+        const hoogte = yAxis.positionToValue(yAxis.coordinateToPosition(point.y));
+
+        // Add the new point to the array
+        model.userLinePoints.push({ afstand, hoogte });
+        // model.setUserLinePoints([...userLinePoints]); // For React state, or just update the array if not using React
+
+        // Update the series data
+        userSeries.data.setAll(model.userLinePoints);
+    });
+
+    userSeries.strokes.template.setAll({
+        stroke: am5.color(0x00cc00),
         strokeWidth: 2,
     });
+
+    
 
 
     chart.set("cursor", am5xy.XYCursor.new(root, {}));
@@ -737,6 +775,9 @@ export async function createCrossSection(model) {
                 afstand: point[3], // m value
                 hoogte: point[2]
             }));
+            
+
+            model.crossSectionPanelVisible = true;
 
 
             console.log("Elevation query result:", elevationResult);
@@ -744,13 +785,19 @@ export async function createCrossSection(model) {
             if (model.meshes.length > 0) {
                 
                 let elevationSampler = await meshUtils.createElevationSampler(
-                    model.mergedMesh
+                    model.mergedMesh, {
+                        noDataValue: -999
+                    }
                 );
+
+                  
 
                 const meshElevationResult = elevationSampler.queryElevation(multipoint)
                     console.log("Mesh elevation result:", meshElevationResult);
                     if ("points" in meshElevationResult && Array.isArray(meshElevationResult.points)) {
-                        model.meshSeriesData = meshElevationResult.points.map((point, index) => ({
+                        model.meshSeriesData = meshElevationResult.points
+                        .filter(point => point[2] !== -999)
+                        .map((point, index) => ({
                             afstand: point[3], // m value
                             hoogte: point[2]
                         }));

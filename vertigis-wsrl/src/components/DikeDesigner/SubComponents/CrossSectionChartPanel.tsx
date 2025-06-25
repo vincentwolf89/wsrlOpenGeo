@@ -26,9 +26,7 @@ import { useEffect } from "react";
 
 
 interface CrossSectionChartPanelProps {
-  isCrossSectionPanelVisible: boolean;
-  setIsCrossSectionPanelVisible: (visible: boolean) => void;
- 
+  setcrossSectionPanelVisible: (visible: boolean) => void;
   mapLeftBorder: number;
   mapRightBorder: number;
   crossSectionChartContainerRef: React.RefObject<HTMLDivElement>;
@@ -36,8 +34,7 @@ interface CrossSectionChartPanelProps {
 }
 
 const CrossSectionChartPanel: React.FC<CrossSectionChartPanelProps> = ({
-  isCrossSectionPanelVisible,
-  setIsCrossSectionPanelVisible,
+  setcrossSectionPanelVisible,
   mapLeftBorder,
   mapRightBorder,
   crossSectionChartContainerRef,
@@ -88,7 +85,7 @@ const CrossSectionChartPanel: React.FC<CrossSectionChartPanelProps> = ({
         Dwarsprofiel overzicht
         <IconButton
           aria-label="close"
-          onClick={() => setIsCrossSectionPanelVisible(false)}
+          onClick={() => setcrossSectionPanelVisible(false)}
           size="medium"
           sx={{ color: "#ffffff" }}
         >

@@ -26,8 +26,7 @@ import {
 
 
 interface ChartAndTablePanelProps {
-  isOverviewVisible: boolean;
-  setIsOverviewVisible: (visible: boolean) => void;
+  setdesignPanelVisible: (visible: boolean) => void;
   activeTab: number;
   setActiveTab: (tab: number) => void;
   mapLeftBorder: number;
@@ -38,8 +37,7 @@ interface ChartAndTablePanelProps {
 }
 
 const ChartAndTablePanel: React.FC<ChartAndTablePanelProps> = ({
-  isOverviewVisible,
-  setIsOverviewVisible,
+  setdesignPanelVisible,
   activeTab,
   setActiveTab,
   mapLeftBorder,
@@ -120,7 +118,7 @@ const handleSheetChange = (sheetName: string) => {
         Design overzicht
         <IconButton
           aria-label="close"
-          onClick={() => setIsOverviewVisible(false)}
+          onClick={() => setdesignPanelVisible(false)}
           size="medium"
           sx={{ color: "#ffffff" }}
         >

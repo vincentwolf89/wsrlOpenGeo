@@ -40,11 +40,15 @@ import * as meshUtils from "esri/geometry/support/meshUtils";
 import SketchViewModel from "esri/widgets/Sketch";
 
 import { initializeChart, getLineFeatureLayers } from "./Functions/DesignFunctions";
+import { array } from "@amcharts/amcharts5";
 export interface DikeDesignerModelProperties extends ComponentModelProperties {
     elevationLayerUrl?: string;
 }
 @serializable
 export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerModelProperties> {
+
+    designPanelVisible: boolean = false;
+    crossSectionPanelVisible: boolean = false;
 
     loading: boolean = false;
 
@@ -84,6 +88,8 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     crossSectionChartRoot: any = null
     crossSectionChart: any = null
     meshSeriesData: any[] = null
+
+    userLinePoints: any[] = []
 
 
     lineFeatureLayers: FeatureLayer[] = []

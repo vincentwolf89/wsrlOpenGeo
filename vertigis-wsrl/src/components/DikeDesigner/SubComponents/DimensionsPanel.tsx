@@ -31,7 +31,6 @@ import { stackStyle } from "../../styles";
 interface DimensionsPanelProps {
     model: any;
     isLayerListVisible: boolean;
-    isOverviewVisible: boolean;
     setSelectedLineLayerId: (id: string) => void;
     handleDrawLine: () => void;
     handleUploadGeoJSON: () => void;
@@ -52,7 +51,6 @@ interface DimensionsPanelProps {
 const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
     model,
     isLayerListVisible,
-    isOverviewVisible,
     setSelectedLineLayerId,
     handleDrawLine,
     handleUploadGeoJSON,
@@ -238,7 +236,7 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
                     startIcon={<FilterIcon />}
                     onClick={handleOpenOverview}
                     fullWidth
-                    disabled={!model.chartData?.length || isOverviewVisible}
+                    disabled={!model.chartData?.length || model.designPanelVisible}
                 >
                     Toon ontwerp-paneel
                 </Button>
