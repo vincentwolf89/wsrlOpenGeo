@@ -32,7 +32,6 @@ interface DimensionsPanelProps {
     model: any;
     isLayerListVisible: boolean;
     setSelectedLineLayerId: (id: string) => void;
-    handleDrawLine: () => void;
     handleUploadGeoJSON: () => void;
     handleSelectFromMap: () => void;
     handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -52,7 +51,6 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
     model,
     isLayerListVisible,
     setSelectedLineLayerId,
-    handleDrawLine,
     handleUploadGeoJSON,
     handleSelectFromMap,
     handleFileChange,
@@ -66,16 +64,20 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
     handleExportGraphics,
     handleClearDesign,
     loading,
-}) => 
+}) => {
 
-     (
+    const handleCreateLine = () => {
+            model.startDrawingLine(model.graphicsLayerLine);
+    };
+
+    return (
         <Stack spacing={1}>
             <Stack spacing={2} sx={stackStyle}>
                 <ButtonGroup fullWidth>
                     <Button
                         disabled={!model.sketchViewModel}
                         color="primary"
-                        onClick={handleDrawLine}
+                        onClick={handleCreateLine}
                         startIcon={<EditIcon />}
                         variant="contained"
                         sx={{
@@ -381,6 +383,6 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
             </Stack>
         </Stack>
     );
-
+};
 
 export default DimensionsPanel;

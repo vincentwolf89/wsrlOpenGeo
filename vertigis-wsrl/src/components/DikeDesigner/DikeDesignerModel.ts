@@ -55,7 +55,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     elevationLayerUrl: DikeDesignerModelProperties["elevationLayerUrl"];
 
     graphicsLayerLine: GraphicsLayer;
-    // graphicsLayerCrossSection: GraphicsLayer; // implement this furher.
+    graphicsLayerCrossSection: GraphicsLayer;
     graphicsLayerTemp: GraphicsLayer;
     graphicsLayerMesh: GraphicsLayer;
     elevationLayer: ElevationLayer;
@@ -213,8 +213,6 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                         });
 
                         this.graphicsLayerLine.add(graphic);
-                        console.log("graphic has been added")
-                        console.log(this.graphicsLayerLine, this.map)
                     })
 
 
@@ -228,8 +226,13 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
         reader.readAsText(file);
     }
-    startDrawingLine(): Promise<__esri.Polyline> {
-        this.graphicsLayerLine.removeAll();
+    startDrawingLine(lineLayer: GraphicsLayer): Promise<__esri.Polyline> {
+
+        if (lineLayer?.graphics?.length > 0) {
+            // Clear existing graphics if any
+            lineLayer.removeAll();
+        }
+        this.sketchViewModel.layer = lineLayer;
         this.sketchViewModel.create("polyline");
 
         return new Promise((resolve, reject) => {
@@ -427,6 +430,16 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                 },
                 listMode: "hide",
             });
+
+            this.graphicsLayerCrossSection = new GraphicsLayer({
+                title: "Dwarsprofiel - tijdelijk",
+                elevationInfo: {
+                    mode: "on-the-ground",
+                    offset: 0
+                },
+                listMode: "hide",
+            });
+
             this.graphicsLayerTemp = new GraphicsLayer({
                 title: "Ontwerpdata - tijdelijk",
                 elevationInfo: {
@@ -450,6 +463,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                 url: this.elevationLayerUrl,
             });
             this.map.add(this.graphicsLayerLine);
+            this.map.add(this.graphicsLayerCrossSection);
             this.map.add(this.graphicsLayerTemp);
             this.map.add(this.graphicsLayerMesh);
             this.map.add(this.designLayer2D);
@@ -468,7 +482,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
                     this.sketchViewModel = new SketchViewModel({
                         view: this.view,
-                        layer: this.graphicsLayerLine,
+                        // layer: this.graphicsLayerLine,
                     });
                 });
         });

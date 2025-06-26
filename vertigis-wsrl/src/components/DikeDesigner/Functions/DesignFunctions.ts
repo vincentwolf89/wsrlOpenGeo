@@ -60,25 +60,6 @@ export async function createDesigns(model): Promise<void> {
     }
 
 
-    // if (model.selectedDijkvakField){
-    //     console.log(model.selectedDijkvakField, "Selected dijkvak field")
-    //     model.graphicsLayerLine.graphics.items.forEach((graphic) => {
-    //         const attributes = graphic.attributes;
-    //         if (attributes[model.selectedDijkvakField]) {
-    //             const dijkvakValue = attributes[model.selectedDijkvakField];
-    //             console.log(dijkvakValue, "Dijkvak value")
-    //             // model.chartData.forEach((row) => {
-    //             //     if (row.dijkvak === dijkvakValue) {
-    //             //         row.afstand = attributes.afstand;
-    //             //         row.hoogte = attributes.hoogte;
-    //             //     }
-    //             // });
-    //         }
-    //     })
-    // }
-
-    // const basePath = model.graphicsLayerLine.graphics.items[0].geometry;
-    // const basePath = model.basePath
 
 }
 export async function createDesign(model, basePath, chartData, dijkvak): Promise<void> {
@@ -238,26 +219,6 @@ export async function calculateVolume(model): Promise<void> {
         spatialReference: SpatialReference.WebMercator
     });
 
-
-
-
-    // this can be used to visualize the points on the map, as validation
-    // const graphics = multipointForGround.points.map((point) => {
-    //     const graphic = new Graphic({
-    //       geometry: new Point({
-    //         x: point[0], 
-    //         y: point[1],
-    //         spatialReference: SpatialReference.WebMercator
-    //       }),
-    //       symbol: {
-    //         type: "simple-marker",  // Or your custom symbol for the icon
-    //         color: "blue",
-    //         size: "10px"
-    //       } as __esri.SimpleMarkerSymbolProperties,
-    //     });
-    //     return graphic;
-    //   });
-    // model.graphicsLayerLine.addMany(graphics);
 
 
     const groundResult = await model.elevationLayer.queryElevation(multipointForGround, { returnSampleInfo: true });
@@ -826,7 +787,6 @@ export function setInputLineFromFeatureLayer(model) {
                         symbol: model.lineLayerSymbol,
                         attributes: feature.attributes,
                     }));
-                    console.log(model.graphicsLayerLine, "graphicsLayerLine")
 
                 })
             })
@@ -858,6 +818,7 @@ export function cleanFeatureLayer(layer) {
     });
 }
 
+
 export async function createCrossSection(model) {
     model.messages.commands.ui.displayNotification.execute({
 
@@ -865,12 +826,12 @@ export async function createCrossSection(model) {
         message: "Klik op de kaart om een dwarsprofiel te tekenen. Deze tool is in ontwikkeling.",
         type: "success",
     })
-    model.startDrawingLine().then(() => {
-        getPointsOnLine(model.graphicsLayerLine.graphics.items[0].geometry, 1).then((offsetLocations) => {
+    model.startDrawingLine(model.graphicsLayerCrossSection).then(() => {
+        getPointsOnLine(model.graphicsLayerCrossSection.graphics.items[0].geometry, 1).then((offsetLocations) => {
             console.log(offsetLocations, "Offset locations for cross section");
-            const sRef = model.graphicsLayerLine.graphics.items[0].geometry.spatialReference;
+            const sRef = model.graphicsLayerCrossSection.graphics.items[0].geometry.spatialReference;
             const promises = offsetLocations.map(loc =>
-                getPointAlongLine(model.graphicsLayerLine.graphics.items[0].geometry.paths[0], loc, sRef)
+                getPointAlongLine(model.graphicsLayerCrossSection.graphics.items[0].geometry.paths[0], loc, sRef)
             );
 
             Promise.all(promises).then(async pointGraphics => {
@@ -882,7 +843,7 @@ export async function createCrossSection(model) {
                         const offset = g.attributes?.offset ?? 0;
                         return [x, y, undefined, offset]; // [x, y, z, m]
                     }),
-                    spatialReference: model.graphicsLayerLine.graphics.items[0].geometry.spatialReference
+                    spatialReference: model.graphicsLayerCrossSection.graphics.items[0].geometry.spatialReference
                 });
                 console.log(pointGraphics, "Point graphics for cross section");
                 console.log(multipoint, "Multipoint for cross section");

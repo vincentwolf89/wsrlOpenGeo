@@ -152,10 +152,6 @@ const DikeDesigner = (
 
 
 
-    const handleDrawLine = async () => {
-        await model.startDrawingLine();
-    };
-
     const handleUploadGeoJSON = () => {
         document.getElementById("geojson-upload")?.click();
     };
@@ -361,7 +357,6 @@ const DikeDesigner = (
                         model={model}
                         isLayerListVisible={isLayerListVisible}
                         setSelectedLineLayerId={setSelectedLineLayerId}
-                        handleDrawLine={handleDrawLine}
                         handleUploadGeoJSON={handleUploadGeoJSON}
                         handleSelectFromMap={handleSelectFromMap}
                         handleFileChange={handleFileChange}
