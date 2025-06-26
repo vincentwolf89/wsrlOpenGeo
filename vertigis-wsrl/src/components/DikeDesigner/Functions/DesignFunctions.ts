@@ -540,7 +540,7 @@ export function initializeChart(model, activeTab, chartContainerRef, seriesRef):
     };
 }
 export function initializeCrossSectionChart(model, crossSectionChartContainerRef, refs: { chartSeriesRef: any; meshSeriesRef: any; userSeriesRef: any }): () => void {
-  const { chartSeriesRef, meshSeriesRef, userSeriesRef } = refs;
+    const { chartSeriesRef, meshSeriesRef, userSeriesRef } = refs;
 
     if (!model.crossSectionChartData || !crossSectionChartContainerRef?.current) {
         console.log(model.crossSectionChartData, crossSectionChartContainerRef?.current, "Chart not initialized");
@@ -618,8 +618,8 @@ export function initializeCrossSectionChart(model, crossSectionChartContainerRef
     );
 
     if (model.meshSeriesData?.length) {
-       meshSeries.data.setAll(model.meshSeriesData);
-       console.log(model.meshSeriesData, "Mesh series data has been set");
+        meshSeries.data.setAll(model.meshSeriesData);
+        console.log(model.meshSeriesData, "Mesh series data has been set");
     }
 
     meshSeriesRef.current = meshSeries;
@@ -634,12 +634,83 @@ export function initializeCrossSectionChart(model, crossSectionChartContainerRef
             yAxis: yAxis as any,
             valueYField: "hoogte",
             valueXField: "afstand",
-            stroke: am5.color(0x00cc00), // green or any color
+            stroke: am5.color(0x800080), // purple
             tooltip: am5.Tooltip.new(root, {
-            labelText: "{valueY}",
+                labelText: "{valueY}",
             }),
         })
     );
+
+    // Add bullets (markers) at each clicked point
+    userSeries.bullets.push((root, series, dataItem) => (
+        am5.Bullet.new(root, {
+            sprite: am5.Circle.new(root, {
+                radius: 6,
+                fill: am5.color(0x800080), // purple fill
+                stroke: am5.color(0xffffff),
+                strokeWidth: 2,
+            })
+        })
+    ));
+
+    userSeries.strokes.template.setAll({
+        stroke: am5.color(0x800080), // purple
+        strokeWidth: 2,
+    });
+
+    function updateSlopeLabels() {
+        // Clear old labels
+        model.slopeLabels.forEach(label => label.dispose());
+        model.slopeLabels = [];
+
+        const points = model.userLinePoints;
+        if (!points || points.length < 2) return;
+
+        for (let i = 1; i < points.length; i++) {
+            const p1 = points[i - 1];
+            const p2 = points[i];
+
+            const deltaX = p2.afstand - p1.afstand;
+            const deltaY = p2.hoogte - p1.hoogte;
+
+            let slopeRatio;
+            if (deltaY === 0) {
+                slopeRatio = "∞";
+            } else {
+                slopeRatio = (Math.abs(deltaX / deltaY)).toFixed(2);
+            }
+
+            const labelText = `1:${slopeRatio}`;
+
+            // Position label halfway between points
+            const midX = (p1.afstand + p2.afstand) / 2;
+            const midY = (p1.hoogte + p2.hoogte) / 2;
+
+            console.log(midX, midY, "Midpoint coordinates for slope label");
+
+            const label = chart.plotContainer.children.push(
+                am5.Label.new(root, {
+                    text: labelText,
+                    x: xAxis.get("renderer").positionToCoordinate(xAxis.valueToPosition(midX)),
+                    y: yAxis.get("renderer").positionToCoordinate(yAxis.valueToPosition(midY)),
+                    centerX: am5.p50,
+                    centerY: am5.p50,
+                    background: am5.Rectangle.new(root, {
+                        fill: am5.color(0xffffff),
+                        fillOpacity: 0.7
+                    }),
+                    paddingLeft: 2,
+                    paddingRight: 2,
+                    paddingTop: 1,
+                    paddingBottom: 1,
+                    fontSize: 14
+                })
+            );
+            console.log(label, "Slope label created: ", labelText)
+
+            model.slopeLabels.push(label);
+        }
+    }
     chart.plotContainer.events.on("click", (ev) => {
         // Convert pixel coordinates to axis values
         const point = chart.plotContainer.toLocal(ev.point);
@@ -652,6 +723,20 @@ export function initializeCrossSectionChart(model, crossSectionChartContainerRef
 
         // Update the series data
         userSeries.data.setAll(model.userLinePoints);
+        updateSlopeLabels();
+    });
+
+    chart.events.on("boundschanged", () => {
+        updateSlopeLabels();
+    });
+
+    xAxis.on("start", () => {
+        console.log("X Axis end event triggered");
+        updateSlopeLabels();
+    });
+
+    yAxis.on("start", () => {
+        updateSlopeLabels();
     });
 
     userSeries.strokes.template.setAll({
@@ -659,7 +744,39 @@ export function initializeCrossSectionChart(model, crossSectionChartContainerRef
         strokeWidth: 2,
     });
 
-    
+    const clearButton = chart.children.push(
+    am5.Button.new(root, {
+        label: am5.Label.new(root, { text: "Verwijder taludlijn", fontSize: 14 }),
+        x: 50,
+        y: 35,
+        centerX: am5.p0,
+        centerY: am5.p0,
+        // paddingLeft: 25,
+        // paddingRight: 25,
+        // paddingTop: 5,
+        // paddingBottom: 5,
+        // background: am5.RoundedRectangle.new(root, {
+        //     fill: am5.color(0xffcccc),
+        //     fillOpacity: 1,
+        //     cornerRadiusTL: 8,
+        //     cornerRadiusTR: 8,
+        //     cornerRadiusBL: 8,
+        //     cornerRadiusBR: 8,
+        // }),
+    })
+);
+
+clearButton.events.on("click", () => {
+    model.userLinePoints = [];
+    userSeries.data.setAll([]);
+    // Remove slope labels
+    if (model.slopeLabels) {
+        model.slopeLabels.forEach(label => label.dispose());
+        model.slopeLabels = [];
+    }
+});
+
+
 
 
     chart.set("cursor", am5xy.XYCursor.new(root, {}));
@@ -668,6 +785,7 @@ export function initializeCrossSectionChart(model, crossSectionChartContainerRef
         root.dispose();
     };
 }
+
 
 
 export async function getLineFeatureLayers(map): Promise<FeatureLayer[]> {
@@ -752,72 +870,72 @@ export async function createCrossSection(model) {
             console.log(offsetLocations, "Offset locations for cross section");
             const sRef = model.graphicsLayerLine.graphics.items[0].geometry.spatialReference;
             const promises = offsetLocations.map(loc =>
-                getPointAlongLine( model.graphicsLayerLine.graphics.items[0].geometry.paths[0], loc, sRef)
+                getPointAlongLine(model.graphicsLayerLine.graphics.items[0].geometry.paths[0], loc, sRef)
             );
 
             Promise.all(promises).then(async pointGraphics => {
                 console.log(pointGraphics, "Point graphics for cross section");
-             const multipoint = new Multipoint({
-                hasM: true,
-            points: pointGraphics.map(g => {
-                const { x, y } = g.geometry as Point;
-                const offset = g.attributes?.offset ?? 0;
-                return [x, y, undefined, offset]; // [x, y, z, m]
-            }),
-            spatialReference: model.graphicsLayerLine.graphics.items[0].geometry.spatialReference
-            });
-            console.log(pointGraphics, "Point graphics for cross section");
-            console.log(multipoint, "Multipoint for cross section");
-            
-            const elevationResult = await model.elevationLayer.queryElevation(multipoint, { returnSampleInfo: true });
+                const multipoint = new Multipoint({
+                    hasM: true,
+                    points: pointGraphics.map(g => {
+                        const { x, y } = g.geometry as Point;
+                        const offset = g.attributes?.offset ?? 0;
+                        return [x, y, undefined, offset]; // [x, y, z, m]
+                    }),
+                    spatialReference: model.graphicsLayerLine.graphics.items[0].geometry.spatialReference
+                });
+                console.log(pointGraphics, "Point graphics for cross section");
+                console.log(multipoint, "Multipoint for cross section");
 
-            model.crossSectionChartData = elevationResult.geometry.points.map((point, index) => ({
-                afstand: point[3], // m value
-                hoogte: point[2]
-            }));
-            
+                const elevationResult = await model.elevationLayer.queryElevation(multipoint, { returnSampleInfo: true });
 
-            model.crossSectionPanelVisible = true;
+                model.crossSectionChartData = elevationResult.geometry.points.map((point, index) => ({
+                    afstand: point[3], // m value
+                    hoogte: point[2]
+                }));
 
 
-            console.log("Elevation query result:", elevationResult);
+                model.crossSectionPanelVisible = true;
 
-            if (model.meshes.length > 0) {
-                
-                let elevationSampler = await meshUtils.createElevationSampler(
-                    model.mergedMesh, {
+
+                console.log("Elevation query result:", elevationResult);
+
+                if (model.meshes.length > 0) {
+
+                    let elevationSampler = await meshUtils.createElevationSampler(
+                        model.mergedMesh, {
                         noDataValue: -999
                     }
-                );
+                    );
 
-                  
 
-                const meshElevationResult = elevationSampler.queryElevation(multipoint)
+
+                    const meshElevationResult = elevationSampler.queryElevation(multipoint)
                     console.log("Mesh elevation result:", meshElevationResult);
                     if ("points" in meshElevationResult && Array.isArray(meshElevationResult.points)) {
                         model.meshSeriesData = meshElevationResult.points
-                        .filter(point => point[2] !== -999)
-                        .map((point, index) => ({
-                            afstand: point[3], // m value
-                            hoogte: point[2]
-                        }));
+                            .filter(point => point[2] !== -999)
+                            .map((point, index) => ({
+                                afstand: point[3], // m value
+                                hoogte: point[2]
+                            }));
                         console.log("Mesh series data:", model.meshSeriesData);
                     } else {
                         model.meshSeriesData = [];
                         console.warn("meshElevationResult does not have a 'points' property or is not an array.", meshElevationResult);
                     }
-             
-                console.log("Mesh elevation result:", meshElevationResult);
+
+                    console.log("Mesh elevation result:", meshElevationResult);
 
 
-            }
+                }
 
-            model.messages.commands.ui.displayNotification.execute({
+                model.messages.commands.ui.displayNotification.execute({
 
-                title: "Cross Section",
-                message: "Dwarsprofiel punten opgehaald en hoogtes berekend, deze worden straks getoond in de grafiek. Deze tool is in ontwikkeling.",
-                type: "success",
-            });
+                    title: "Cross Section",
+                    message: "Dwarsprofiel punten opgehaald en hoogtes berekend, deze worden straks getoond in de grafiek. Deze tool is in ontwikkeling.",
+                    type: "success",
+                });
             });
 
             // model.crossSectionLocations = offsetLocations;
@@ -895,66 +1013,66 @@ export function getPointsOnLine(profileLine: any, intervalSize: number): Promise
 }
 
 export function getPointAlongLine(
-  paths: number[],
-  offsetLocation: { offset: number; offsetInSegment: number; segment: number },
-  spatialReference: __esri.SpatialReference
+    paths: number[],
+    offsetLocation: { offset: number; offsetInSegment: number; segment: number },
+    spatialReference: __esri.SpatialReference
 ): Promise<__esri.Graphic> {
-  return new Promise((resolve, reject) => {
-    try {
-      const x1 = paths[offsetLocation.segment][0];
-      const y1 = paths[offsetLocation.segment][1];
-      const x2 = paths[offsetLocation.segment + 1][0];
-      const y2 = paths[offsetLocation.segment + 1][1];
+    return new Promise((resolve, reject) => {
+        try {
+            const x1 = paths[offsetLocation.segment][0];
+            const y1 = paths[offsetLocation.segment][1];
+            const x2 = paths[offsetLocation.segment + 1][0];
+            const y2 = paths[offsetLocation.segment + 1][1];
 
-      const lineSegment = new Polyline({
-        hasZ: false,
-        hasM: false,
-        paths: [
-          [
-            [x1, y1],
-            [x2, y2],
-          ],
-        ],
-        spatialReference,
-      });
+            const lineSegment = new Polyline({
+                hasZ: false,
+                hasM: false,
+                paths: [
+                    [
+                        [x1, y1],
+                        [x2, y2],
+                    ],
+                ],
+                spatialReference,
+            });
 
-      const pathDistancePlanar = geometryEngine.planarLength(lineSegment, "meters");
-      const pathDistanceGeodesic = geometryEngine.geodesicLength(lineSegment, "meters");
-      const planarToGeodesic = pathDistancePlanar / pathDistanceGeodesic;
+            const pathDistancePlanar = geometryEngine.planarLength(lineSegment, "meters");
+            const pathDistanceGeodesic = geometryEngine.geodesicLength(lineSegment, "meters");
+            const planarToGeodesic = pathDistancePlanar / pathDistanceGeodesic;
 
-      let distanceDiff = offsetLocation.offsetInSegment * planarToGeodesic;
+            let distanceDiff = offsetLocation.offsetInSegment * planarToGeodesic;
 
-      const angle = Math.atan2(y2 - y1, x2 - x1);
-      const x3 = distanceDiff * Math.cos(angle);
-      const y3 = distanceDiff * Math.sin(angle);
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            const x3 = distanceDiff * Math.cos(angle);
+            const y3 = distanceDiff * Math.sin(angle);
 
-      const point = new Point({
-        x: x1 + x3,
-        y: y1 + y3,
-        m: offsetLocation.offset,
-        spatialReference,
-      });
+            const point = new Point({
+                x: x1 + x3,
+                y: y1 + y3,
+                m: offsetLocation.offset,
+                spatialReference,
+            });
 
-      const defaultPointSymbol = {
-        type: "simple-marker",
-        color: [226, 119, 40, 0],
-        outline: {
-          color: [255, 255, 255, 0],
-          width: 1,
-        },
-      };
+            const defaultPointSymbol = {
+                type: "simple-marker",
+                color: [226, 119, 40, 0],
+                outline: {
+                    color: [255, 255, 255, 0],
+                    width: 1,
+                },
+            };
 
-      const pointGraphic = new Graphic({
-        geometry: point,
-        symbol: defaultPointSymbol,
-        attributes: {
-          offset: offsetLocation.offset,
-        },
-      });
+            const pointGraphic = new Graphic({
+                geometry: point,
+                symbol: defaultPointSymbol,
+                attributes: {
+                    offset: offsetLocation.offset,
+                },
+            });
 
-      resolve(pointGraphic);
-    } catch (error) {
-      reject(error);
-    }
-  });
+            resolve(pointGraphic);
+        } catch (error) {
+            reject(error);
+        }
+    });
 }

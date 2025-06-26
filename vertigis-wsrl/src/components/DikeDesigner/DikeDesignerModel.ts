@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 /* eslint-disable import/order */
-
+import * as am5 from "@amcharts/amcharts5";
 import * as reactiveUtils from "@arcgis/core/core/reactiveUtils";
 import {
     ComponentModelBase,
@@ -90,6 +90,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     meshSeriesData: any[] = null
 
     userLinePoints: any[] = []
+    slopeLabels: am5.Label[] = []
 
 
     lineFeatureLayers: FeatureLayer[] = []

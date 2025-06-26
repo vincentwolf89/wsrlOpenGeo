@@ -368,6 +368,16 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
                 >
                     Maak dwarsprofiel
                 </Button>
+                {/* <Button
+                    // disabled={!model.chartData?.length}
+                    variant="contained"
+                    color="primary"
+                    startIcon={<ClearIcon />}
+                    onClick={handleRemoveTalud()}
+                    fullWidth
+                >
+                    Verwijder taludlijn
+                </Button> */}
             </Stack>
         </Stack>
     );
