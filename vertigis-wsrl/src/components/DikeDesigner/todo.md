@@ -1,5 +1,2 @@
-- selecteren huidige lijn
-- fix tabel maken vanuit applicatie
-- opslaan ontwerpen
-- visualisatie
-- vakindeling vanuit excel
+- graphicslayer for cross section split
+- add feature to click design without excel

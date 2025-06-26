@@ -55,6 +55,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     elevationLayerUrl: DikeDesignerModelProperties["elevationLayerUrl"];
 
     graphicsLayerLine: GraphicsLayer;
+    // graphicsLayerCrossSection: GraphicsLayer; // implement this furher.
     graphicsLayerTemp: GraphicsLayer;
     graphicsLayerMesh: GraphicsLayer;
     elevationLayer: ElevationLayer;

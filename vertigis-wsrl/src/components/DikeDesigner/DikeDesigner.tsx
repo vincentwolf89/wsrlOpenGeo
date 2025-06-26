@@ -266,6 +266,7 @@ const DikeDesigner = (
         model.offsetGeometries = []
         model.graphicsLayerTemp.removeAll();
         model.graphicsLayerMesh.removeAll();
+        model.mergedMesh = null;
         model.totalVolumeDifference = null;
         model.excavationVolume = null;
         model.fillVolume = null;
