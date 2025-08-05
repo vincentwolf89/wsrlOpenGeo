@@ -1,0 +1,59 @@
+# Import required libraries
+from arcgis.gis import GIS
+from arcgis.learn import prepare_data, UnetClassifier, export_training_data
+import arcpy
+import os
+
+# Set your workspace
+arcpy.env.workspace = r"C:\Users\vince\Documents\ArcGIS\Projects\Weurt-Deest\import\WeurtDeest.gdb"
+arcpy.env.overwriteOutput = True
+
+# Paths (update as needed)
+ortho_img = r"C:\Users\vince\Documents\ArcGIS\Projects\Weurt-Deest\lufo_2024.tif"
+dem_img = "AHN4_Clip"
+dike_line = "trajectlijn_weurt_deest"  # Feature in your GDB
+labels = dike_line  # (Optional) Training crest lines
+
+# Step 1: Stack Ortho and DEM as multiband raster
+stacked_output = r"C:\Users\vince\Documents\ArcGIS\Projects\Weurt-Deest\dl\stacked_ortho_dem.tif"
+arcpy.management.CompositeBands([ortho_img, dem_img], stacked_output)
+
+# Step 2: Create polygon labels from crest line (if not already polygons)
+# Buffer crest line to create narrow labeled zones (training mask)
+crest_polygons = "crest_mask"
+arcpy.analysis.Buffer(labels, crest_polygons, "1 Meter")
+
+# Step 3: Export Training Data for Deep Learning
+train_data_folder = r"C:\Users\vince\Documents\ArcGIS\Projects\Weurt-Deest\dl"
+export_training_data(
+    input_raster=stacked_output,
+    class_data=crest_polygons,
+    output_folder=train_data_folder,
+    input_mask_polygons=None,
+    tile_size=256,
+    stride=128,
+    chip_format="TIFF",
+    metadata_format="Labeled_Tiles"
+)
+
+# Step 4: Prepare the data
+data = prepare_data(train_data_folder, chip_size=256, batch_size=4)
+
+# Step 5: Initialize and train model
+model = UnetClassifier(data)
+model.fit(epochs=30, lr=0.001)
+model.save('crest_unet_model')
+
+# Step 6: Predict crest on full raster
+inference_output = r"C:\Users\vince\Documents\ArcGIS\Projects\Weurt-Deest\dl\crest_inference"
+model.predict(stacked_output, inference_output, predict_entire_tile=True)
+
+# Step 7: Convert prediction to crest line
+# Raster to Polygon
+prediction_poly = "test_prediction_poly"
+arcpy.RasterToPolygon_conversion(inference_output + ".tif", prediction_poly, "NO_SIMPLIFY")
+
+# # Optional: Skeletonize or thin lines if needed
+# # Use ArcGIS Image Analyst toolbox or Morphology tools if available
+
+print("✅ Crest line detection complete. You can now review the result in ArcGIS Pro.")
