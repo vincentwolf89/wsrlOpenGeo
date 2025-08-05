@@ -35,13 +35,13 @@ export async function createDesigns(model): Promise<void> {
 
     let basePath: Polyline | undefined = undefined;
     let chartData: any[] = [];
-    if (model.selectedDijkvakField){
+    if (model.selectedDijkvakField) {
         console.log("do stuff here...")
-        model.graphicsLayerLine.graphics.items.forEach(async(graphic) => {
+        model.graphicsLayerLine.graphics.items.forEach(async (graphic) => {
             const attributes = graphic.attributes;
             if (attributes[model.selectedDijkvakField]) {
                 const dijkvakValue = attributes[model.selectedDijkvakField];
-            
+
                 // find corresponding chartdata
                 chartData = model.allChartData[dijkvakValue]
                 basePath = graphic.geometry
@@ -59,31 +59,12 @@ export async function createDesigns(model): Promise<void> {
         createDesign(model, basePath, chartData, "default");
     }
 
-    
-    // if (model.selectedDijkvakField){
-    //     console.log(model.selectedDijkvakField, "Selected dijkvak field")
-    //     model.graphicsLayerLine.graphics.items.forEach((graphic) => {
-    //         const attributes = graphic.attributes;
-    //         if (attributes[model.selectedDijkvakField]) {
-    //             const dijkvakValue = attributes[model.selectedDijkvakField];
-    //             console.log(dijkvakValue, "Dijkvak value")
-    //             // model.chartData.forEach((row) => {
-    //             //     if (row.dijkvak === dijkvakValue) {
-    //             //         row.afstand = attributes.afstand;
-    //             //         row.hoogte = attributes.hoogte;
-    //             //     }
-    //             // });
-    //         }
-    //     })
-    // }
 
-    // const basePath = model.graphicsLayerLine.graphics.items[0].geometry;
-    // const basePath = model.basePath
 
 }
 export async function createDesign(model, basePath, chartData, dijkvak): Promise<void> {
 
-    
+
     console.log(basePath, "Base path geometry");
 
     let offsetGeometries = []
@@ -110,7 +91,7 @@ export async function createDesign(model, basePath, chartData, dijkvak): Promise
                     color: "grey",
                     width: 1,
                 } as __esri.SimpleLineSymbolProperties,
-               
+
 
             });
 
@@ -240,26 +221,6 @@ export async function calculateVolume(model): Promise<void> {
 
 
 
-
-    // this can be used to visualize the points on the map, as validation
-    // const graphics = multipointForGround.points.map((point) => {
-    //     const graphic = new Graphic({
-    //       geometry: new Point({
-    //         x: point[0], 
-    //         y: point[1],
-    //         spatialReference: SpatialReference.WebMercator
-    //       }),
-    //       symbol: {
-    //         type: "simple-marker",  // Or your custom symbol for the icon
-    //         color: "blue",
-    //         size: "10px"
-    //       } as __esri.SimpleMarkerSymbolProperties,
-    //     });
-    //     return graphic;
-    //   });
-    // model.graphicsLayerLine.addMany(graphics);
-
-
     const groundResult = await model.elevationLayer.queryElevation(multipointForGround, { returnSampleInfo: true });
     console.log("Ground elevation query result:", groundResult);
 
@@ -339,9 +300,9 @@ function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
 
     const graphics2D = new Graphic({
         geometry: polygon2d,
-         attributes: { name: partName }
+        attributes: { name: partName }
     });
-        
+
     const graphic3d = new Graphic({
         geometry: polygon3d,
         attributes: { name: partName }
@@ -352,9 +313,9 @@ function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
     model.designLayer2D.applyEdits({
         addFeatures: [graphics2D]
     }).catch((error) => {
-        console.error("Error adding 2D polygon to design layer:", error);   
+        console.error("Error adding 2D polygon to design layer:", error);
     });
-    
+
     model.uniqueParts.push(partName);
 
     console.log(model.designLayer2D, "Design layer 2D")
@@ -418,7 +379,7 @@ export function exportGraphicsLayerAsGeoJSON(model): void {
     });
 }
 
-export function initializeChart(model, activeTab, chartContainerRef): () => void {
+export function initializeChart(model, activeTab, chartContainerRef, seriesRef): () => void {
     if (activeTab !== 0 || !model.chartData || !chartContainerRef.current) {
         console.log(activeTab, model.chartData, chartContainerRef.current, "Chart not initialized");
         return
@@ -473,6 +434,7 @@ export function initializeChart(model, activeTab, chartContainerRef): () => void
     );
 
     series.data.setAll(model.chartData);
+    seriesRef.current = series
 
     series.strokes.template.setAll({
         strokeWidth: 2,
@@ -520,10 +482,10 @@ export function initializeChart(model, activeTab, chartContainerRef): () => void
             if (index !== -1) {
                 model.chartData[index].hoogte = snappedY;
                 model.chartData[index].afstand = snappedX;
-                
-                
+
+
                 model.chartData = [...model.chartData]; // Force reactivity
-                model.allChartData[model.activeSheet] = [...model.chartData]; 
+                model.allChartData[model.activeSheet] = [...model.chartData];
             }
         });
 
@@ -538,6 +500,254 @@ export function initializeChart(model, activeTab, chartContainerRef): () => void
         root.dispose();
     };
 }
+export function initializeCrossSectionChart(model, crossSectionChartContainerRef, refs: { chartSeriesRef: any; meshSeriesRef: any; userSeriesRef: any }): () => void {
+    const { chartSeriesRef, meshSeriesRef, userSeriesRef } = refs;
+
+    if (!model.crossSectionChartData || !crossSectionChartContainerRef?.current) {
+        console.log(model.crossSectionChartData, crossSectionChartContainerRef?.current, "Chart not initialized");
+        return
+    }
+
+
+    model.crossSectionChartRoot = am5.Root.new(crossSectionChartContainerRef.current);
+    const root = model.crossSectionChartRoot as am5.Root;
+    root.setThemes([am5themes_Animated.new(root)]);
+
+    const chart = root.container.children.push(
+        am5xy.XYChart.new(root, {
+            panX: true,
+            panY: true,
+            wheelX: "panX",
+            wheelY: "zoomX",
+            pinchZoomX: true,
+        })
+    );
+
+    try {
+        root._logo.dispose();
+    } catch {
+        // Handle error if logo is not present
+    }
+
+    const xAxis = chart.xAxes.push(
+        am5xy.ValueAxis.new(root, {
+            renderer: am5xy.AxisRendererX.new(root, {}),
+            tooltip: am5.Tooltip.new(root, {}),
+        })
+    );
+
+    const yAxis = chart.yAxes.push(
+        am5xy.ValueAxis.new(root, {
+            renderer: am5xy.AxisRendererY.new(root, {}),
+            tooltip: am5.Tooltip.new(root, {}),
+        })
+    );
+
+    const elevationSeries = chart.series.push(
+        am5xy.LineSeries.new(root, {
+            name: "Hoogte vs Afstand",
+            xAxis: xAxis as any,
+            yAxis: yAxis as any,
+            valueYField: "hoogte",
+            valueXField: "afstand",
+            tooltip: am5.Tooltip.new(root, {
+                labelText: "Grond hoogte: {valueY}",
+            }),
+            stroke: am5.color(0xff9900),
+        })
+    );
+
+    elevationSeries.data.setAll(model.crossSectionChartData);
+    chartSeriesRef.current = elevationSeries
+
+    elevationSeries.strokes.template.setAll({
+        strokeWidth: 3,
+    });
+
+    const meshSeries = chart.series.push(
+        am5xy.LineSeries.new(root, {
+            name: "Mesh Hoogte vs Afstand",
+            xAxis: xAxis as any,
+            yAxis: yAxis as any,
+            valueYField: "hoogte",
+            valueXField: "afstand",
+            tooltip: am5.Tooltip.new(root, {
+                labelText: "Ontwerp hoogte: {valueY}",
+            }),
+            stroke: am5.color(0x888888)
+        })
+    );
+
+    if (model.meshSeriesData?.length) {
+        meshSeries.data.setAll(model.meshSeriesData);
+        console.log(model.meshSeriesData, "Mesh series data has been set");
+    }
+
+    meshSeriesRef.current = meshSeries;
+    meshSeries.strokes.template.setAll({
+        strokeWidth: 3,
+    });
+
+    const userSeries = chart.series.push(
+        am5xy.LineSeries.new(root, {
+            name: "User Drawn Line",
+            xAxis: xAxis as any,
+            yAxis: yAxis as any,
+            valueYField: "hoogte",
+            valueXField: "afstand",
+            stroke: am5.color(0x800080), // purple
+            tooltip: am5.Tooltip.new(root, {
+                labelText: "{valueY}",
+            }),
+        })
+    );
+
+    // Add bullets (markers) at each clicked point
+    userSeries.bullets.push((root, series, dataItem) => (
+        am5.Bullet.new(root, {
+            sprite: am5.Circle.new(root, {
+                radius: 6,
+                fill: am5.color(0x800080), // purple fill
+                stroke: am5.color(0xffffff),
+                strokeWidth: 2,
+            })
+        })
+    ));
+
+    userSeries.strokes.template.setAll({
+        stroke: am5.color(0x800080), // purple
+        strokeWidth: 2,
+    });
+
+    function updateSlopeLabels() {
+        // Clear old labels
+        model.slopeLabels.forEach(label => label.dispose());
+        model.slopeLabels = [];
+
+        const points = model.userLinePoints;
+        if (!points || points.length < 2) return;
+
+        for (let i = 1; i < points.length; i++) {
+            const p1 = points[i - 1];
+            const p2 = points[i];
+
+            const deltaX = p2.afstand - p1.afstand;
+            const deltaY = p2.hoogte - p1.hoogte;
+
+            let slopeRatio;
+            if (deltaY === 0) {
+                slopeRatio = "∞";
+            } else {
+                slopeRatio = (Math.abs(deltaX / deltaY)).toFixed(2);
+            }
+
+            const labelText = `1:${slopeRatio}`;
+
+            // Position label halfway between points
+            const midX = (p1.afstand + p2.afstand) / 2;
+            const midY = (p1.hoogte + p2.hoogte) / 2;
+
+            console.log(midX, midY, "Midpoint coordinates for slope label");
+
+            const label = chart.plotContainer.children.push(
+                am5.Label.new(root, {
+                    text: labelText,
+                    x: xAxis.get("renderer").positionToCoordinate(xAxis.valueToPosition(midX)),
+                    y: yAxis.get("renderer").positionToCoordinate(yAxis.valueToPosition(midY)),
+                    centerX: am5.p50,
+                    centerY: am5.p50,
+                    background: am5.Rectangle.new(root, {
+                        fill: am5.color(0xffffff),
+                        fillOpacity: 0.7
+                    }),
+                    paddingLeft: 2,
+                    paddingRight: 2,
+                    paddingTop: 1,
+                    paddingBottom: 1,
+                    fontSize: 14
+                })
+            );
+            console.log(label, "Slope label created: ", labelText)
+
+            model.slopeLabels.push(label);
+        }
+    }
+    chart.plotContainer.events.on("click", (ev) => {
+        // Convert pixel coordinates to axis values
+        const point = chart.plotContainer.toLocal(ev.point);
+        const afstand = xAxis.positionToValue(xAxis.coordinateToPosition(point.x));
+        const hoogte = yAxis.positionToValue(yAxis.coordinateToPosition(point.y));
+
+        // Add the new point to the array
+        model.userLinePoints.push({ afstand, hoogte });
+        // model.setUserLinePoints([...userLinePoints]); // For React state, or just update the array if not using React
+
+        // Update the series data
+        userSeries.data.setAll(model.userLinePoints);
+        updateSlopeLabels();
+    });
+
+    chart.events.on("boundschanged", () => {
+        updateSlopeLabels();
+    });
+
+    xAxis.on("start", () => {
+        console.log("X Axis end event triggered");
+        updateSlopeLabels();
+    });
+
+    yAxis.on("start", () => {
+        updateSlopeLabels();
+    });
+
+    userSeries.strokes.template.setAll({
+        stroke: am5.color(0x00cc00),
+        strokeWidth: 2,
+    });
+
+    const clearButton = chart.children.push(
+    am5.Button.new(root, {
+        label: am5.Label.new(root, { text: "Verwijder taludlijn", fontSize: 14 }),
+        x: 50,
+        y: 35,
+        centerX: am5.p0,
+        centerY: am5.p0,
+        // paddingLeft: 25,
+        // paddingRight: 25,
+        // paddingTop: 5,
+        // paddingBottom: 5,
+        // background: am5.RoundedRectangle.new(root, {
+        //     fill: am5.color(0xffcccc),
+        //     fillOpacity: 1,
+        //     cornerRadiusTL: 8,
+        //     cornerRadiusTR: 8,
+        //     cornerRadiusBL: 8,
+        //     cornerRadiusBR: 8,
+        // }),
+    })
+);
+
+clearButton.events.on("click", () => {
+    model.userLinePoints = [];
+    userSeries.data.setAll([]);
+    // Remove slope labels
+    if (model.slopeLabels) {
+        model.slopeLabels.forEach(label => label.dispose());
+        model.slopeLabels = [];
+    }
+});
+
+
+
+
+    chart.set("cursor", am5xy.XYCursor.new(root, {}));
+
+    return () => {
+        root.dispose();
+    };
+}
+
+
 
 export async function getLineFeatureLayers(map): Promise<FeatureLayer[]> {
     if (!map) {
@@ -577,7 +787,6 @@ export function setInputLineFromFeatureLayer(model) {
                         symbol: model.lineLayerSymbol,
                         attributes: feature.attributes,
                     }));
-                    console.log(model.graphicsLayerLine, "graphicsLayerLine")
 
                 })
             })
@@ -606,5 +815,225 @@ export function cleanFeatureLayer(layer) {
         }).catch((error) => {
             console.error("Error deleting features:", error);
         });
+    });
+}
+
+
+export async function createCrossSection(model) {
+    model.messages.commands.ui.displayNotification.execute({
+
+        title: "Cross Section",
+        message: "Klik op de kaart om een dwarsprofiel te tekenen. Deze tool is in ontwikkeling.",
+        type: "success",
+    })
+    model.startDrawingLine(model.graphicsLayerCrossSection).then(() => {
+        getPointsOnLine(model.graphicsLayerCrossSection.graphics.items[0].geometry, 1).then((offsetLocations) => {
+            console.log(offsetLocations, "Offset locations for cross section");
+            const sRef = model.graphicsLayerCrossSection.graphics.items[0].geometry.spatialReference;
+            const promises = offsetLocations.map(loc =>
+                getPointAlongLine(model.graphicsLayerCrossSection.graphics.items[0].geometry.paths[0], loc, sRef)
+            );
+
+            Promise.all(promises).then(async pointGraphics => {
+                console.log(pointGraphics, "Point graphics for cross section");
+                const multipoint = new Multipoint({
+                    hasM: true,
+                    points: pointGraphics.map(g => {
+                        const { x, y } = g.geometry as Point;
+                        const offset = g.attributes?.offset ?? 0;
+                        return [x, y, undefined, offset]; // [x, y, z, m]
+                    }),
+                    spatialReference: model.graphicsLayerCrossSection.graphics.items[0].geometry.spatialReference
+                });
+                console.log(pointGraphics, "Point graphics for cross section");
+                console.log(multipoint, "Multipoint for cross section");
+
+                const elevationResult = await model.elevationLayer.queryElevation(multipoint, { returnSampleInfo: true });
+
+                model.crossSectionChartData = elevationResult.geometry.points.map((point, index) => ({
+                    afstand: point[3], // m value
+                    hoogte: point[2]
+                }));
+
+
+                model.crossSectionPanelVisible = true;
+
+
+                console.log("Elevation query result:", elevationResult);
+
+                if (model.meshes.length > 0) {
+
+                    let elevationSampler = await meshUtils.createElevationSampler(
+                        model.mergedMesh, {
+                        noDataValue: -999
+                    }
+                    );
+
+
+
+                    const meshElevationResult = elevationSampler.queryElevation(multipoint)
+                    console.log("Mesh elevation result:", meshElevationResult);
+                    if ("points" in meshElevationResult && Array.isArray(meshElevationResult.points)) {
+                        model.meshSeriesData = meshElevationResult.points
+                            .filter(point => point[2] !== -999)
+                            .map((point, index) => ({
+                                afstand: point[3], // m value
+                                hoogte: point[2]
+                            }));
+                        console.log("Mesh series data:", model.meshSeriesData);
+                    } else {
+                        model.meshSeriesData = [];
+                        console.warn("meshElevationResult does not have a 'points' property or is not an array.", meshElevationResult);
+                    }
+
+                    console.log("Mesh elevation result:", meshElevationResult);
+
+
+                }
+
+                model.messages.commands.ui.displayNotification.execute({
+
+                    title: "Cross Section",
+                    message: "Dwarsprofiel punten opgehaald en hoogtes berekend, deze worden straks getoond in de grafiek. Deze tool is in ontwikkeling.",
+                    type: "success",
+                });
+            });
+
+            // model.crossSectionLocations = offsetLocations;
+            // model.graphicsLayerTemp.removeAll();
+        });
+    });
+}
+
+
+// code for creating offset locations based on a start offset, segment length, step size, and segment number --> move to separate file if needed
+export function createOffsetLocations(
+    startOffset: number,
+    segmentLength: number,
+    stepSize: number,
+    segmentNumber: number
+) {
+    const locations = [];
+    let iterations = Math.floor(segmentLength / stepSize);
+    let offset = startOffset;
+    let offsetInSegment = 0;
+    for (let i = 0; i < iterations; i++) {
+        locations.push({
+            offset,
+            offsetInSegment,
+            segment: segmentNumber,
+        });
+        offset += stepSize;
+        offsetInSegment += stepSize;
+    }
+    return locations;
+}
+
+export function getPointsOnLine(profileLine: any, intervalSize: number): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+        try {
+            const path = profileLine.paths[0];
+            const lineSegments = path.length - 1;
+            let totalLength = 0;
+            let startDistance = 0;
+            let offsetLocations: any[] = [];
+
+            for (let step = 0; step < lineSegments; step++) {
+                const [xStart, yStart] = path[step];
+                const [xEnd, yEnd] = path[step + 1];
+
+                const lineSegment = new Polyline({
+                    hasZ: false,
+                    hasM: false,
+                    paths: [
+                        [
+                            [xStart, yStart],
+                            [xEnd, yEnd],
+                        ],
+                    ],
+                    spatialReference: profileLine.spatialReference,
+                });
+
+                let segmentLength = Math.round(geometryEngine.geodesicLength(lineSegment, "meters"));
+                if (segmentLength % 2 !== 0) segmentLength += 1;
+
+                totalLength += segmentLength;
+
+                // Add offset locations for this segment
+                offsetLocations = offsetLocations.concat(
+                    createOffsetLocations(startDistance, segmentLength, intervalSize, step)
+                );
+                startDistance += segmentLength;
+            }
+            //   console.log(offsetLocations, "Offset locations");
+            resolve(offsetLocations);
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+export function getPointAlongLine(
+    paths: number[],
+    offsetLocation: { offset: number; offsetInSegment: number; segment: number },
+    spatialReference: __esri.SpatialReference
+): Promise<__esri.Graphic> {
+    return new Promise((resolve, reject) => {
+        try {
+            const x1 = paths[offsetLocation.segment][0];
+            const y1 = paths[offsetLocation.segment][1];
+            const x2 = paths[offsetLocation.segment + 1][0];
+            const y2 = paths[offsetLocation.segment + 1][1];
+
+            const lineSegment = new Polyline({
+                hasZ: false,
+                hasM: false,
+                paths: [
+                    [
+                        [x1, y1],
+                        [x2, y2],
+                    ],
+                ],
+                spatialReference,
+            });
+
+            const pathDistancePlanar = geometryEngine.planarLength(lineSegment, "meters");
+            const pathDistanceGeodesic = geometryEngine.geodesicLength(lineSegment, "meters");
+            const planarToGeodesic = pathDistancePlanar / pathDistanceGeodesic;
+
+            let distanceDiff = offsetLocation.offsetInSegment * planarToGeodesic;
+
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            const x3 = distanceDiff * Math.cos(angle);
+            const y3 = distanceDiff * Math.sin(angle);
+
+            const point = new Point({
+                x: x1 + x3,
+                y: y1 + y3,
+                m: offsetLocation.offset,
+                spatialReference,
+            });
+
+            const defaultPointSymbol = {
+                type: "simple-marker",
+                color: [226, 119, 40, 0],
+                outline: {
+                    color: [255, 255, 255, 0],
+                    width: 1,
+                },
+            };
+
+            const pointGraphic = new Graphic({
+                geometry: point,
+                symbol: defaultPointSymbol,
+                attributes: {
+                    offset: offsetLocation.offset,
+                },
+            });
+
+            resolve(pointGraphic);
+        } catch (error) {
+            reject(error);
+        }
     });
 }

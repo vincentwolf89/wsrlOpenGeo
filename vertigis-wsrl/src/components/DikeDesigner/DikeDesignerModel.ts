@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 /* eslint-disable import/order */
-
+import * as am5 from "@amcharts/amcharts5";
 import * as reactiveUtils from "@arcgis/core/core/reactiveUtils";
 import {
     ComponentModelBase,
@@ -40,17 +40,22 @@ import * as meshUtils from "esri/geometry/support/meshUtils";
 import SketchViewModel from "esri/widgets/Sketch";
 
 import { initializeChart, getLineFeatureLayers } from "./Functions/DesignFunctions";
+import { array } from "@amcharts/amcharts5";
 export interface DikeDesignerModelProperties extends ComponentModelProperties {
     elevationLayerUrl?: string;
 }
 @serializable
 export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerModelProperties> {
 
+    designPanelVisible: boolean = false;
+    crossSectionPanelVisible: boolean = false;
+
     loading: boolean = false;
-    
+
     elevationLayerUrl: DikeDesignerModelProperties["elevationLayerUrl"];
 
     graphicsLayerLine: GraphicsLayer;
+    graphicsLayerCrossSection: GraphicsLayer;
     graphicsLayerTemp: GraphicsLayer;
     graphicsLayerMesh: GraphicsLayer;
     elevationLayer: ElevationLayer;
@@ -80,6 +85,15 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     chart: any = null
     chartSeries: any = null
 
+    crossSectionChartData: any[] = null
+    crossSectionChartRoot: any = null
+    crossSectionChart: any = null
+    meshSeriesData: any[] = null
+
+    userLinePoints: any[] = []
+    slopeLabels: am5.Label[] = []
+
+
     lineFeatureLayers: FeatureLayer[] = []
     selectedLineLayerId: string | null
     selectedLineLayer: FeatureLayer | null
@@ -96,6 +110,17 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     intersectingPanden: object[] = []
     intersectingBomen: object[] = []
     intersectingPercelen: object[] = []
+
+    dwpLocations: string[] = [
+        "buitenteen",
+        "onderkant_buitenberm",
+        "bovenkant_buitenberm",
+        "buitenkruin",
+        "binnenkruin",
+        "bovenkant_binnenberm",
+        "onderkant_binnenberm",
+        "binnenteen",
+    ]
 
 
     overviewVisible: boolean = false
@@ -188,8 +213,6 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                         });
 
                         this.graphicsLayerLine.add(graphic);
-                        console.log("graphic has been added")
-                        console.log(this.graphicsLayerLine, this.map)
                     })
 
 
@@ -203,24 +226,32 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
         reader.readAsText(file);
     }
+    startDrawingLine(lineLayer: GraphicsLayer): Promise<__esri.Polyline> {
 
-    startDrawingLine() {
+        if (lineLayer?.graphics?.length > 0) {
+            // Clear existing graphics if any
+            lineLayer.removeAll();
+        }
+        this.sketchViewModel.layer = lineLayer;
         this.sketchViewModel.create("polyline");
 
-        // Listen for the create event to get the geometry
-        this.sketchViewModel.on("create", async (event) => {
-            if (event.state === "complete") {
-                const drawnLine = event.graphic.geometry;
-                // console.log("Polygon geometry:", poylgonGeometry);
+        return new Promise((resolve, reject) => {
+            const handler = this.sketchViewModel.on("create", (event: any) => {
+                if (event.state === "complete") {
+                    const drawnLine = event.graphic.geometry;
+                    this.drawnLine = drawnLine;
+                    this.sketchViewModel.set("state", "update");
+                    this.sketchViewModel.update(event.graphic);
 
-                // publish event to show dialog
-                this.drawnLine = drawnLine;
-                console.log(this.sketchViewModel)
-                this.sketchViewModel.set("state", "update");
-
-                this.sketchViewModel.update(event.graphic) // Update the graphic with the new geometry
-                    ;
-            }
+                    handler.remove(); // Clean up the event listener
+                    resolve(drawnLine);
+                }
+                // Optionally handle cancel/error states here
+                // else if (event.state === "cancel") {
+                //     handler.remove();
+                //     reject(new Error("Drawing cancelled"));
+                // }
+            });
         });
     }
 
@@ -258,6 +289,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                     }
                 });
                 this.allChartData = allChartData; // Store all chart data
+                console.log("All chart data:", this.allChartData);
 
 
                 // Set the first sheet as the default table data
@@ -398,6 +430,16 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                 },
                 listMode: "hide",
             });
+
+            this.graphicsLayerCrossSection = new GraphicsLayer({
+                title: "Dwarsprofiel - tijdelijk",
+                elevationInfo: {
+                    mode: "on-the-ground",
+                    offset: 0
+                },
+                listMode: "hide",
+            });
+
             this.graphicsLayerTemp = new GraphicsLayer({
                 title: "Ontwerpdata - tijdelijk",
                 elevationInfo: {
@@ -416,10 +458,12 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
                 listMode: "show",
             });
 
+
             this.elevationLayer = new ElevationLayer({
                 url: this.elevationLayerUrl,
             });
             this.map.add(this.graphicsLayerLine);
+            this.map.add(this.graphicsLayerCrossSection);
             this.map.add(this.graphicsLayerTemp);
             this.map.add(this.graphicsLayerMesh);
             this.map.add(this.designLayer2D);
@@ -430,13 +474,6 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
 
 
-
-            // Initialize the SketchViewModel
-
-            // this.sketchViewModel = new SketchViewModel({
-            //     view: this.view,
-            //     layer: this.graphicsLayerLine,
-            // });
             await reactiveUtils
                 .whenOnce(() => this.view)
                 .then(() => {
@@ -445,7 +482,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
                     this.sketchViewModel = new SketchViewModel({
                         view: this.view,
-                        layer: this.graphicsLayerLine,
+                        // layer: this.graphicsLayerLine,
                     });
                 });
         });

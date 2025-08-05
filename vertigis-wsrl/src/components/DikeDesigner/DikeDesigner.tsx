@@ -23,9 +23,12 @@ import {
     createDesigns,
     exportGraphicsLayerAsGeoJSON,
     initializeChart,
-    setInputLineFromFeatureLayer
+    initializeCrossSectionChart,
+    setInputLineFromFeatureLayer,
+    createCrossSection
 } from "./Functions/DesignFunctions";
 import ChartAndTablePanel from "./SubComponents/ChartAndTablePanel";
+import CrossSectionChartPanel from "./SubComponents/CrossSectionChartPanel";
 import DimensionsPanel from "./SubComponents/DimensionsPanel";
 import EffectAnalysisPanel from "./SubComponents/EffectAnalysisPanel";
 
@@ -36,35 +39,30 @@ const DikeDesigner = (
 ): ReactElement => {
     const { model } = props;
 
-    // const workerRef = useRef<Worker | null>(null);
-
-    // useEffect(() => {
-    //     const blob = new Blob([simpleWorkerCode], { type: "application/javascript" });
-    //     const worker = new Worker(URL.createObjectURL(blob));
-    //     workerRef.current = worker;
-
-    //     worker.onmessage = (e) => {
-    //       console.log("Received from worker:", e.data);
-    //     };
-
-    //     // Send test data
-    //     worker.postMessage(5);
-
-    //     return () => {
-    //       worker.terminate();
-    //     };
-    //   }, []);
+    const prevDeps = useRef<any>({});
 
     const chartContainerRef = useRef<HTMLDivElement | null>(null);
-    useWatchAndRerender(model, "chartData");
+    const crossSectionChartContainerRef = useRef<HTMLDivElement | null>(null);
 
     const [mapLeftBorder, setMapLeftBorder] = useState(0);
     const [mapRightBorder, setMapRightBorder] = useState(window.innerWidth);
     const [activeTab, setActiveTab] = useState(0);
-    const [isOverviewVisible, setIsOverviewVisible] = useState(false);
     const [loading, setLoading] = useState(false); // State to track loading status
     const [value, setValue] = React.useState(0);
     const [isLayerListVisible, setIsLayerListVisible] = useState(false);
+
+    function setcrossSectionPanelVisible(value: boolean) {
+        model.crossSectionPanelVisible = value;
+        if (!value) {
+            model.userLinePoints = [];
+        }
+    }
+
+    function setdesignPanelVisible(value: boolean) {
+        model.designPanelVisible = value;
+        model.crossSectionPanelVisible = false;
+    }
+
 
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -72,6 +70,9 @@ const DikeDesigner = (
     };
 
     const seriesRef = useRef<am5xy.LineSeries | null>(null);
+    const chartSeriesRef = useRef<am5xy.LineSeries | null>(null);
+    const meshSeriesRef = useRef<am5xy.LineSeries | null>(null);
+    const userSeriesRef = useRef<am5xy.LineSeries | null>(null);
 
     const observeMapLeftBorder = () => {
         const mapElement = document.querySelector(".gcx-map");
@@ -99,8 +100,7 @@ const DikeDesigner = (
     }, []);
 
     useEffect(() => {
-        initializeChart(model, activeTab, chartContainerRef);
-
+        initializeChart(model, activeTab, chartContainerRef, seriesRef);
         return () => {
             if (model.chartRoot) {
                 model.chartRoot.dispose();
@@ -109,9 +109,48 @@ const DikeDesigner = (
         }
     }, [model.overviewVisible, model, activeTab, chartContainerRef, model.chartData]);
 
-    const handleDrawLine = () => {
-        model.startDrawingLine();
-    };
+    useEffect(() => {
+        // Compare and log changes
+        if (prevDeps.current.model !== model) {
+            console.log("model changed");
+        }
+        if (prevDeps.current.crossSectionChartRoot !== model.crossSectionChartRoot) {
+            console.log("model.crossSectionChartRoot changed");
+        }
+        if (prevDeps.current.crossSectionChartContainerRef !== crossSectionChartContainerRef) {
+            console.log("crossSectionChartContainerRef changed");
+        }
+        if (prevDeps.current.crossSectionChartData !== model.crossSectionChartData) {
+            console.log("model.crossSectionChartData changed");
+        }
+        if (prevDeps.current.meshSeriesData !== model.meshSeriesData) {
+            console.log("model.meshSeriesData changed");
+        }
+
+        // Update previous values
+        prevDeps.current = {
+            model,
+            crossSectionChartRoot: model.crossSectionChartRoot,
+            crossSectionChartContainerRef,
+            crossSectionChartData: model.crossSectionChartData,
+            meshSeriesData: model.meshSeriesData,
+        };
+
+        // ...your effect logic...
+        initializeCrossSectionChart(model, crossSectionChartContainerRef, {
+            chartSeriesRef,
+            meshSeriesRef,
+            userSeriesRef
+        });
+        return () => {
+            if (model.crossSectionChartRoot) {
+                model.crossSectionChartRoot.dispose();
+                console.log("Cross-section chart disposed");
+            }
+        };
+    }, [model, crossSectionChartContainerRef, model.crossSectionChartData, model.meshSeriesData]);
+
+
 
     const handleUploadGeoJSON = () => {
         document.getElementById("geojson-upload")?.click();
@@ -182,7 +221,8 @@ const DikeDesigner = (
     };
 
     const handleOpenOverview = () => {
-        setIsOverviewVisible(true);
+        setdesignPanelVisible(true);
+        setcrossSectionPanelVisible(false);
         const updatedData = [...model.chartData];
         model.chartData = updatedData
         seriesRef.current?.data.setAll(model.chartData);
@@ -192,8 +232,7 @@ const DikeDesigner = (
         model.chartData = null;
     };
     const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-
-        setIsOverviewVisible(true); // Close the overview when uploading a new Excel file
+        setdesignPanelVisible(true); // Close the overview when uploading a new Excel file
         model.handleExcelUpload(event);
 
     }
@@ -212,28 +251,25 @@ const DikeDesigner = (
         }
     };
 
-    // const handle2DAnalysis = async () => {
-    //     setLoading(true); // Show loader
-    //     try {
-    //         await convertTo2D(model);
-    //         console.log("2D analysis done...");
-    //     } catch (error) {
-    //         console.error("Error during 2D analysis:", error);
-    //     } finally {
-    //         setLoading(false); // Hide loader
-    //     }
-    // };
+
+    const handleCreateCrossSection = () => async () => {
+        setdesignPanelVisible(false);
+        await createCrossSection(model);
+    }
+
     const handleClearDesign = () => {
         model.meshes = []
         model.offsetGeometries = []
         model.graphicsLayerTemp.removeAll();
         model.graphicsLayerMesh.removeAll();
+        model.mergedMesh = null;
         model.totalVolumeDifference = null;
         model.excavationVolume = null;
         model.fillVolume = null;
         model.intersectingPanden = null;
         model.intersectingBomen = null;
         model.intersectingPercelen = null;
+        model.userLinePoints = [];
         cleanFeatureLayer(model.designLayer2D);
     };
 
@@ -251,7 +287,17 @@ const DikeDesigner = (
     useWatchAndRerender(model, "selectedLineLayerId");
     useWatchAndRerender(model, "gridSize");
     useWatchAndRerender(model, "activeSheet");
+    useWatchAndRerender(model, "activeTab");
     useWatchAndRerender(model, "selectedDijkvakField");
+    useWatchAndRerender(model, "chartData");
+    useWatchAndRerender(model, "allChartData");
+    useWatchAndRerender(model, "crossSectionChartData");
+    useWatchAndRerender(model, "crossSectionChartData.length");
+    useWatchAndRerender(model, "crossSectionPanelVisible");
+    useWatchAndRerender(model, "designPanelVisible");
+
+    // useWatchAndRerender(model, "meshSeriesData");
+    // useWatchAndRerender(model, "meshSeriesData.length");
 
 
     interface TabPanelProps {
@@ -285,7 +331,7 @@ const DikeDesigner = (
 
 
     return (
-        <LayoutElement {...props} style={{ width: "100%", overflowY:"scroll" }}>
+        <LayoutElement {...props} style={{ width: "100%", overflowY: "scroll" }}>
             <Box
                 sx={{ width: '100%' }}
             >
@@ -307,25 +353,24 @@ const DikeDesigner = (
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={value} index={0}>
-               <DimensionsPanel
-                    model={model}
-                    isLayerListVisible={isLayerListVisible}
-                    isOverviewVisible={isOverviewVisible}
-                    setSelectedLineLayerId={setSelectedLineLayerId}
-                    handleDrawLine={handleDrawLine}
-                    handleUploadGeoJSON={handleUploadGeoJSON}
-                    handleSelectFromMap={handleSelectFromMap}
-                    handleFileChange={handleFileChange}
-                    handleClearGraphics={handleClearGraphics}
-                    handleGridChange={handleGridChange}
-                    handleExcelUpload={handleExcelUpload}
-                    handleClearExcel={handleClearExcel}
-                    handleOpenOverview={handleOpenOverview}
-                    handleCreateDesign={handleCreateDesign}
-                    handleExportGraphics={handleExportGraphics}
-                    handleClearDesign={handleClearDesign}
-                    loading={loading}
-                />
+                    <DimensionsPanel
+                        model={model}
+                        isLayerListVisible={isLayerListVisible}
+                        setSelectedLineLayerId={setSelectedLineLayerId}
+                        handleUploadGeoJSON={handleUploadGeoJSON}
+                        handleSelectFromMap={handleSelectFromMap}
+                        handleFileChange={handleFileChange}
+                        handleClearGraphics={handleClearGraphics}
+                        handleGridChange={handleGridChange}
+                        handleExcelUpload={handleExcelUpload}
+                        handleClearExcel={handleClearExcel}
+                        handleOpenOverview={handleOpenOverview}
+                        handleCreateDesign={handleCreateDesign}
+                        handleExportGraphics={handleExportGraphics}
+                        handleClearDesign={handleClearDesign}
+                        handleCreateCrossSection={handleCreateCrossSection}
+                        loading={loading}
+                    />
                 </CustomTabPanel>
                 <CustomTabPanel value={value} index={1}>
                     <EffectAnalysisPanel model={model} />
@@ -334,10 +379,9 @@ const DikeDesigner = (
 
 
             {/* Paper for Chart and Table */}
-            {isOverviewVisible && model.chartData && (
+            {model.designPanelVisible && model.chartData && (
                 <ChartAndTablePanel
-                    isOverviewVisible={isOverviewVisible}
-                    setIsOverviewVisible={setIsOverviewVisible}
+                    setdesignPanelVisible={setdesignPanelVisible}
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
                     mapLeftBorder={mapLeftBorder}
@@ -347,7 +391,16 @@ const DikeDesigner = (
                     handleCellChange={handleCellChange}
                 />
             )}
-
+            {/* Paper for Cross Section Chart */}
+            {model.crossSectionPanelVisible && (
+                <CrossSectionChartPanel
+                    setcrossSectionPanelVisible={setcrossSectionPanelVisible}
+                    mapLeftBorder={mapLeftBorder}
+                    mapRightBorder={mapRightBorder}
+                    crossSectionChartContainerRef={crossSectionChartContainerRef}
+                    model={model}
+                />
+            )}
         </LayoutElement>
     );
 };

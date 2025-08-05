@@ -1,5 +1,1 @@
-- selecteren huidige lijn
-- fix tabel maken vanuit applicatie
-- opslaan ontwerpen
-- visualisatie
-- vakindeling vanuit excel
+- add feature to click design without excel
