@@ -33,4 +33,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: vertigis-wsrl/dist/   # 👈 adjust if your build output goes elsewhere
+          path: ./vertigis-wsrl/build/   # 👈 adjust if your build output goes elsewhere
+
+      - name: List build folder
+        run: ls -R vertigis-wsrl/build/
+
