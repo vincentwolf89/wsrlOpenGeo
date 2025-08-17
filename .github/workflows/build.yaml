@@ -18,6 +18,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.15.1' # or the version you use
+          cache-dependency-path: vertigis-wsrl/package-lock.json  # 👈 change this if your package file is elsewhere
           cache: 'npm'      # or 'npm'
 
       - name: Install dependencies
