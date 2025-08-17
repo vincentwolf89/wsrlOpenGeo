@@ -38,3 +38,13 @@ jobs:
       - name: List build folder
         run: ls -R vertigis-wsrl/build/
 
+
+      - name: Commit and push build
+        working-directory: ./vertigis-wsrl
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add build/
+          git commit -m "Add updated build [skip ci]" || echo "No changes to commit"
+          git push
+
