@@ -44,7 +44,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add build/
+          git add -f build/
           git commit -m "Add updated build [skip ci]" || echo "No changes to commit"
           git push
 
