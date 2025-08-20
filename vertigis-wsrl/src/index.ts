@@ -3,8 +3,7 @@ import type { GetDesignerSettingsSchemaArgs } from "@vertigis/web/designer";
 
 import { signIn } from "./auth";
 import DikeDesigner, { DikeDesignerModel } from "./components/DikeDesigner";
-
-
+import { registerElevationExaggeratorComponent }  from "./components/ElevationExaggarator"
 const LAYOUT_NAMESPACE = "vertigis-wsrl";
 const isDevMode = window.location.hostname === "localhost";
 
@@ -44,4 +43,6 @@ export default function (registry: LibraryRegistry): void {
         getModel: config => new DikeDesignerModel(config),
         itemType: "dike-designer-model",
     });
+
+    registerElevationExaggeratorComponent(registry);
 }
