@@ -1,6 +1,5 @@
-import ElevationLayer from "esri/layers/ElevationLayer"
-import BaseElevationLayer from "esri/layers/BaseElevationLayer";
-
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import type {
     ComponentModelProperties,
     PropertyDefs,
@@ -8,14 +7,13 @@ import type {
 import {
     ComponentModelBase,
     serializable,
-    importModel,
 } from "@vertigis/web/models";
+import BaseElevationLayer from "esri/layers/BaseElevationLayer";
+import ElevationLayer from "esri/layers/ElevationLayer"
 
 
 export interface ElevationExaggeratorModelProperties extends ComponentModelProperties {
-    buttonName?: string;
-    buttonId?: string;
-    command?: string;
+    elevationLayerUrl?: string;
 }
 
 @serializable
@@ -23,32 +21,48 @@ export default class ElevationExaggeratorModel extends ComponentModelBase<Elevat
     map: any;
     view: any;
 
-    toggleON: boolean = false;
-    buttonName: ElevationExaggeratorModelProperties["buttonName"];
-    buttonId: ElevationExaggeratorModelProperties["buttonId"];
-    command: ElevationExaggeratorModelProperties["command"];
+    elevationLayerUrl: ElevationExaggeratorModelProperties["elevationLayerUrl"];
 
-    valueText: String = "Temperature";
+    exaggeration: number = 1;
 
-    processToggle(): void {
+    processChange(): void {
 
-        this.toggleON = !this.toggleON;
+            const  newGround = this.createNewElevation(this.exaggeration);
+            this.map.ground.layers = [new newGround];
+    }
+
+    createNewElevation(factor: number): typeof BaseElevationLayer {
+        class ExaggeratedElevationLayer extends BaseElevationLayer {
+                private _elevation: ElevationLayer;
+                
+
+                async load() {
+                    this._elevation = new ElevationLayer({
+                        url: "//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+                    });
+                    await this.addResolvingPromise(this._elevation.load());
+                }
+
+                async fetchTile(level: number, row: number, col: number, options: any) {
+                    const data = await this._elevation.fetchTile(level, row, col, options as any);
+                    const exaggeration = factor;
+                    for (let i = 0; i < data.values.length; i++) {
+                        if (data.values[i] !== data.noDataValue) {
+                            data.values[i] *= exaggeration;
+                        }
+                    }
+                    return data;
+                }
+            }
+            return ExaggeratedElevationLayer
     }
 
     protected override _getSerializableProperties(): PropertyDefs<ElevationExaggeratorModelProperties> {
         return {
             ...super._getSerializableProperties(),
-            buttonName: {
+            elevationLayerUrl: {
                 serializeModes: ["initial"],
-                default: "Label uitvoering",
-            },
-            buttonId: {
-                serializeModes: ["initial"],
-                default: "uitvoeringButtonId",
-            },
-            command: {
-                serializeModes: ["initial"],
-                default: "layer-service.toggle-naam-ruimte",
+                default: "//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer",
             },
         };
     }
@@ -60,25 +74,14 @@ export default class ElevationExaggeratorModel extends ComponentModelBase<Elevat
             console.log("Map initialized:", map);
             this.map = map.maps.map;
             this.view = map.maps["view"];
+            const newGround = this.createNewElevation(this.exaggeration);
 
-            const ExaggeratedElevationLayer = new BaseElevationLayer
-
-            
+            this.map.ground.layers = [new newGround];
 
             // https://developers.arcgis.com/javascript/latest/sample-code/layers-custom-elevation-exaggerated/
-       
-         
+
+
 
         });
-
-        // const config = this.configService.getSettings();
-        // this.toggleON = config[this.buttonId] === true;
-        // this.messages
-        //     .event<UserSettingsChangedEvent>(USERSETTINGS_CHANGED_EVENT)
-        //     .subscribe((event) => {
-        //         if (event.newValue) {
-        //             this.toggleON = event.newValue[this.buttonId] === true;
-        //         }
-        //     });
     }
 }
