@@ -17,27 +17,27 @@ import {
 import * as XLSX from "xlsx";
 
 import { Features } from "@vertigis/web/messaging";
-import GraphicsLayer from "esri/layers/GraphicsLayer";
-import GeoJSONLayer from "esri/layers/GeoJSONLayer";
-import ElevationLayer from "esri/layers/ElevationLayer";
-import FeatureLayer from "esri/layers/FeatureLayer";
+import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
+import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
+import ElevationLayer from "@arcgis/core/layers/ElevationLayer";
+import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
 
-import Graphic from "esri/Graphic";
+import Graphic from "@arcgis/core/Graphic";
 
-import Polyline from "esri/geometry/Polyline";
-import Polygon from "esri/geometry/Polygon";
-import Point from "esri/geometry/Point";
-import Multipoint from "esri/geometry/Multipoint";
-import Mesh from "esri/geometry/Mesh";
+import Polyline from "@arcgis/core/geometry/Polyline";
+import Polygon from "@arcgis/core/geometry/Polygon";
+import Point from "@arcgis/core/geometry/Point";
+import Multipoint from "@arcgis/core/geometry/Multipoint";
+import Mesh from "@arcgis/core/geometry/Mesh";
 
-import SpatialReference from "esri/geometry/SpatialReference";
-import * as geometryEngine from "esri/geometry/geometryEngine";
-import * as webMercatorUtils from "esri/geometry/support/webMercatorUtils";
-import * as projection from "esri/geometry/projection";
-import * as meshUtils from "esri/geometry/support/meshUtils";
+import SpatialReference from "@arcgis/core/geometry/SpatialReference";
+import * as geometryEngine from "@arcgis/core/geometry/geometryEngine";
+import * as webMercatorUtils from "@arcgis/core/geometry/support/webMercatorUtils";
+import * as projection from "@arcgis/core/geometry/projection";
+import * as meshUtils from "@arcgis/core/geometry/support/meshUtils";
 
-import SketchViewModel from "esri/widgets/Sketch";
+import SketchViewModel from "@arcgis/core/widgets/Sketch";
 
 import { initializeChart, getLineFeatureLayers } from "./Functions/DesignFunctions";
 import { array } from "@amcharts/amcharts5";
@@ -65,6 +65,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
     map: any;
     view: any;
+    mapElement: HTMLElement | null = null;
     sketchViewModel: SketchViewModel | undefined;
     drawnLine: any;
     offsetGeometries: any[] = [];
@@ -342,6 +343,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
         this.messages.events.map.initialized.subscribe(async (map) => {
             console.log("Map initialized:", map);
+            this.mapElement = document.querySelector(".gcx-map")
             this.map = map.maps.map;
             this.view = map.maps["view"];
 

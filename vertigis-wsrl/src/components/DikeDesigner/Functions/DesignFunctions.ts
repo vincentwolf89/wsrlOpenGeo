@@ -826,8 +826,8 @@ export async function createCrossSection(model) {
         message: "Klik op de kaart om een dwarsprofiel te tekenen. Deze tool is in ontwikkeling.",
         type: "success",
     })
-    model.startDrawingLine(model.graphicsLayerCrossSection).then(() => {
-        getPointsOnLine(model.graphicsLayerCrossSection.graphics.items[0].geometry, 1).then((offsetLocations) => {
+    model.startDrawingLine(model.graphicsLayerCrossSection).then(() => { // set interval dynamically?
+        getPointsOnLine(model.graphicsLayerCrossSection.graphics.items[0].geometry, 0.1).then((offsetLocations) => {
             console.log(offsetLocations, "Offset locations for cross section");
             const sRef = model.graphicsLayerCrossSection.graphics.items[0].geometry.spatialReference;
             const promises = offsetLocations.map(loc =>
@@ -870,7 +870,7 @@ export async function createCrossSection(model) {
                     );
 
 
-
+                    
                     const meshElevationResult = elevationSampler.queryElevation(multipoint)
                     console.log("Mesh elevation result:", meshElevationResult);
                     if ("points" in meshElevationResult && Array.isArray(meshElevationResult.points)) {

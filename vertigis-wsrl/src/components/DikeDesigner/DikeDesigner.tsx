@@ -74,8 +74,8 @@ const DikeDesigner = (
     const meshSeriesRef = useRef<am5xy.LineSeries | null>(null);
     const userSeriesRef = useRef<am5xy.LineSeries | null>(null);
 
-    const observeMapLeftBorder = () => {
-        const mapElement = document.querySelector(".gcx-map");
+    const mapResizeObserver = () => {
+        const mapElement = model.mapElement;
         if (mapElement) {
             const observer = new ResizeObserver((entries) => {
                 for (const item of entries) {
@@ -93,11 +93,11 @@ const DikeDesigner = (
     };
 
     useEffect(() => {
-        const disconnectObserver = observeMapLeftBorder();
+        const disconnectObserver = mapResizeObserver();
         return () => {
             if (disconnectObserver) disconnectObserver();
         };
-    }, []);
+    }, ); 
 
     useEffect(() => {
         initializeChart(model, activeTab, chartContainerRef, seriesRef);
@@ -295,6 +295,7 @@ const DikeDesigner = (
     useWatchAndRerender(model, "crossSectionChartData.length");
     useWatchAndRerender(model, "crossSectionPanelVisible");
     useWatchAndRerender(model, "designPanelVisible");
+    useWatchAndRerender(model, "mapElement");
 
     // useWatchAndRerender(model, "meshSeriesData");
     // useWatchAndRerender(model, "meshSeriesData.length");

@@ -1,1 +1,2 @@
 - add feature to click design without excel
+- update dev dependencies
