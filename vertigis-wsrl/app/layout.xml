@@ -6,6 +6,7 @@
             <vertigis-wsrl:dike-designer slot="top-end" config="dike-designer-model-1" active="true" models="#map-primary"/>
         </stack>
         <map id="map-1" config="map-config-1">
+            <vertigis-wsrl:elevation-exaggerator width="30" slot="top-start" config="elevation-exaggerator-model-1" active="true" models="#map-primary"/>    
         </map>
         <stack resizable="true" id="stack-3" config="stack-config-3" width="26">
             <tabs xmlns="https://geocortex.com/layout/web/v1" id="tabs-db811610" config="tabs-config-1" slot="top-left" width="26">

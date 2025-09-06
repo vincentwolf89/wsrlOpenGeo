@@ -6,8 +6,8 @@ import shutil
 import xml.etree.ElementTree as ET
 
 # --- Pad naar map met zip-bestanden ---
-zip_folder = r"C:\Users\AL31947\OneDrive - Alliander NV\Desktop\OneDrive_1_5-6-2025"
-output_base = r"C:\Users\AL31947\OneDrive - Alliander NV\Desktop\OneDrive_1_5-6-2025\klic_ssh"
+zip_folder = r"C:\Users\AL31947\OneDrive - Alliander NV\Desktop\klicjes"
+output_base = r"C:\Users\AL31947\OneDrive - Alliander NV\Desktop\klicjes"
 
 # --- Namespace definitie voor GML ---
 ns = {'gml': 'http://www.opengis.net/gml/3.2'}

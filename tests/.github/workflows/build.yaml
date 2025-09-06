@@ -1,0 +1,55 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.15.1' # or the version you use
+          cache-dependency-path: vertigis-wsrl/package-lock.json  # 👈 change this if your package file is elsewhere
+          cache: 'npm'      # or 'npm'
+
+      - name: Install dependencies
+        working-directory: ./vertigis-wsrl   # 👈 change this
+        run: npm install   # or npm install
+
+      - name: Build project
+        working-directory: ./vertigis-wsrl   # 👈 change this
+        run: npm run build     # or npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: ./vertigis-wsrl/build/   # 👈 adjust if your build output goes elsewhere
+
+      - name: List build folder
+        run: ls -R vertigis-wsrl/build/
+
+
+      - name: Commit and push build
+        working-directory: ./vertigis-wsrl
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f build/
+          git commit -m "Add updated build [skip ci]" || echo "No changes to commit"
+          git push
+
+      # - name: Deploy to GitHub Pages
+      #   uses: peaceiris/actions-gh-pages@v3
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     publish_dir: ./vertigis-wsrl/build
