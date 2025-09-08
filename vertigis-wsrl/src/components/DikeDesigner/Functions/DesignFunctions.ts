@@ -10,69 +10,75 @@ import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 import { Features } from "@vertigis/web/messaging";
-import GraphicsLayer from "esri/layers/GraphicsLayer";
-import GeoJSONLayer from "esri/layers/GeoJSONLayer";
-import ElevationLayer from "esri/layers/ElevationLayer";
-import FeatureLayer from "esri/layers/FeatureLayer";
+import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
+import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
+import ElevationLayer from "@arcgis/core/layers/ElevationLayer";
+import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 
-import Graphic from "esri/Graphic";
+import Graphic from "@arcgis/core/Graphic";
 
-import Polyline from "esri/geometry/Polyline";
-import Polygon from "esri/geometry/Polygon";
-import Point from "esri/geometry/Point";
-import Multipoint from "esri/geometry/Multipoint";
-import Mesh from "esri/geometry/Mesh";
+import Polyline from "@arcgis/core/geometry/Polyline";
+import Polygon from "@arcgis/core/geometry/Polygon";
+import Point from "@arcgis/core/geometry/Point";
+import Multipoint from "@arcgis/core/geometry/Multipoint";
+import Mesh from "@arcgis/core/geometry/Mesh";
 
-import SpatialReference from "esri/geometry/SpatialReference";
-import * as geometryEngine from "esri/geometry/geometryEngine";
-import * as webMercatorUtils from "esri/geometry/support/webMercatorUtils";
-import * as projection from "esri/geometry/projection";
-import * as meshUtils from "esri/geometry/support/meshUtils";
+import SpatialReference from "@arcgis/core/geometry/SpatialReference";
+import * as geometryEngine from "@arcgis/core/geometry/geometryEngine";
+import * as webMercatorUtils from "@arcgis/core/geometry/support/webMercatorUtils";
+import * as projection from "@arcgis/core/geometry/projection";
+import * as meshUtils from "@arcgis/core/geometry/support/meshUtils";
 
 
 
 export async function createDesigns(model): Promise<void> {
-
     let basePath: Polyline | undefined = undefined;
     let chartData: any[] = [];
+    
     if (model.selectedDijkvakField) {
         console.log("do stuff here...")
-        model.graphicsLayerLine.graphics.items.forEach(async (graphic) => {
-            const attributes = graphic.attributes;
-            if (attributes[model.selectedDijkvakField]) {
-                const dijkvakValue = attributes[model.selectedDijkvakField];
-
-                // find corresponding chartdata
-                chartData = model.allChartData[dijkvakValue]
-                basePath = graphic.geometry
-
-                console.log(dijkvakValue, "Dijkvak value")
-                console.log(chartData, "Chart data")
-                console.log(basePath, "Base path geometry")
-
-                await createDesign(model, graphic.geometry, model.allChartData[dijkvakValue], dijkvakValue);
-            }
-        })
+        
+        // Use Promise.all() for parallel processing
+        const designPromises = model.graphicsLayerLine.graphics.items
+            .filter(graphic => graphic.attributes[model.selectedDijkvakField])
+            .map(graphic => {
+                const dijkvakValue = graphic.attributes[model.selectedDijkvakField];
+                return createDesign(model, graphic.geometry, model.allChartData[dijkvakValue], dijkvakValue);
+            });
+        
+        await Promise.all(designPromises);
     } else {
         basePath = model.graphicsLayerLine.graphics.items[0].geometry;
-        chartData = model.chartData
-        createDesign(model, basePath, chartData, "default");
+        chartData = model.chartData;
+        await createDesign(model, basePath, chartData, "default");
     }
-
-
-
 }
+
 export async function createDesign(model, basePath, chartData, dijkvak): Promise<void> {
-
-
     console.log(basePath, "Base path geometry");
 
     let offsetGeometries = []
 
-    await chartData.forEach((row) => {
+    // RD New spatial reference (EPSG:28992)
+    const rdNewSpatialRef = new SpatialReference({ wkid: 28992 });
+
+    // Ensure projection module is loaded
+    await projection.load();
+
+    // Use Promise.all() to process all chart data in parallel
+    const offsetPromises = chartData.map(async (row) => {
         const offsetDistance = row.afstand || 0;
-        const offsetLine = geometryEngine.offset(basePath, offsetDistance) as Polyline;
-        console.log(offsetLine, "Offset line geometry");
+        
+        // Project to RD New for accurate planar offset
+        const projectedLine = projection.project(basePath, rdNewSpatialRef) as Polyline;
+        
+        // Apply planar offset in RD New (very accurate for Netherlands)
+        const offsetLineRD = geometryEngine.offset(projectedLine, offsetDistance) as Polyline;
+        
+        // Project back to Web Mercator
+        const offsetLine = projection.project(offsetLineRD, SpatialReference.WebMercator) as Polyline;
+        
+        // console.log(offsetLine, offsetDistance, "Offset line geometry");
 
         if (offsetLine) {
             const elevation = row.hoogte || 0;
@@ -86,22 +92,32 @@ export async function createDesign(model, basePath, chartData, dijkvak): Promise
                     spatialReference: SpatialReference.WebMercator,
                 }),
                 symbol: {
-                    type: "simple-line", // SimpleLineSymbol type
+                    type: "simple-line",
                     style: "solid",
                     color: "grey",
                     width: 1,
                 } as __esri.SimpleLineSymbolProperties,
-
-
             });
 
             model.graphicsLayerTemp.add(offsetGraphic);
 
             if (row.locatie) {
-                offsetGeometries[row.locatie] = offsetGraphic.geometry;
+                return { locatie: row.locatie, geometry: offsetGraphic.geometry };
             } else {
                 console.log("Row name is missing in the data.", row);
+                return null;
             }
+        }
+        return null;
+    });
+
+    // Wait for all offset operations to complete
+    const offsetResults = await Promise.all(offsetPromises);
+    
+    // Build offsetGeometries object from results
+    offsetResults.forEach(result => {
+        if (result) {
+            offsetGeometries[result.locatie] = result.geometry;
         }
     });
 
@@ -173,7 +189,7 @@ export async function calculateVolume(model): Promise<void> {
     // elevationSampler.demResolution.max = 5; // Set the maximum resolution for the DEM
     // elevationSampler.demResolution.min = 5; // Set the minimum resolution for the DEM
 
-    console.log("Elevation sampler created:", elevationSampler);
+    // console.log("Elevation sampler created:", elevationSampler);
 
     const extent = model.meshGraphic.geometry.extent;
 
@@ -207,7 +223,8 @@ export async function calculateVolume(model): Promise<void> {
 
 
 
-    console.log("All points processed:", pointCoordsForVolume);
+    // console.log("All points processed:", pointCoordsForVolume);
+
     if (pointCoordsForVolume.length === 0) {
         console.warn("No points were processed. Ensure the mesh geometries and grid size are correct.");
         return;
@@ -318,7 +335,7 @@ function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
 
     model.uniqueParts.push(partName);
 
-    console.log(model.designLayer2D, "Design layer 2D")
+    // console.log(model.designLayer2D, "Design layer 2D")
 
     createMeshFromPolygon(model, polygon3d, null);
 }

@@ -241,9 +241,18 @@ const DikeDesigner = (
 
         setLoading(true); // Show loader
         try {
-            await createDesigns(model);
-            await calculateVolume(model);
-            console.log("All done...");
+            createDesigns(model).then(() => {
+                console.log("Designs created");
+                calculateVolume(model).then(() => {
+                    console.log("Volume calculated");
+                }).catch((error) => {
+                    console.error("Error calculating volume:", error);
+                });
+            }).catch((error) => {
+                console.error("Error creating designs:", error);
+            });
+            
+            // console.log("All done...");
         } catch (error) {
             console.error("Error during design creation or volume calculation:", error);
         } finally {
