@@ -15,6 +15,8 @@ import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
 import ElevationLayer from "@arcgis/core/layers/ElevationLayer";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 
+import earcut from 'earcut';
+
 import Graphic from "@arcgis/core/Graphic";
 
 import Polyline from "@arcgis/core/geometry/Polyline";
@@ -34,10 +36,10 @@ import * as meshUtils from "@arcgis/core/geometry/support/meshUtils";
 export async function createDesigns(model): Promise<void> {
     let basePath: Polyline | undefined = undefined;
     let chartData: any[] = [];
-    
+
     if (model.selectedDijkvakField) {
         console.log("do stuff here...")
-        
+
         // Use Promise.all() for parallel processing
         const designPromises = model.graphicsLayerLine.graphics.items
             .filter(graphic => graphic.attributes[model.selectedDijkvakField])
@@ -45,7 +47,7 @@ export async function createDesigns(model): Promise<void> {
                 const dijkvakValue = graphic.attributes[model.selectedDijkvakField];
                 return createDesign(model, graphic.geometry, model.allChartData[dijkvakValue], dijkvakValue);
             });
-        
+
         await Promise.all(designPromises);
     } else {
         basePath = model.graphicsLayerLine.graphics.items[0].geometry;
@@ -57,6 +59,25 @@ export async function createDesigns(model): Promise<void> {
 export async function createDesign(model, basePath, chartData, dijkvak): Promise<void> {
     console.log(basePath, "Base path geometry");
 
+    // Add null checks at the beginning
+    if (!basePath) {
+        console.error("Base path is null or undefined");
+        return;
+    }
+
+    if (!chartData || chartData.length === 0) {
+        console.error("Chart data is null, undefined, or empty");
+        return;
+    }
+
+    if (!basePath.spatialReference) {
+        console.error("Base path has no spatial reference");
+        return;
+    }
+
+    // Clear previous meshes for this design
+    model.meshes = [];
+
     let offsetGeometries = []
 
     // RD New spatial reference (EPSG:28992)
@@ -67,61 +88,80 @@ export async function createDesign(model, basePath, chartData, dijkvak): Promise
 
     // Use Promise.all() to process all chart data in parallel
     const offsetPromises = chartData.map(async (row) => {
-        const offsetDistance = row.afstand || 0;
-        
-        // Project to RD New for accurate planar offset
-        const projectedLine = projection.project(basePath, rdNewSpatialRef) as Polyline;
-        
-        // Apply planar offset in RD New (very accurate for Netherlands)
-        const offsetLineRD = geometryEngine.offset(projectedLine, offsetDistance) as Polyline;
-        
-        // Project back to Web Mercator
-        const offsetLine = projection.project(offsetLineRD, SpatialReference.WebMercator) as Polyline;
-        
-        // console.log(offsetLine, offsetDistance, "Offset line geometry");
+        try {
+            const offsetDistance = row.afstand || 0;
 
-        if (offsetLine) {
-            const elevation = row.hoogte || 0;
-            const updatedPaths = offsetLine.paths.map((path) =>
-                path.map((coord) => [coord[0], coord[1], elevation])
-            );
+            // Project to RD New for accurate planar offset
+            const projectedLine = projection.project(basePath, rdNewSpatialRef) as Polyline;
 
-            const offsetGraphic = new Graphic({
-                geometry: new Polyline({
-                    paths: updatedPaths,
-                    spatialReference: SpatialReference.WebMercator,
-                }),
-                symbol: {
-                    type: "simple-line",
-                    style: "solid",
-                    color: "grey",
-                    width: 1,
-                } as __esri.SimpleLineSymbolProperties,
-            });
-
-            model.graphicsLayerTemp.add(offsetGraphic);
-
-            if (row.locatie) {
-                return { locatie: row.locatie, geometry: offsetGraphic.geometry };
-            } else {
-                console.log("Row name is missing in the data.", row);
+            if (!projectedLine) {
+                console.warn(`Failed to project line for row:`, row);
                 return null;
             }
+
+            // Apply planar offset in RD New (very accurate for Netherlands)
+            const offsetLineRD = geometryEngine.offset(projectedLine, offsetDistance, "meters", "round") as Polyline;
+
+            if (!offsetLineRD) {
+                console.warn(`Failed to create offset for distance ${offsetDistance}:`, row);
+                return null;
+            }
+
+            // Project back to Web Mercator
+            const offsetLine = projection.project(offsetLineRD, SpatialReference.WebMercator) as Polyline;
+
+            if (offsetLine) {
+                const elevation = row.hoogte || 0;
+                const updatedPaths = offsetLine.paths.map((path) =>
+                    path.map((coord) => [coord[0], coord[1], elevation])
+                );
+
+                const offsetGraphic = new Graphic({
+                    geometry: new Polyline({
+                        paths: updatedPaths,
+                        spatialReference: SpatialReference.WebMercator,
+                    }),
+                    symbol: {
+                        type: "simple-line",
+                        style: "solid",
+                        color: "grey",
+                        width: 1,
+                    } as __esri.SimpleLineSymbolProperties,
+                });
+
+                model.graphicsLayerTemp.add(offsetGraphic);
+
+                if (row.locatie) {
+                    return { locatie: row.locatie, geometry: offsetGraphic.geometry };
+                } else {
+                    console.log("Row name is missing in the data.", row);
+                    return null;
+                }
+            }
+        } catch (error) {
+            console.error(`Error processing row:`, row, error);
+            return null;
         }
         return null;
     });
 
     // Wait for all offset operations to complete
     const offsetResults = await Promise.all(offsetPromises);
-    
-    // Build offsetGeometries object from results
+
+    // Build offsetGeometries object from results, filtering out null values
     offsetResults.forEach(result => {
-        if (result) {
+        if (result?.locatie && result?.geometry) {
             offsetGeometries[result.locatie] = result.geometry;
         }
     });
 
-    // console.log(offsetGeometries, "Offset geometries");
+    console.log("Offset geometries created:", Object.keys(offsetGeometries));
+
+    // Only proceed if we have valid geometries
+    if (Object.keys(offsetGeometries).length === 0) {
+        console.warn("No valid offset geometries created");
+        return;
+    }
 
     // Check and create polygons only if the required values exist
     if (offsetGeometries["buitenkruin"] && offsetGeometries["binnenkruin"]) {
@@ -166,6 +206,7 @@ export async function createDesign(model, basePath, chartData, dijkvak): Promise
     console.log(model.uniqueParts, "Unique parts");
 
     const merged = meshUtils.merge(model.meshes);
+    // union polygons first?
     const mergedGraphic = new Graphic({
         geometry: merged,
         symbol: {
@@ -270,7 +311,6 @@ export async function calculateVolume(model): Promise<void> {
 }
 
 
-
 function createMeshFromPolygon(model, polygon, textureUrl = null) {
 
     const mesh = Mesh.createFromPolygon(polygon, {
@@ -278,17 +318,16 @@ function createMeshFromPolygon(model, polygon, textureUrl = null) {
     });
     mesh.spatialReference = polygon.spatialReference
 
-    const symbol = {
-        type: "mesh-3d",
-        symbolLayers: [{ type: "fill" }]
-    };
+    // const symbol = {
+    //     type: "mesh-3d",
+    //     symbolLayers: [{ type: "fill" }]
+    // };
 
     model.meshes.push(mesh);
 
     // graphicsLayerTemp.add(new Graphic({ geometry: mesh, symbol, attributes: { footprint: polygon } }));
 }
 function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
-    // console.log(nameA, nameB, offsetGeometries, "createPolygonBetween function called");
     const geomA = offsetGeometries[nameA];
     const geomB = offsetGeometries[nameB];
     if (!geomA || !geomB) {
@@ -297,47 +336,61 @@ function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
     }
 
     const pathA = geomA.paths[0];
-    const pathB = geomB.paths[0].slice().reverse();
-    let ring = pathA.concat(pathB);
-    ring.push(pathA[0]);
+    const pathB = geomB.paths[0];
 
-    let ring2d = ring.map(point => [point[0], point[1]]);
+    // Make sure both paths have the same number of vertices
+    const minLength = Math.min(pathA.length, pathB.length);
+    const trimmedPathA = pathA.slice(0, minLength);
+    const trimmedPathB = pathB.slice(0, minLength);
 
-    const polygon3d = new Polygon({
-        rings: [ring],
-        spatialReference: geomA.spatialReference
-    });
+    // Create segments by connecting corresponding vertex pairs
+    for (let i = 0; i < minLength - 1; i++) {
+        // Create a quad (4-sided polygon) from two consecutive vertex pairs
+        const quad = [
+            trimmedPathA[i],       // Vertex i on line A
+            trimmedPathA[i + 1],   // Vertex i+1 on line A  
+            trimmedPathB[i + 1],   // Vertex i+1 on line B
+            trimmedPathB[i],       // Vertex i on line B
+            trimmedPathA[i]        // Close the polygon
+        ];
 
-    const polygon2d = new Polygon({
-        rings: [ring2d],
-        spatialReference: geomA.spatialReference
-    });
+        const segmentPolygon = new Polygon({
+            rings: [quad],
+            spatialReference: geomA.spatialReference
+        });
 
-    const partName = `${nameA}-${nameB}`;
+        const partName = `${nameA}-${nameB}-seg${i}`;
 
-    const graphics2D = new Graphic({
-        geometry: polygon2d,
-        attributes: { name: partName }
-    });
+        const graphic3d = new Graphic({
+            geometry: segmentPolygon,
+            attributes: { name: partName }
+        });
 
-    const graphic3d = new Graphic({
-        geometry: polygon3d,
-        attributes: { name: partName }
-    });
+        model.graphicsLayerTemp.add(graphic3d);
 
-    model.graphicsLayerTemp.add(graphic3d);
+        // Create 2D version
+        const ring2d = quad.map(point => [point[0], point[1]]);
+        const polygon2d = new Polygon({
+            rings: [ring2d],
+            spatialReference: geomA.spatialReference
+        });
 
-    model.designLayer2D.applyEdits({
-        addFeatures: [graphics2D]
-    }).catch((error) => {
-        console.error("Error adding 2D polygon to design layer:", error);
-    });
+        const graphics2D = new Graphic({
+            geometry: polygon2d,
+            attributes: { name: partName }
+        });
 
-    model.uniqueParts.push(partName);
+        model.designLayer2D.applyEdits({
+            addFeatures: [graphics2D]
+        }).catch((error) => {
+            console.error("Error adding 2D polygon to design layer:", error);
+        });
 
-    // console.log(model.designLayer2D, "Design layer 2D")
+        model.uniqueParts.push(partName);
 
-    createMeshFromPolygon(model, polygon3d, null);
+        // Each quad will have simple, predictable triangulation
+        createMeshFromPolygon(model, segmentPolygon, null);
+    }
 }
 
 export function exportGraphicsLayerAsGeoJSON(model): void {
@@ -723,36 +776,36 @@ export function initializeCrossSectionChart(model, crossSectionChartContainerRef
     });
 
     const clearButton = chart.children.push(
-    am5.Button.new(root, {
-        label: am5.Label.new(root, { text: "Verwijder taludlijn", fontSize: 14 }),
-        x: 50,
-        y: 35,
-        centerX: am5.p0,
-        centerY: am5.p0,
-        // paddingLeft: 25,
-        // paddingRight: 25,
-        // paddingTop: 5,
-        // paddingBottom: 5,
-        // background: am5.RoundedRectangle.new(root, {
-        //     fill: am5.color(0xffcccc),
-        //     fillOpacity: 1,
-        //     cornerRadiusTL: 8,
-        //     cornerRadiusTR: 8,
-        //     cornerRadiusBL: 8,
-        //     cornerRadiusBR: 8,
-        // }),
-    })
-);
+        am5.Button.new(root, {
+            label: am5.Label.new(root, { text: "Verwijder taludlijn", fontSize: 14 }),
+            x: 50,
+            y: 35,
+            centerX: am5.p0,
+            centerY: am5.p0,
+            // paddingLeft: 25,
+            // paddingRight: 25,
+            // paddingTop: 5,
+            // paddingBottom: 5,
+            // background: am5.RoundedRectangle.new(root, {
+            //     fill: am5.color(0xffcccc),
+            //     fillOpacity: 1,
+            //     cornerRadiusTL: 8,
+            //     cornerRadiusTR: 8,
+            //     cornerRadiusBL: 8,
+            //     cornerRadiusBR: 8,
+            // }),
+        })
+    );
 
-clearButton.events.on("click", () => {
-    model.userLinePoints = [];
-    userSeries.data.setAll([]);
-    // Remove slope labels
-    if (model.slopeLabels) {
-        model.slopeLabels.forEach(label => label.dispose());
-        model.slopeLabels = [];
-    }
-});
+    clearButton.events.on("click", () => {
+        model.userLinePoints = [];
+        userSeries.data.setAll([]);
+        // Remove slope labels
+        if (model.slopeLabels) {
+            model.slopeLabels.forEach(label => label.dispose());
+            model.slopeLabels = [];
+        }
+    });
 
 
 
@@ -887,7 +940,7 @@ export async function createCrossSection(model) {
                     );
 
 
-                    
+
                     const meshElevationResult = elevationSampler.queryElevation(multipoint)
                     console.log("Mesh elevation result:", meshElevationResult);
                     if ("points" in meshElevationResult && Array.isArray(meshElevationResult.points)) {
@@ -921,7 +974,6 @@ export async function createCrossSection(model) {
         });
     });
 }
-
 
 // code for creating offset locations based on a start offset, segment length, step size, and segment number --> move to separate file if needed
 export function createOffsetLocations(
@@ -1053,4 +1105,90 @@ export function getPointAlongLine(
             reject(error);
         }
     });
+}
+
+function createTriangleGraphics(model, polygon, triangulationData) {
+    const { triangles, vertices2D, vertices3D } = triangulationData;
+    
+    // Create graphics for each triangle
+    for (let i = 0; i < triangles.length; i += 3) {
+        const a = triangles[i];
+        const b = triangles[i + 1];
+        const c = triangles[i + 2];
+
+        // Get 3D coordinates for triangle vertices
+        const vertex1 = [vertices3D[a * 3], vertices3D[a * 3 + 1], vertices3D[a * 3 + 2] || 0];
+        const vertex2 = [vertices3D[b * 3], vertices3D[b * 3 + 1], vertices3D[b * 3 + 2] || 0];
+        const vertex3 = [vertices3D[c * 3], vertices3D[c * 3 + 1], vertices3D[c * 3 + 2] || 0];
+
+        // Create triangle polygon
+        const trianglePolygon = new Polygon({
+            rings: [[vertex1, vertex2, vertex3, vertex1]], // Close the ring
+            spatialReference: polygon.spatialReference
+        });
+
+        // Calculate triangle area to color code them
+        const area = Math.abs(geometryEngine.planarArea(trianglePolygon, "square-meters"));
+
+        // Color based on area - red for very small triangles, green for normal ones
+        let fillColor = [0, 255, 0, 0.3]; // Green with transparency
+        let outlineColor = [0, 255, 0, 1];
+
+        if (area < 1.0) { // Very small triangles in red
+            fillColor = [255, 0, 0, 0.5];
+            outlineColor = [255, 0, 0, 1];
+        } else if (area < 5.0) { // Small triangles in yellow
+            fillColor = [255, 255, 0, 0.4];
+            outlineColor = [255, 255, 0, 1];
+        }
+
+        const triangleGraphic = new Graphic({
+            geometry: trianglePolygon,
+            symbol: {
+                type: "simple-fill",
+                color: fillColor,
+                outline: {
+                    color: outlineColor,
+                    width: 1
+                }
+            } as __esri.SimpleFillSymbolProperties,
+            attributes: {
+                triangleIndex: Math.floor(i / 3),
+                area: area.toFixed(2),
+                vertices: `${a}, ${b}, ${c}`
+            }
+        });
+
+        model.graphicsLayerTemp.add(triangleGraphic);
+    }
+
+    // Add vertex markers to see the actual points
+    for (let i = 0; i < vertices3D.length; i += 3) {
+        const point = new Point({
+            x: vertices3D[i],
+            y: vertices3D[i + 1],
+            z: vertices3D[i + 2] || 0,
+            spatialReference: polygon.spatialReference
+        });
+
+        const pointGraphic = new Graphic({
+            geometry: point,
+            symbol: {
+                type: "simple-marker",
+                color: [0, 0, 255, 0.8], // Blue points
+                size: 6,
+                outline: {
+                    color: [255, 255, 255, 1],
+                    width: 1
+                }
+            } as __esri.SimpleMarkerSymbolProperties,
+            attributes: {
+                vertexIndex: Math.floor(i / 3)
+            }
+        });
+
+        model.graphicsLayerTemp.add(pointGraphic);
+    }
+
+    console.log(`Created ${triangles.length / 3} triangle graphics and ${vertices3D.length / 3} vertex markers`);
 }
