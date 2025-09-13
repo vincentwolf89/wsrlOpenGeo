@@ -203,7 +203,7 @@ export async function createDesign(model, basePath, chartData, dijkvak): Promise
         }
     }
 
-    console.log(model.uniqueParts, "Unique parts");
+    // console.log(model.uniqueParts, "Unique parts");
 
     const merged = meshUtils.merge(model.meshes);
     // union polygons first?
@@ -327,6 +327,75 @@ function createMeshFromPolygon(model, polygon, textureUrl = null) {
 
     // graphicsLayerTemp.add(new Graphic({ geometry: mesh, symbol, attributes: { footprint: polygon } }));
 }
+
+
+// functions for debugging with earcut
+// function ringArea(ring) {
+//   let area = 0;
+//   for (let i = 0; i < ring.length; i++) {
+//     const [x1, y1] = ring[i];
+//     const [x2, y2] = ring[(i + 1) % ring.length];
+//     area += (x1 * y2 - x2 * y1);
+//   }
+//   return area / 2;
+// }
+// function createMeshFromPolygon(model, polygon, textureUrl = null) {
+//     const rings = polygon.rings;
+//     const vertices2D = [];
+//     const vertices3D = [];
+//     const holes = [];
+//     let vertexCount = 0;
+
+//     rings.forEach((ring, i) => {
+//         console.log(`Ring ${i}, raw coords:`, ring);
+
+//         const area = ringArea(ring);
+//         console.log(`Ring ${i} area:`, area);
+
+//         // Fix winding: outer CCW, holes CW
+//         const shouldReverse = (i === 0 && area < 0) || (i > 0 && area > 0);
+//         const correctedRing = shouldReverse ? [...ring].reverse() : ring;
+
+//         if (i > 0) {
+//             holes.push(vertexCount);
+//         }
+
+//         correctedRing.forEach(v => {
+//             vertices2D.push(v[0], v[1]);
+//             vertices3D.push(v[0], v[1], v[2] ?? 0);
+//             vertexCount++;
+//         });
+//     });
+
+//     console.log("Vertices2D:", vertices2D);
+//     console.log("Vertices3D:", vertices3D);
+//     console.log("Holes:", holes);
+
+//     const triangles = earcut(vertices2D);
+//     console.log("Earcut triangles:", triangles);
+
+//     // CREATE TRIANGLE GRAPHICS FOR VISUALIZATION
+//     createTriangleGraphics(model, polygon, { triangles, vertices2D, vertices3D });
+
+//     const mesh = new Mesh({
+//         spatialReference: polygon.spatialReference,
+//         vertexAttributes: { position: vertices3D },
+//         components: [{ faces: triangles }]
+//     });
+
+//     const symbol = {
+//         type: "mesh-3d",
+//         symbolLayers: [{
+//             type: "fill",
+//             material: textureUrl
+//                 ? { color: "white", texture: { url: textureUrl } }
+//                 : { color: "blue" }
+//         }]
+//     };
+
+//     model.meshes.push(mesh);
+// }
+
 function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
     const geomA = offsetGeometries[nameA];
     const geomB = offsetGeometries[nameB];
@@ -335,13 +404,52 @@ function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
         return;
     }
 
-    const pathA = geomA.paths[0];
-    const pathB = geomB.paths[0];
+    // part for graphiclayers
+    const pathAtotal = geomA.paths[0];
+    const pathBtotal = geomB.paths[0].slice().reverse();
+    let ring = pathAtotal.concat(pathBtotal);
+    ring.push(pathAtotal[0]);
+
+    let ring2d = ring.map(point => [point[0], point[1]]);
+
+    const polygon3d = new Polygon({
+        rings: [ring],
+        spatialReference: geomA.spatialReference
+    });
+
+    const polygon2d = new Polygon({
+        rings: [ring2d],
+        spatialReference: geomA.spatialReference
+    });
+
+    const partName = `${nameA}-${nameB}`;
+
+    const graphics2D = new Graphic({
+        geometry: polygon2d,
+        attributes: { name: partName }
+    });
+
+    const graphic3d = new Graphic({
+        geometry: polygon3d,
+        attributes: { name: partName }
+    });
+
+    model.graphicsLayerTemp.add(graphic3d);
+
+    model.designLayer2D.applyEdits({
+        addFeatures: [graphics2D]
+    }).catch((error) => {
+        console.error("Error adding 2D polygon to design layer:", error);
+    });
+
+    // part for meshes, taking care of proper triangulation
+    const pathAforMesh = geomA.paths[0];
+    const pathBforMesh = geomB.paths[0];
 
     // Make sure both paths have the same number of vertices
-    const minLength = Math.min(pathA.length, pathB.length);
-    const trimmedPathA = pathA.slice(0, minLength);
-    const trimmedPathB = pathB.slice(0, minLength);
+    const minLength = Math.min(pathAforMesh.length, pathBforMesh.length);
+    const trimmedPathA = pathAforMesh.slice(0, minLength);
+    const trimmedPathB = pathBforMesh.slice(0, minLength);
 
     // Create segments by connecting corresponding vertex pairs
     for (let i = 0; i < minLength - 1; i++) {
@@ -359,34 +467,34 @@ function createPolygonBetween(model, nameA, nameB, offsetGeometries) {
             spatialReference: geomA.spatialReference
         });
 
-        const partName = `${nameA}-${nameB}-seg${i}`;
+        // const partName = `${nameA}-${nameB}`;
 
-        const graphic3d = new Graphic({
-            geometry: segmentPolygon,
-            attributes: { name: partName }
-        });
+        // const graphic3d = new Graphic({
+        //     geometry: segmentPolygon,
+        //     attributes: { name: partName }
+        // });
 
-        model.graphicsLayerTemp.add(graphic3d);
+        // model.graphicsLayerTemp.add(graphic3d);
 
-        // Create 2D version
-        const ring2d = quad.map(point => [point[0], point[1]]);
-        const polygon2d = new Polygon({
-            rings: [ring2d],
-            spatialReference: geomA.spatialReference
-        });
+        // // Create 2D version
+        // const ring2d = quad.map(point => [point[0], point[1]]);
+        // const polygon2d = new Polygon({
+        //     rings: [ring2d],
+        //     spatialReference: geomA.spatialReference
+        // });
 
-        const graphics2D = new Graphic({
-            geometry: polygon2d,
-            attributes: { name: partName }
-        });
+        // const graphics2D = new Graphic({
+        //     geometry: polygon2d,
+        //     attributes: { name: partName }
+        // });
 
-        model.designLayer2D.applyEdits({
-            addFeatures: [graphics2D]
-        }).catch((error) => {
-            console.error("Error adding 2D polygon to design layer:", error);
-        });
+        // model.designLayer2D.applyEdits({
+        //     addFeatures: [graphics2D]
+        // }).catch((error) => {
+        //     console.error("Error adding 2D polygon to design layer:", error);
+        // });
 
-        model.uniqueParts.push(partName);
+        // model.uniqueParts.push(partName);
 
         // Each quad will have simple, predictable triangulation
         createMeshFromPolygon(model, segmentPolygon, null);
