@@ -1,5 +1,6 @@
 import AddIcon from "@mui/icons-material/Add";
 import AddBoxIcon from "@mui/icons-material/AddBox";
+// import ClearIcon from "@mui/icons-material/Clear";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator"; // Add this import
@@ -7,6 +8,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
+import TableRowsIcon from "@mui/icons-material/TableRows";
 import {
   Paper,
   Typography,
@@ -40,6 +42,8 @@ interface ChartAndTablePanelProps {
   chartContainerRef: React.RefObject<HTMLDivElement>;
   model: any;
   handleCellChange: (rowIndex: number, colKey: string, value: string) => void;
+  handleClearExcel: () => void;
+  handleExcelUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const ChartAndTablePanel: React.FC<ChartAndTablePanelProps> = ({
@@ -51,6 +55,8 @@ const ChartAndTablePanel: React.FC<ChartAndTablePanelProps> = ({
   chartContainerRef,
   model,
   handleCellChange,
+  handleClearExcel,
+  handleExcelUpload,
 }) => {
   const [isMaximized, setIsMaximized] = useState(false);
   const [showNewTabDialog, setShowNewTabDialog] = useState(false);
@@ -354,75 +360,125 @@ const ChartAndTablePanel: React.FC<ChartAndTablePanelProps> = ({
           </Box>
         </Typography>
 
-        {/* First Tab Bar: Sheet Selection with Add/Remove/Rename Tab buttons */}
-        <Box sx={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-          <Tabs
-            value={model.activeSheet}
-            onChange={(event, newValue: string) => handleSheetChange(newValue)}
-            indicatorColor="primary"
-            textColor="primary"
-            variant="scrollable"
-            scrollButtons="auto"
-            sx={{ flexGrow: 1 }}
-          >
-            {Object.keys(model.allChartData as object || {}).map((sheetName) => (
-              <Tab
-                key={sheetName}
-                label={sheetName}
-                value={sheetName}
-                sx={{
-                  fontSize: "11px",
-                  backgroundColor: model.activeSheet === sheetName ? "#e0e0e0" : "#f5f5f5",
-                  color: model.activeSheet === sheetName ? "#000" : "#555",
-                  "&:hover": { backgroundColor: "#d6d6d6" },
-                }}
+        {/* Buttons row (Upload / Remove / Nieuw ontwerp) */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexShrink: 0,
+            gap: 1,
+            p: 1,
+            backgroundColor: "#fafafa",
+            borderBottom: "1px solid rgba(0,0,0,0.06)",
+          }}
+        >
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+            <Button
+              variant="contained"
+              size="medium"
+              component="label"
+              startIcon={<TableRowsIcon />}
+              color="primary"
+              // sx={{ textTransform: "none" }}
+            >
+              Upload ontwerpen (Excel)
+              <input
+                type="file"
+                accept=".xlsx, .xls"
+                hidden
+                onChange={handleExcelUpload}
+                
               />
-            ))}
-          </Tabs>
+            </Button>
 
-          {/* Add New Tab Button */}
-          <IconButton
-            onClick={handleAddNewTab}
-            size="small"
-            sx={{
-              mx: 0.5,
-              color: "#1976d2",
-              "&:hover": { backgroundColor: "#e3f2fd" }
-            }}
-            title="Nieuw ontwerp toevoegen"
-          >
-            <AddBoxIcon />
-          </IconButton>
+            {/* <Button
+              disabled={!model.chartData?.length}
+              variant="outlined"
+              size="small"
+              color="secondary"
+              startIcon={<ClearIcon />}
+              onClick={handleClearExcel}
+              sx={{ textTransform: "none" }}
+            >
+              Verwijder ontwerpen
+            </Button> */}
 
-          {/* Rename Current Tab Button */}
-          <IconButton
-            onClick={handleRenameCurrentTab}
-            size="small"
-            sx={{
-              mx: 0.5,
-              color: "#f57f17",
-              "&:hover": { backgroundColor: "#fff3e0" }
-            }}
-            title="Huidig ontwerp hernoemen"
-          >
-            <EditIcon />
-          </IconButton>
+            <Button
+              variant="contained"
+              size="medium"
+              color="secondary"
+              startIcon={<AddBoxIcon />}
+              onClick={handleAddNewTab}
+              // sx={{ textTransform: "none" }}
+            >
+              Nieuw ontwerp toevoegen
+            </Button>
+          </Box>
 
-          {/* Delete Current Tab Button */}
-          <IconButton
-            onClick={handleDeleteCurrentTab}
-            size="small"
-            sx={{
-              mx: 0.5,
-              color: "#d32f2f",
-              "&:hover": { backgroundColor: "#ffebee" }
-            }}
-            title="Huidig ontwerp verwijderen"
-            disabled={Object.keys(model.allChartData as Record<string, any[]> || {}).length <= 1}
-          >
-            <RemoveCircleOutlineIcon />
-          </IconButton>
+          {/* Tab action icons on the right for quick access */}
+          <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
+            <IconButton
+              onClick={handleRenameCurrentTab}
+              size="medium"
+              sx={{
+                color: "#1976d2",
+                "&:hover": { backgroundColor: "#e3f2fd" },
+              }}
+              title="Huidig ontwerp hernoemen"
+            >
+              <EditIcon />
+            </IconButton>
+
+            <IconButton
+              onClick={handleDeleteCurrentTab}
+              size="medium"
+              sx={{
+                color: "#d32f2f",
+                "&:hover": { backgroundColor: "#ffebee" },
+              }}
+              title="Huidig ontwerp verwijderen"
+              disabled={
+                Object.keys(model.allChartData as Record<string, any[]> || {})
+                  .length <= 1
+              }
+            >
+              <RemoveCircleOutlineIcon />
+            </IconButton>
+          </Box>
         </Box>
+
+        {/* Tabs below the buttons */}
+        <Tabs
+          value={model.activeSheet}
+          onChange={(event, newValue: string) => handleSheetChange(newValue)}
+          indicatorColor="primary"
+          textColor="primary"
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            flexShrink: 0,
+            backgroundColor: "#fff",
+          }}
+        >
+          {Object.keys(model.allChartData as object || {}).map((sheetName) => (
+            <Tab
+              key={sheetName}
+              label={sheetName}
+              value={sheetName}
+              sx={{
+                fontSize: "11px",
+                backgroundColor:
+                  model.activeSheet === sheetName ? "#e0e0e0" : "#f5f5f5",
+                color: model.activeSheet === sheetName ? "#000" : "#555",
+                "&:hover": { backgroundColor: "#d6d6d6" },
+                textTransform: "none",
+                minHeight: 36,
+                px: 1.5,
+              }}
+            />
+          ))}
+        </Tabs>
 
         {/* Second Tab Bar: Content Type */}
         <Tabs

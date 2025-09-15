@@ -404,6 +404,8 @@ const DikeDesigner = (
                         chartContainerRef={chartContainerRef}
                         model={model}
                         handleCellChange={handleCellChange}
+                        handleClearExcel={handleClearExcel}
+                        handleExcelUpload={handleExcelUpload}
                     />
                 );
             })()}

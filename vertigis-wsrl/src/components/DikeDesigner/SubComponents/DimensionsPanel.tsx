@@ -5,7 +5,7 @@ import FilterIcon from "@mui/icons-material/Filter";
 import InsightsIcon from '@mui/icons-material/Insights';
 import MapIcon from "@mui/icons-material/Map";
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
-import TableRowsIcon from "@mui/icons-material/TableRows";
+// import TableRowsIcon from "@mui/icons-material/TableRows";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import {
     Stack,
@@ -86,7 +86,7 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
                             fontSize: "9px",
                         }}
                     >
-                        Teken lijn
+                        Teken referentielijn
                     </Button>
                     <Button
                         color="primary"
@@ -205,7 +205,7 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
                     hidden
                     onChange={handleFileChange}
                 />
-                <Button
+                {/* <Button
                     variant="contained"
                     component="label"
                     startIcon={<TableRowsIcon />}
@@ -229,7 +229,7 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
                     fullWidth
                 >
                     Verwijder ontwerpen
-                </Button>
+                </Button> */}
             </Stack>
             <Stack spacing={1.5} sx={stackStyle}>
                 <Button
@@ -240,7 +240,7 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
                     fullWidth
                     disabled={model.designPanelVisible}
                 >
-                    Toon ontwerp-paneel
+                    Open 2D-ontwerpen
                 </Button>
 
                 {/* Grid-size input */}
@@ -368,7 +368,7 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
                     onClick={handleCreateCrossSection()}
                     fullWidth
                 >
-                    Maak dwarsprofiel
+                    Controleer dwarsprofiel
                 </Button>
                 {/* <Button
                     // disabled={!model.chartData?.length}
