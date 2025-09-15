@@ -212,7 +212,7 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
                     color="primary"
                     fullWidth
                 >
-                    Upload Excel
+                    Upload ontwerpen (Excel)
                     <input
                         type="file"
                         accept=".xlsx, .xls"
@@ -228,7 +228,7 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
                     onClick={handleClearExcel}
                     fullWidth
                 >
-                    Verwijder Excel
+                    Verwijder ontwerpen
                 </Button>
             </Stack>
             <Stack spacing={1.5} sx={stackStyle}>
