@@ -238,7 +238,7 @@ const DimensionsPanel: React.FC<DimensionsPanelProps> = ({
                     startIcon={<FilterIcon />}
                     onClick={handleOpenOverview}
                     fullWidth
-                    disabled={!model.chartData?.length || model.designPanelVisible}
+                    disabled={model.designPanelVisible}
                 >
                     Toon ontwerp-paneel
                 </Button>

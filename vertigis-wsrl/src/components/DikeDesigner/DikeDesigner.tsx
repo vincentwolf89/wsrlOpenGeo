@@ -229,7 +229,7 @@ const DikeDesigner = (
     };
 
     const handleClearExcel = () => {
-        model.chartData = null;
+        model.chartData = [];
     };
     const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         setdesignPanelVisible(true); // Close the overview when uploading a new Excel file
@@ -389,18 +389,24 @@ const DikeDesigner = (
 
 
             {/* Paper for Chart and Table */}
-            {model.designPanelVisible && model.chartData && (
-                <ChartAndTablePanel
-                    setdesignPanelVisible={setdesignPanelVisible}
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                    mapLeftBorder={mapLeftBorder}
-                    mapRightBorder={mapRightBorder}
-                    chartContainerRef={chartContainerRef}
-                    model={model}
-                    handleCellChange={handleCellChange}
-                />
-            )}
+            {model.designPanelVisible && (() => {
+                // Initialize empty data if needed
+                if (!model.chartData || model.chartData.length === 0) {
+                    model.initializeEmptyChartData();
+                }
+                return (
+                    <ChartAndTablePanel
+                        setdesignPanelVisible={setdesignPanelVisible}
+                        activeTab={activeTab}
+                        setActiveTab={setActiveTab}
+                        mapLeftBorder={mapLeftBorder}
+                        mapRightBorder={mapRightBorder}
+                        chartContainerRef={chartContainerRef}
+                        model={model}
+                        handleCellChange={handleCellChange}
+                    />
+                );
+            })()}
             {/* Paper for Cross Section Chart */}
             {model.crossSectionPanelVisible && (
                 <CrossSectionChartPanel

@@ -77,7 +77,7 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
     excavationVolume: number = 0
     fillVolume: number = 0
 
-    chartData: any[] = null
+    chartData: any[] = []
     allChartData: Record<string, any[]> = {}
     excelSheets: Record<string, any[]> = {};
     activeSheet: string = "";
@@ -258,6 +258,29 @@ export default class DikeDesignerModel extends ComponentModelBase<DikeDesignerMo
 
     selectLineFromMap() {
     }
+
+    initializeEmptyChartData(): void {
+    if (!this.allChartData || Object.keys(this.allChartData).length === 0) {
+        // Create a default empty sheet
+        const defaultSheetName = "vak 1";
+        const defaultData = [
+            {
+                locatie: "",
+                afstand: "",
+                hoogte: "",
+            }
+        ];
+
+        this.allChartData = {
+            [defaultSheetName]: defaultData
+        };
+        
+        this.chartData = [...defaultData];
+        this.activeSheet = defaultSheetName;
+        
+        console.log("Initialized empty chart data with default sheet");
+    }
+}
 
     // here we need to make chartData contain all the sheets and forget about the excelsheets later
     handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {

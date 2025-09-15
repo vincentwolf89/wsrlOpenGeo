@@ -15,7 +15,7 @@ import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
 import ElevationLayer from "@arcgis/core/layers/ElevationLayer";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 
-import earcut from 'earcut';
+// import earcut from 'earcut';
 
 import Graphic from "@arcgis/core/Graphic";
 
